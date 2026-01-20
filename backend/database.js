@@ -30,16 +30,19 @@ if (USE_POSTGRES) {
     console.error('Unexpected error on idle client', err);
   });
 
-  // Initialize schema on first connection
+  // Initialize schema only if core tables are missing
   (async () => {
     try {
-      const initSql = fs.readFileSync(path.join(__dirname, 'scripts/upgrade-schema.sql'), 'utf8');
-      await pool.query(initSql);
-      console.log('✓ PostgreSQL schema initialized');
-    } catch (err) {
-      if (err.code !== '42P07') { // Ignore "relation already exists" error
-        console.error('Schema init warning:', err.message);
+      const { rows } = await pool.query("SELECT to_regclass('public.users') AS exists");
+      if (!rows[0] || !rows[0].exists) {
+        const schemaSql = fs.readFileSync(path.join(__dirname, 'scripts/schema.sql'), 'utf8');
+        await pool.query(schemaSql);
+        console.log('✓ PostgreSQL schema created');
+      } else {
+        console.log('✓ PostgreSQL schema present');
       }
+    } catch (err) {
+      console.error('Schema init warning:', err.message);
     }
   })();
 
