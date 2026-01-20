@@ -3,6 +3,8 @@ const db = require('../database');
 
 // Helper: Check if using PostgreSQL
 const isPostgres = () => db._isPostgres === true;
+// Helper to choose placeholder for SQLite vs Postgres
+const p = (n) => (isPostgres() ? `$${n}` : '?');
 
 module.exports = {
   getAll: async () => {
@@ -12,12 +14,12 @@ module.exports = {
   },
   
   getById: async (id) => {
-    const stmt = db.prepare('SELECT id, username, role FROM users WHERE id = $1');
+    const stmt = db.prepare(`SELECT id, username, role FROM users WHERE id = ${p(1)}`);
     return await stmt.get(id);
   },
   
   getByUsername: async (username) => {
-    const stmt = db.prepare('SELECT * FROM users WHERE username = $1');
+    const stmt = db.prepare(`SELECT * FROM users WHERE username = ${p(1)}`);
     return await stmt.get(username);
   },
   
@@ -29,7 +31,7 @@ module.exports = {
     // No need to pass id parameter
     const passwordHash = bcrypt.hashSync(password, 10);
     
-    const stmt = db.prepare('INSERT INTO users (username, password, role) VALUES ($1, $2, $3) RETURNING id, username, role');
+    const stmt = db.prepare(`INSERT INTO users (username, password, role) VALUES (${p(1)}, ${p(2)}, ${p(3)}) RETURNING id, username, role`);
     const result = await stmt.get(username, passwordHash, role);
     
     return result;
@@ -44,7 +46,7 @@ module.exports = {
     if (!user) return null;
     
     const { username, role } = updates;
-    const stmt = db.prepare('UPDATE users SET username = COALESCE($1, username), role = COALESCE($2, role) WHERE id = $3');
+    const stmt = db.prepare(`UPDATE users SET username = COALESCE(${p(1)}, username), role = COALESCE(${p(2)}, role) WHERE id = ${p(3)}`);
     await stmt.run(username, role, id);
     
     return await module.exports.getById(id);
