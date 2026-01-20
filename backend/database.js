@@ -41,6 +41,59 @@ if (USE_POSTGRES) {
       } else {
         console.log('✓ PostgreSQL schema present');
       }
+      // Seed data if empty and JSON sources exist
+      const countRes = await pool.query('SELECT COUNT(*)::int AS c FROM users');
+      if (countRes.rows[0].c === 0) {
+        try {
+          const usersJsonPath = path.join(__dirname, 'users.json');
+          const vinylsJsonPath = path.join(__dirname, 'vinyls.json');
+          if (fs.existsSync(usersJsonPath)) {
+            const uData = JSON.parse(fs.readFileSync(usersJsonPath, 'utf-8'));
+            const users = uData.users || [];
+            const idMap = new Map(); // old numeric id -> new UUID
+            for (const u of users) {
+              const ins = await pool.query(
+                'INSERT INTO users (username, password, role) VALUES ($1, $2, $3) ON CONFLICT (username) DO UPDATE SET username = EXCLUDED.username RETURNING id',
+                [u.username, u.passwordHash || u.password, u.role || 'user']
+              );
+              idMap.set(String(u.id), ins.rows[0].id);
+            }
+            console.log(`✓ Seeded ${users.length} users`);
+
+            if (fs.existsSync(vinylsJsonPath)) {
+              const vData = JSON.parse(fs.readFileSync(vinylsJsonPath, 'utf-8'));
+              const vinyls = vData.vinyls || [];
+              let vCount = 0, lCount = 0;
+              for (const v of vinyls) {
+                const ownerUuid = idMap.get(String(v.ownerId)) || [...idMap.values()][0];
+                const cover = (v.coverUrl && !/localhost/i.test(v.coverUrl)) ? v.coverUrl : null;
+                const music = (v.musicUrl && !/localhost/i.test(v.musicUrl)) ? v.musicUrl : null;
+                const insV = await pool.query(
+                  'INSERT INTO vinyls (title, artist, year, coverUrl, musicUrl, note, genre, ownerId) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id',
+                  [v.title, v.artist, v.year || null, cover, music, v.note || '', 'other', ownerUuid]
+                );
+                vCount++;
+                const vid = insV.rows[0].id;
+                if (Array.isArray(v.likes)) {
+                  for (const oldUid of v.likes) {
+                    const likeUuid = idMap.get(String(oldUid));
+                    if (likeUuid) {
+                      await pool.query(
+                        'INSERT INTO vinyl_likes (vinylId, userId) VALUES ($1,$2) ON CONFLICT DO NOTHING',
+                        [vid, likeUuid]
+                      );
+                      lCount++;
+                    }
+                  }
+                }
+              }
+              console.log(`✓ Seeded ${vCount} vinyls and ${lCount} likes`);
+            }
+          }
+        } catch (seedErr) {
+          console.error('Seed warning:', seedErr.message);
+        }
+      }
     } catch (err) {
       console.error('Schema init warning:', err.message);
     }
