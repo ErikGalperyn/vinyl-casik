@@ -15,7 +15,8 @@
 const { Pool } = require('pg');
 const Database = require('better-sqlite3');
 const path = require('path');
-require('dotenv').config();
+const fs = require('fs');
+try { require('dotenv').config(); } catch (_) {}
 
 // Colors for console output
 const colors = {
@@ -54,17 +55,23 @@ async function migrate() {
   }
 
   // Initialize PostgreSQL connection
-  const pgPool = new Pool({
-    user: process.env.DB_USER || 'medioteka_user',
-    password: process.env.DB_PASSWORD || 'medioteka_password',
-    host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || 5432,
-    database: process.env.DB_NAME || 'medioteka_db',
-  });
+  let pgConfig;
+  if (process.env.DATABASE_URL) {
+    pgConfig = { connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } };
+  } else {
+    pgConfig = {
+      user: process.env.DB_USER || 'medioteka_user',
+      password: process.env.DB_PASSWORD || 'medioteka_password',
+      host: process.env.DB_HOST || 'localhost',
+      port: process.env.DB_PORT || 5432,
+      database: process.env.DB_NAME || 'medioteka_db',
+    };
+  }
+  const pgPool = new Pool(pgConfig);
 
   try {
     await pgPool.query('SELECT 1');
-    log('success', `Connected to PostgreSQL at ${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || 5432}`);
+    log('success', `Connected to PostgreSQL (${process.env.DATABASE_URL ? 'DATABASE_URL' : `${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || 5432}`})`);
   } catch (err) {
     log('error', `Failed to connect to PostgreSQL: ${err.message}`);
     log('error', 'Make sure Docker is running: docker-compose up -d');
@@ -74,66 +81,31 @@ async function migrate() {
   const client = await pgPool.connect();
 
   try {
-    // Step 1: Create schema
-    log('info', 'Creating PostgreSQL schema...');
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS users (
-        id TEXT PRIMARY KEY,
-        username TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        role TEXT NOT NULL DEFAULT 'user',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-
-      CREATE TABLE IF NOT EXISTS vinyls (
-        id TEXT PRIMARY KEY,
-        title TEXT NOT NULL,
-        artist TEXT NOT NULL,
-        year INTEGER NOT NULL,
-        coverUrl TEXT,
-        musicUrl TEXT,
-        note TEXT,
-        ownerId TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (ownerId) REFERENCES users(id) ON DELETE CASCADE
-      );
-
-      CREATE TABLE IF NOT EXISTS vinyl_likes (
-        vinylId TEXT NOT NULL,
-        userId TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (vinylId, userId),
-        FOREIGN KEY (vinylId) REFERENCES vinyls(id) ON DELETE CASCADE,
-        FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
-      );
-
-      CREATE INDEX IF NOT EXISTS idx_vinyls_ownerId ON vinyls(ownerId);
-      CREATE INDEX IF NOT EXISTS idx_vinyl_likes_vinylId ON vinyl_likes(vinylId);
-      CREATE INDEX IF NOT EXISTS idx_vinyl_likes_userId ON vinyl_likes(userId);
-      CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
-    `);
-    log('success', 'Schema created');
+    // Step 1: Ensure schema via schema.sql
+    log('info', 'Ensuring PostgreSQL schema (schema.sql)...');
+    const schemaSql = require('fs').readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
+    await client.query(schemaSql);
+    log('success', 'Schema ensured');
 
     // Step 2: Migrate users
     log('info', 'Migrating users...');
     const users = sqliteDb.prepare('SELECT * FROM users').all();
+    const userIdMap = new Map();
     
     if (users.length > 0) {
       await client.query('BEGIN');
-      
       for (const user of users) {
-        // Generate new UUID for each user
-        await client.query(
+        const res = await client.query(
           `INSERT INTO users (username, password, role) 
            VALUES ($1, $2, $3)
-           ON CONFLICT (username) DO NOTHING`,
+           ON CONFLICT (username) DO UPDATE SET password = EXCLUDED.password, role = EXCLUDED.role
+           RETURNING id`,
           [user.username, user.password, user.role || 'user']
         );
+        userIdMap.set(String(user.id), res.rows[0].id);
       }
-      
       await client.query('COMMIT');
-      log('success', `Migrated ${users.length} users`);
+      log('success', `Migrated/upserted ${users.length} users`);
     } else {
       log('warn', 'No users found in SQLite');
     }
@@ -144,28 +116,22 @@ async function migrate() {
     
     if (vinyls.length > 0) {
       await client.query('BEGIN');
-      
-      // Get user mapping (old username -> new UUID)
-      const userMap = new Map();
-      const pgUsers = await client.query('SELECT id, username FROM users');
-      for (const u of pgUsers.rows) {
-        userMap.set(u.username, u.id);
-      }
-      
+
+      const BASE = process.env.BACKEND_PUBLIC_URL || process.env.PUBLIC_BACKEND_URL || process.env.BACKEND_URL || 'https://vinyl-casik-production.up.railway.app';
+      const rewriteUrl = (u) => (u ? u.replace(/^http:\/\/localhost:4001/, BASE) : null);
+
       for (const vinyl of vinyls) {
-        // Find owner by username from SQLite users
-        const sqliteOwner = sqliteDb.prepare('SELECT username FROM users WHERE id = ?').get(vinyl.ownerId);
-        const ownerUuid = sqliteOwner ? userMap.get(sqliteOwner.username) : null;
-        
-        if (ownerUuid) {
-          await client.query(
-            `INSERT INTO vinyls (title, artist, year, coverUrl, musicUrl, note, ownerId) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-            [vinyl.title, vinyl.artist, vinyl.year, vinyl.coverUrl || null, vinyl.musicUrl || null, vinyl.note || null, ownerUuid]
-          );
-        }
+        const ownerUuid = userIdMap.get(String(vinyl.ownerId));
+        if (!ownerUuid) continue;
+        const res = await client.query(
+          `INSERT INTO vinyls (title, artist, year, coverUrl, musicUrl, note, genre, ownerId)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+           RETURNING id`,
+          [vinyl.title, vinyl.artist, vinyl.year || null, rewriteUrl(vinyl.coverUrl), rewriteUrl(vinyl.musicUrl), vinyl.note || '', 'other', ownerUuid]
+        );
+        vinyl._pgId = res.rows[0].id;
       }
-      
+
       await client.query('COMMIT');
       log('success', `Migrated ${vinyls.length} vinyls`);
     } else {
@@ -178,16 +144,23 @@ async function migrate() {
     
     if (likes.length > 0) {
       await client.query('BEGIN');
-      
+      const vinylIdMap = new Map();
+      for (const v of vinyls) {
+        if (v._pgId) vinylIdMap.set(String(v.id), v._pgId);
+      }
+
       for (const like of likes) {
+        const vId = vinylIdMap.get(String(like.vinylId));
+        const uId = userIdMap.get(String(like.userId));
+        if (!vId || !uId) continue;
         await client.query(
           `INSERT INTO vinyl_likes (vinylId, userId) 
            VALUES ($1, $2)
            ON CONFLICT (vinylId, userId) DO NOTHING`,
-          [like.vinylId, like.userId]
+          [vId, uId]
         );
       }
-      
+
       await client.query('COMMIT');
       log('success', `Migrated ${likes.length} vinyl likes`);
     } else {

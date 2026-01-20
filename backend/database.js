@@ -26,6 +26,13 @@ if (USE_POSTGRES) {
   }
   const pool = new Pool(poolConfig);
 
+  const PUBLIC_BACKEND_URL = process.env.BACKEND_PUBLIC_URL || process.env.PUBLIC_BACKEND_URL || process.env.BACKEND_URL || '';
+  const rewriteMediaUrl = (url) => {
+    if (!url) return null;
+    if (!PUBLIC_BACKEND_URL) return url;
+    return url.replace(/^http:\/\/localhost:4001/, PUBLIC_BACKEND_URL);
+  };
+
   pool.on('error', (err) => {
     console.error('Unexpected error on idle client', err);
   });
@@ -72,8 +79,8 @@ if (USE_POSTGRES) {
           for (const v of vinyls) {
             const ownerUuid = idMap.get(String(v.ownerId)) || [...idMap.values()][0];
             if (!ownerUuid) continue;
-            const cover = (v.coverUrl && !/localhost/i.test(v.coverUrl)) ? v.coverUrl : null;
-            const music = (v.musicUrl && !/localhost/i.test(v.musicUrl)) ? v.musicUrl : null;
+            const cover = rewriteMediaUrl(v.coverUrl || null);
+            const music = rewriteMediaUrl(v.musicUrl || null);
             const insV = await pool.query(
               'INSERT INTO vinyls (title, artist, year, coverUrl, musicUrl, note, genre, ownerId) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id',
               [v.title, v.artist, v.year || null, cover, music, v.note || '', 'other', ownerUuid]

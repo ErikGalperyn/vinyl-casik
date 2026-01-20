@@ -2,7 +2,6 @@ node_modules/
 .next/
 .env
 *.log
-*.db
+.DS_Store
 medioteka.backup.db
-uploads/
 .DS_Store
