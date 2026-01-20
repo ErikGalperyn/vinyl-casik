@@ -4,4 +4,6 @@ node_modules/
 *.log
 .DS_Store
 medioteka.backup.db
+uploads/
+medioteka.db
 .DS_Store
