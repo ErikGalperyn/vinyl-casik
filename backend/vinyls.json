@@ -1,0 +1,114 @@
+{
+  "vinyls": [
+    {
+      "id": "1",
+      "title": "Good Lies",
+      "artist": "Overmono",
+      "year": 2023,
+      "coverUrl": "http://localhost:4001/cover-1764856889093-4a30x9.webp",
+      "musicUrl": "http://localhost:4001/music/music-1764856895756-n17aj.mp3",
+      "note": "",
+      "ownerId": 1,
+      "likes": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "2",
+      "title": "Remote Access Memories",
+      "artist": "Daft Punk",
+      "year": 2013,
+      "coverUrl": "http://localhost:4001/cover-1764857634229-cojt7.webp",
+      "musicUrl": "http://localhost:4001/music/music-1764857639085-isvzsh.mp3",
+      "note": "",
+      "ownerId": 1,
+      "likes": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "3",
+      "title": "4x4",
+      "artist": "Travis Scott",
+      "year": 2025,
+      "coverUrl": "http://localhost:4001/cover-1764857783748-2behlm.webp",
+      "note": "",
+      "ownerId": 1,
+      "likes": [
+        2,
+        1
+      ],
+      "musicUrl": "http://localhost:4001/music/music-1764857866197-g6nn5l.mp3"
+    },
+    {
+      "id": "4",
+      "title": "Money Trees",
+      "artist": "Kendrick Lamar",
+      "year": 2012,
+      "coverUrl": "http://localhost:4001/cover-1764858052133-uqgneu.webp",
+      "note": "",
+      "ownerId": 1,
+      "likes": [
+        1
+      ],
+      "musicUrl": "http://localhost:4001/music/music-1764858077880-v5a92.mp3"
+    },
+    {
+      "id": "5",
+      "title": "Money",
+      "artist": "Rocket",
+      "year": 2019,
+      "coverUrl": "http://localhost:4001/cover-1764858227013-hrcbhi.webp",
+      "note": "",
+      "ownerId": 1,
+      "likes": [
+        1,
+        2
+      ],
+      "musicUrl": "http://localhost:4001/music/music-1764858244428-ywr159.mp3"
+    },
+    {
+      "id": "6",
+      "title": "Views",
+      "artist": "Drake",
+      "year": 2015,
+      "coverUrl": "http://localhost:4001/cover-1764859485692-5acwlp.webp",
+      "note": "",
+      "ownerId": 1,
+      "likes": [
+        1,
+        2
+      ],
+      "musicUrl": "http://localhost:4001/music/music-1764859510111-ym3aug.mp3"
+    },
+    {
+      "id": "10",
+      "title": "stayinit",
+      "artist": "Fred again.. · Lil Yachty · Overmono",
+      "year": 2025,
+      "coverUrl": "http://localhost:4001/cover-1764875783647-i1519.webp",
+      "musicUrl": "http://localhost:4001/music/music-1764875790475-kwbsg.mp3",
+      "note": "",
+      "ownerId": 1,
+      "likes": [
+        1
+      ]
+    },
+    {
+      "id": "11",
+      "title": "End of Beginning ",
+      "artist": "Djo",
+      "year": 2022,
+      "coverUrl": "http://localhost:4001/cover-1764876854691-sf7fqr.webp",
+      "musicUrl": "http://localhost:4001/music/music-1764876868532-9q0mz.mp3",
+      "note": "",
+      "ownerId": 2,
+      "likes": [
+        1
+      ]
+    }
+  ],
+  "nextId": 13
+}

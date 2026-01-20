@@ -1,0 +1,17 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "Swwaggy",
+      "passwordHash": "$2a$10$I69Um4L4K7n/lXSHZ4jR.uRsRRGd..GD5EcjprjIOjEpnlE8r0j5W",
+      "role": "admin"
+    },
+    {
+      "id": 2,
+      "username": "PepeNestea",
+      "passwordHash": "$2a$10$fYwwWKu8DP2InhVHq77n/eKWRXSilvlBIkj9BvVxp94adLisUmWK6",
+      "role": "user"
+    }
+  ],
+  "nextId": 3
+}
