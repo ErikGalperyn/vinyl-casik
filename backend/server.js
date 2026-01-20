@@ -311,6 +311,15 @@ app.delete('/users/:id', authMiddleware, roleMiddleware(['admin']), async (req, 
   res.status(204).end();
 });
 
+// Health check endpoint
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', message: 'Medioteka backend is running' });
+});
+
+app.get('/health', (req, res) => {
+  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+});
+
 const PORT = process.env.PORT || 4001;
 const HOST = process.env.HOST || '0.0.0.0';
 app.listen(PORT, HOST, () => console.log(`Medioteka backend on http://${HOST}:${PORT}`));
