@@ -1,5 +1,8 @@
 {
   "build": {
     "builder": "nixpacks"
+  },
+  "deploy": {
+    "rootDirectory": "backend"
   }
 }
