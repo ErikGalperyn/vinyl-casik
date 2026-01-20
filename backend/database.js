@@ -72,7 +72,9 @@ if (USE_POSTGRES) {
         }
 
         const vinylsCountRes = await pool.query('SELECT COUNT(*)::int AS c FROM vinyls');
-        if (vinylsCountRes.rows[0].c === 0 && fs.existsSync(vinylsJsonPath)) {
+        if (fs.existsSync(vinylsJsonPath)) {
+          // Clear existing vinyls and likes if we have JSON data
+          await pool.query('TRUNCATE vinyls, vinyl_likes CASCADE');
           const vData = JSON.parse(fs.readFileSync(vinylsJsonPath, 'utf-8'));
           const vinyls = vData.vinyls || [];
           let vCount = 0, lCount = 0;
