@@ -123,11 +123,12 @@ async function migrate() {
       await client.query('BEGIN');
       
       for (const user of users) {
+        // Generate new UUID for each user
         await client.query(
-          `INSERT INTO users (id, username, password, role) 
-           VALUES ($1, $2, $3, $4)
-           ON CONFLICT (id) DO NOTHING`,
-          [user.id, user.username, user.password, user.role || 'user']
+          `INSERT INTO users (username, password, role) 
+           VALUES ($1, $2, $3)
+           ON CONFLICT (username) DO NOTHING`,
+          [user.username, user.password, user.role || 'user']
         );
       }
       
@@ -144,22 +145,25 @@ async function migrate() {
     if (vinyls.length > 0) {
       await client.query('BEGIN');
       
+      // Get user mapping (old username -> new UUID)
+      const userMap = new Map();
+      const pgUsers = await client.query('SELECT id, username FROM users');
+      for (const u of pgUsers.rows) {
+        userMap.set(u.username, u.id);
+      }
+      
       for (const vinyl of vinyls) {
-        await client.query(
-          `INSERT INTO vinyls (id, title, artist, year, coverUrl, musicUrl, note, ownerId) 
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-           ON CONFLICT (id) DO NOTHING`,
-          [
-            vinyl.id,
-            vinyl.title,
-            vinyl.artist,
-            vinyl.year,
-            vinyl.coverUrl || null,
-            vinyl.musicUrl || null,
-            vinyl.note || null,
-            vinyl.ownerId
-          ]
-        );
+        // Find owner by username from SQLite users
+        const sqliteOwner = sqliteDb.prepare('SELECT username FROM users WHERE id = ?').get(vinyl.ownerId);
+        const ownerUuid = sqliteOwner ? userMap.get(sqliteOwner.username) : null;
+        
+        if (ownerUuid) {
+          await client.query(
+            `INSERT INTO vinyls (title, artist, year, coverUrl, musicUrl, note, ownerId) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [vinyl.title, vinyl.artist, vinyl.year, vinyl.coverUrl || null, vinyl.musicUrl || null, vinyl.note || null, ownerUuid]
+          );
+        }
       }
       
       await client.query('COMMIT');

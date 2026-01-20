@@ -30,6 +30,19 @@ if (USE_POSTGRES) {
     console.error('Unexpected error on idle client', err);
   });
 
+  // Initialize schema on first connection
+  (async () => {
+    try {
+      const initSql = fs.readFileSync(path.join(__dirname, 'scripts/upgrade-schema.sql'), 'utf8');
+      await pool.query(initSql);
+      console.log('✓ PostgreSQL schema initialized');
+    } catch (err) {
+      if (err.code !== '42P07') { // Ignore "relation already exists" error
+        console.error('Schema init warning:', err.message);
+      }
+    }
+  })();
+
   // Wrapper object that provides async/sync interface
   db = {
     _isPostgres: true,
