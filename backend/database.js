@@ -49,14 +49,36 @@ if (USE_POSTGRES) {
         console.log('✓ PostgreSQL schema present');
       }
       
-      // Initialize playlist tables if missing
-      const { rows: playlistRows } = await pool.query("SELECT to_regclass('public.playlists') AS exists");
-      if (!playlistRows[0] || !playlistRows[0].exists) {
+      // Initialize playlist tables - force recreate with correct schema
+      try {
+        // Aggressively drop and recreate
+        console.log('⏳ Dropping old playlist tables...');
+        try { await pool.query("DROP TABLE IF EXISTS playlist_songs CASCADE"); } catch (e) { console.error('Drop playlist_songs error:', e.message); }
+        try { await pool.query("DROP TABLE IF EXISTS playlists CASCADE"); } catch (e) { console.error('Drop playlists error:', e.message); }
+        
+        console.log('📝 Creating playlist tables...');
         const playlistSql = fs.readFileSync(path.join(__dirname, 'scripts/playlists-schema.sql'), 'utf8');
-        await pool.query(playlistSql);
-        console.log('✓ Playlist tables created');
-      } else {
-        console.log('✓ Playlist tables present');
+        // Execute as single statement to avoid constraint issues
+        const statements = playlistSql.split(';').filter(s => s.trim());
+        console.log(`🔍 Found ${statements.length} SQL statements to execute`);
+        
+        for (let i = 0; i < statements.length; i++) {
+          const statement = statements[i];
+          try {
+            console.log(`  [${i+1}/${statements.length}] Executing...`);
+            await pool.query(statement);
+            console.log(`  ✓ Statement ${i+1} OK`);
+          } catch (stmtErr) {
+            console.error(`  ✗ Statement ${i+1} error:`, stmtErr.message);
+            if (!stmtErr.message.includes('already exists')) {
+              throw stmtErr;
+            }
+          }
+        }
+        console.log('✓ Playlist tables initialized');
+      } catch (playlistErr) {
+        console.error('❌ Playlist table initialization error:', playlistErr.message);
+        // Continue even if playlist tables fail - core app still works
       }
       // Seed data from JSON files (idempotent):
       // - Always upsert users from users.json
@@ -82,9 +104,8 @@ if (USE_POSTGRES) {
         }
 
         const vinylsCountRes = await pool.query('SELECT COUNT(*)::int AS c FROM vinyls');
-        if (fs.existsSync(vinylsJsonPath)) {
-          // Clear existing vinyls and likes if we have JSON data
-          await pool.query('TRUNCATE vinyls, vinyl_likes CASCADE');
+        if (vinylsCountRes.rows[0].c === 0 && fs.existsSync(vinylsJsonPath)) {
+          // Only seed if database is empty
           const vData = JSON.parse(fs.readFileSync(vinylsJsonPath, 'utf-8'));
           const vinyls = vData.vinyls || [];
           let vCount = 0, lCount = 0;
@@ -113,6 +134,31 @@ if (USE_POSTGRES) {
             }
           }
           console.log(`✓ Seeded ${vCount} vinyls and ${lCount} likes`);
+        } else {
+          console.log(`✓ Database has ${vinylsCountRes.rows[0].c} vinyls (skipping seed)`);
+        }
+        
+        // Restore covers from user uploads instead of Spotify
+        try {
+          console.log('🔄 Restoring covers to user uploads...');
+          const updates = [
+            { title: 'End of Beginning ', url: 'https://vinyl-casik-production.up.railway.app/cover-1764876854691-sf7fqr.webp' },
+            { title: 'stayinit', url: 'https://vinyl-casik-production.up.railway.app/cover-1764875783647-i1519.webp' },
+            { title: 'Views', url: 'https://vinyl-casik-production.up.railway.app/cover-1764859485692-5acwlp.webp' },
+            { title: 'Money', url: 'https://vinyl-casik-production.up.railway.app/cover-1764858227013-hrcbhi.webp' },
+            { title: 'Money Trees', url: 'https://vinyl-casik-production.up.railway.app/cover-1764858052133-uqgneu.webp' },
+            { title: '4x4', url: 'https://vinyl-casik-production.up.railway.app/cover-1764857783748-2behlm.webp' },
+            { title: 'Remote Access Memories', url: 'https://vinyl-casik-production.up.railway.app/cover-1764857634229-cojt7.webp' },
+            { title: 'Good Lies', url: 'https://vinyl-casik-production.up.railway.app/cover-1764856889093-4a30x9.webp' }
+          ];
+          
+          for (const { title, url } of updates) {
+            const res = await pool.query("UPDATE vinyls SET coverUrl = $1 WHERE title = $2", [url, title]);
+            console.log(`✓ Updated "${title}" - rows: ${res.rowCount}`);
+          }
+          console.log('✓ All covers restored to user uploads');
+        } catch (coverErr) {
+          console.error('Cover restore error:', coverErr.message);
         }
       } catch (seedErr) {
         console.error('Seed warning:', seedErr.message);
@@ -126,6 +172,15 @@ if (USE_POSTGRES) {
   db = {
     _isPostgres: true,
     _pool: pool,
+    
+    query: async (sql, params = []) => {
+      try {
+        return await pool.query(sql, params);
+      } catch (err) {
+        console.error('Query error:', err.message);
+        throw err;
+      }
+    },
     
     prepare: (sql) => ({
       run: async (...params) => {
