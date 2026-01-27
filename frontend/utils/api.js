@@ -125,4 +125,45 @@ export async function deleteUser(id) {
   return res.status === 204;
 }
 
+// Playlists
+export async function getPlaylists() {
+  const res = await api.get('/playlists');
+  return res.data;
+}
+
+export async function getPlaylist(id) {
+  const res = await api.get(`/playlists/${id}`);
+  return res.data;
+}
+
+export async function createPlaylist(data) {
+  const res = await api.post('/playlists', data);
+  return res.data;
+}
+
+export async function updatePlaylist(id, data) {
+  const res = await api.put(`/playlists/${id}`, data);
+  return res.data;
+}
+
+export async function deletePlaylist(id) {
+  const res = await api.delete(`/playlists/${id}`);
+  return res.status === 204;
+}
+
+export async function addSongToPlaylist(playlistId, vinylId) {
+  const res = await api.post(`/playlists/${playlistId}/songs`, { vinylId });
+  return res.data;
+}
+
+export async function removeSongFromPlaylist(playlistId, vinylId) {
+  const res = await api.delete(`/playlists/${playlistId}/songs/${vinylId}`);
+  return res.status === 204;
+}
+
+export async function reorderPlaylist(playlistId, songOrder) {
+  const res = await api.put(`/playlists/${playlistId}/reorder`, { songOrder });
+  return res.data;
+}
+
 export default api;

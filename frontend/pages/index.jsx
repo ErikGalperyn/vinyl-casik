@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
-import { getVinyls, createVinyl, updateVinyl, deleteVinyl, getToken, clearToken, likeVinyl, unlikeVinyl, uploadCover, uploadMusic, searchSpotify } from '../utils/api';
+import { getVinyls, createVinyl, updateVinyl, deleteVinyl, getToken, clearToken, likeVinyl, unlikeVinyl, uploadCover, uploadMusic, searchSpotify, getPlaylists, createPlaylist, updatePlaylist, deletePlaylist, addSongToPlaylist, removeSongFromPlaylist, reorderPlaylist, getPlaylist } from '../utils/api';
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
+import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 function Modal({ children, onClose }) {
   return (
@@ -9,6 +12,47 @@ function Modal({ children, onClose }) {
         {children}
       </div>
     </div>
+  );
+}
+
+// Sortable item for drag and drop
+function SortableItem({ id, song, onRemove, playlistId }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <li ref={setNodeRef} style={style} className="playlist-song-item">
+      <div className="playlist-song-drag-handle" {...attributes} {...listeners}>
+        ⋮⋮
+      </div>
+      {song.coverUrl ? (
+        <img src={song.coverUrl} alt={song.title} className="playlist-song-cover" />
+      ) : (
+        <div className="playlist-song-cover" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }} />
+      )}
+      <div className="playlist-song-info">
+        <p className="playlist-song-title">{song.title}</p>
+        <p className="playlist-song-artist">{song.artist} • {song.year}</p>
+      </div>
+      <button
+        className="playlist-song-remove"
+        onClick={() => onRemove(playlistId, song.id)}
+      >
+        Remove
+      </button>
+    </li>
   );
 }
 
@@ -72,6 +116,23 @@ export default function Home() {
     playerBet: 0,
     stats: { wins: 0, losses: 0, pushes: 0, totalEarnings: 0 }
   });
+  
+  // Playlist states
+  const [playlists, setPlaylists] = useState([]);
+  const [showPlaylistForm, setShowPlaylistForm] = useState(false);
+  const [playlistForm, setPlaylistForm] = useState({ name: '', description: '', coverUrl: '' });
+  const [editingPlaylist, setEditingPlaylist] = useState(null);
+  const [selectedPlaylist, setSelectedPlaylist] = useState(null);
+  const [showAddToPlaylist, setShowAddToPlaylist] = useState(null); // vinyl to add
+  const [activeId, setActiveId] = useState(null); // for drag and drop
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   const extractColorsFromImage = useCallback(async (imageUrl) => {
     try {
@@ -155,6 +216,8 @@ export default function Home() {
       }
       const data = await getVinyls();
       setVinyls(data);
+      const playlistsData = await getPlaylists();
+      setPlaylists(playlistsData);
     } catch (err) {
       console.error('Load error:', err);
       if (err.response?.status === 401) {
@@ -821,6 +884,117 @@ export default function Home() {
   
   const topVinyls = [...vinyls].sort((a, b) => (b.likes?.length || 0) - (a.likes?.length || 0)).slice(0, 10);
   
+  // ===== PLAYLIST FUNCTIONS =====
+  
+  function openPlaylistForm() {
+    setEditingPlaylist(null);
+    setPlaylistForm({ name: '', description: '', coverUrl: '' });
+    setShowPlaylistForm(true);
+  }
+
+  function openEditPlaylist(playlist) {
+    setEditingPlaylist(playlist);
+    setPlaylistForm({ 
+      name: playlist.name, 
+      description: playlist.description || '', 
+      coverUrl: playlist.cover_url || '' 
+    });
+    setShowPlaylistForm(true);
+  }
+
+  async function handlePlaylistSubmit(e) {
+    e.preventDefault();
+    try {
+      if (editingPlaylist) {
+        await updatePlaylist(editingPlaylist.id, playlistForm);
+      } else {
+        await createPlaylist(playlistForm);
+      }
+      const playlistsData = await getPlaylists();
+      setPlaylists(playlistsData);
+      setShowPlaylistForm(false);
+    } catch (err) {
+      alert('Error: ' + (err.response?.data?.message || err.message));
+    }
+  }
+
+  async function handleDeletePlaylist(id) {
+    if (!confirm('Delete this playlist?')) return;
+    try {
+      await deletePlaylist(id);
+      const playlistsData = await getPlaylists();
+      setPlaylists(playlistsData);
+      if (selectedPlaylist?.id === id) {
+        setSelectedPlaylist(null);
+      }
+    } catch (err) {
+      alert('Error: ' + (err.response?.data?.message || err.message));
+    }
+  }
+
+  async function handleAddToPlaylist(playlistId) {
+    if (!showAddToPlaylist) return;
+    try {
+      await addSongToPlaylist(playlistId, showAddToPlaylist.id);
+      alert('Added to playlist!');
+      setShowAddToPlaylist(null);
+      // Refresh selected playlist if it's open
+      if (selectedPlaylist?.id === playlistId) {
+        const updated = await getPlaylist(playlistId);
+        setSelectedPlaylist(updated);
+      }
+    } catch (err) {
+      alert('Error: ' + (err.response?.data?.message || err.message));
+    }
+  }
+
+  async function handleRemoveFromPlaylist(playlistId, vinylId) {
+    try {
+      await removeSongFromPlaylist(playlistId, vinylId);
+      const updated = await getPlaylist(playlistId);
+      setSelectedPlaylist(updated);
+    } catch (err) {
+      alert('Error: ' + (err.response?.data?.message || err.message));
+    }
+  }
+
+  async function handleDragEnd(event) {
+    const { active, over } = event;
+    
+    if (!over || active.id === over.id) {
+      setActiveId(null);
+      return;
+    }
+
+    if (selectedPlaylist) {
+      const oldIndex = selectedPlaylist.songs.findIndex(s => s.id === active.id);
+      const newIndex = selectedPlaylist.songs.findIndex(s => s.id === over.id);
+      
+      const reordered = arrayMove(selectedPlaylist.songs, oldIndex, newIndex);
+      setSelectedPlaylist({ ...selectedPlaylist, songs: reordered });
+      
+      try {
+        await reorderPlaylist(selectedPlaylist.id, reordered.map(s => s.id));
+      } catch (err) {
+        console.error('Reorder error:', err);
+        // Revert on error
+        const updated = await getPlaylist(selectedPlaylist.id);
+        setSelectedPlaylist(updated);
+      }
+    }
+    
+    setActiveId(null);
+  }
+
+  async function openPlaylistDetail(playlist) {
+    try {
+      const detailed = await getPlaylist(playlist.id);
+      setSelectedPlaylist(detailed);
+    } catch (err) {
+      alert('Error: ' + (err.response?.data?.message || err.message));
+    }
+  }
+  
   const toggleSpin = (vinylId) => {
     const id = String(vinylId);
     const currentlySpinning = Object.keys(spinningVinyls).find(key => spinningVinyls[key]);
@@ -1384,6 +1558,60 @@ export default function Home() {
               </div>
             </div>
 
+            {/* ==== PLAYLISTS SECTION ==== */}
+            <div className="playlists-section">
+              <div className="playlists-header">
+                <h2>🎵 My Playlists</h2>
+                <button onClick={openPlaylistForm} className="create-playlist-btn">
+                  <span>+ Create Playlist</span>
+                </button>
+              </div>
+
+              {playlists.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '60px 20px', color: '#666' }}>
+                  <div style={{ fontSize: 48, marginBottom: 16 }}>🎶</div>
+                  <p style={{ margin: 0, fontSize: 18, fontWeight: 600 }}>No playlists yet</p>
+                  <p style={{ margin: '8px 0 0 0', fontSize: 14 }}>Create your first playlist to organize your music!</p>
+                </div>
+              ) : (
+                <div className="playlists-grid">
+                  {playlists.map(playlist => (
+                    <div key={playlist.id} className="playlist-card" onClick={() => openPlaylistDetail(playlist)}>
+                      {playlist.cover_url ? (
+                        <img src={playlist.cover_url} alt={playlist.name} className="playlist-cover" />
+                      ) : (
+                        <div className="playlist-cover-placeholder">
+                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                          </svg>
+                        </div>
+                      )}
+                      <div className="playlist-info">
+                        <h3 className="playlist-name">{playlist.name}</h3>
+                        <div className="playlist-meta">
+                          <span>{playlist.song_count || 0} songs</span>
+                        </div>
+                      </div>
+                      <div className="playlist-actions" onClick={(e) => e.stopPropagation()}>
+                        <button 
+                          className="playlist-action-btn playlist-edit-btn"
+                          onClick={() => openEditPlaylist(playlist)}
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          className="playlist-action-btn playlist-delete-btn"
+                          onClick={() => handleDeletePlaylist(playlist.id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div style={{ marginTop: 60, borderTop: '2px solid #000', paddingTop: 40 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                 <h2 style={{ margin: 0, fontSize: 24, fontWeight: 700 }}>Complete Collection</h2>
@@ -1450,26 +1678,34 @@ export default function Home() {
                       )}
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      {v.musicUrl && (
-                        <button
-                          onClick={() => toggleSpin(v.id)}
-                          style={{ background: spinningVinyls[v.id] ? '#ff006e' : '#000', color: 'white', border: 'none', padding: '8px 16px', borderRadius: 20, cursor: 'pointer', fontSize: 12, fontWeight: 500, transition: 'all 0.2s', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}
-                          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        {v.musicUrl && (
+                          <button
+                            onClick={() => toggleSpin(v.id)}
+                            style={{ background: spinningVinyls[v.id] ? '#ff006e' : '#000', color: 'white', border: 'none', padding: '8px 16px', borderRadius: 20, cursor: 'pointer', fontSize: 12, fontWeight: 500, transition: 'all 0.2s', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}
+                            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                          >
+                            {spinningVinyls[v.id] ? '⏸' : '▶'} {spinningVinyls[v.id] ? 'Pause' : 'Play'}
+                          </button>
+                        )}
+                        <button 
+                          onClick={() => handleLike(v.id)} 
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, padding: 4, transition: 'all 0.2s' }}
+                          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.2)'}
                           onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                         >
-                          {spinningVinyls[v.id] ? '⏸' : '▶'} {spinningVinyls[v.id] ? 'Pause' : 'Play'}
+                          {v.likes?.includes(user?.id) ? '❤️' : '🤍'}
                         </button>
-                      )}
-                      <button 
-                        onClick={() => handleLike(v.id)} 
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, padding: 4, transition: 'all 0.2s' }}
-                        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.2)'}
-                        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                        <span style={{ fontSize: 14, color: '#666', minWidth: 30 }}>{v.likes?.length || 0}</span>
+                      </div>
+                      <button
+                        onClick={() => setShowAddToPlaylist(v)}
+                        className="add-to-playlist-btn"
                       >
-                        {v.likes?.includes(user?.id) ? '❤️' : '🤍'}
+                        + Add to Playlist
                       </button>
-                      <span style={{ fontSize: 14, color: '#666', minWidth: 30 }}>{v.likes?.length || 0}</span>
                     </div>
 
                     {(user?.role === 'admin' || (user?.role === 'user' && v.ownerId === user?.id)) && (
@@ -1875,6 +2111,176 @@ export default function Home() {
                   <span style={{ fontSize: 16, color: 'rgba(255,255,255,0.9)', minWidth: 40, fontWeight: 700, textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>{Math.round(volume * 100)}</span>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Playlist Form Modal */}
+        {showPlaylistForm && (
+          <div className="modal-overlay" onClick={() => setShowPlaylistForm(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>{editingPlaylist ? 'Edit Playlist' : 'Create Playlist'}</h3>
+                <button className="modal-close" onClick={() => setShowPlaylistForm(false)}>×</button>
+              </div>
+              <form onSubmit={handlePlaylistSubmit}>
+                <div className="form-group">
+                  <label>Playlist Name*</label>
+                  <input
+                    type="text"
+                    value={playlistForm.name}
+                    onChange={(e) => setPlaylistForm({ ...playlistForm, name: e.target.value })}
+                    placeholder="My Awesome Playlist"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Description</label>
+                  <textarea
+                    value={playlistForm.description}
+                    onChange={(e) => setPlaylistForm({ ...playlistForm, description: e.target.value })}
+                    placeholder="Tell us about this playlist..."
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Cover URL</label>
+                  <input
+                    type="url"
+                    value={playlistForm.coverUrl}
+                    onChange={(e) => setPlaylistForm({ ...playlistForm, coverUrl: e.target.value })}
+                    placeholder="https://..."
+                  />
+                </div>
+                <div className="modal-actions">
+                  <button type="button" className="modal-btn modal-btn-secondary" onClick={() => setShowPlaylistForm(false)}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="modal-btn modal-btn-primary">
+                    {editingPlaylist ? 'Save Changes' : 'Create Playlist'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Add to Playlist Modal */}
+        {showAddToPlaylist && (
+          <div className="modal-overlay" onClick={() => setShowAddToPlaylist(null)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>Add to Playlist</h3>
+                <button className="modal-close" onClick={() => setShowAddToPlaylist(null)}>×</button>
+              </div>
+              <p style={{ margin: '0 0 20px 0', color: '#666' }}>
+                Add <strong>{showAddToPlaylist.title}</strong> to:
+              </p>
+              {playlists.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#666' }}>
+                  <p>No playlists yet. Create one first!</p>
+                  <button 
+                    className="modal-btn modal-btn-primary"
+                    onClick={() => {
+                      setShowAddToPlaylist(null);
+                      openPlaylistForm();
+                    }}
+                    style={{ marginTop: 12 }}
+                  >
+                    Create Playlist
+                  </button>
+                </div>
+              ) : (
+                <div className="playlist-selector">
+                  {playlists.map(playlist => (
+                    <div
+                      key={playlist.id}
+                      className="playlist-selector-item"
+                      onClick={() => handleAddToPlaylist(playlist.id)}
+                    >
+                      {playlist.cover_url ? (
+                        <img src={playlist.cover_url} alt={playlist.name} style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ width: 40, height: 40, borderRadius: 8, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 20 }}>
+                          🎵
+                        </div>
+                      )}
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 600 }}>{playlist.name}</div>
+                        <div style={{ fontSize: 12, opacity: 0.7 }}>{playlist.song_count || 0} songs</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Playlist Detail Modal with Drag & Drop */}
+        {selectedPlaylist && (
+          <div className="modal-overlay" onClick={() => setSelectedPlaylist(null)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ minWidth: 600, maxWidth: '90vw' }}>
+              <div className="modal-header">
+                <h3>{selectedPlaylist.name}</h3>
+                <button className="modal-close" onClick={() => setSelectedPlaylist(null)}>×</button>
+              </div>
+              
+              {selectedPlaylist.description && (
+                <p style={{ margin: '0 0 20px 0', color: '#666', lineHeight: 1.6 }}>
+                  {selectedPlaylist.description}
+                </p>
+              )}
+
+              <div style={{ marginBottom: 16, padding: 12, background: '#f8f9fa', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ fontSize: 28 }}>🎵</div>
+                <div>
+                  <div style={{ fontWeight: 600, color: '#495057' }}>
+                    {selectedPlaylist.songs?.length || 0} songs in this playlist
+                  </div>
+                  <div style={{ fontSize: 13, color: '#868e96' }}>
+                    Drag songs to reorder them
+                  </div>
+                </div>
+              </div>
+
+              {selectedPlaylist.songs && selectedPlaylist.songs.length > 0 ? (
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragStart={(event) => setActiveId(event.active.id)}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={selectedPlaylist.songs.map(s => s.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <ul className="playlist-songs-list">
+                      {selectedPlaylist.songs.map(song => (
+                        <SortableItem
+                          key={song.id}
+                          id={song.id}
+                          song={song}
+                          onRemove={handleRemoveFromPlaylist}
+                          playlistId={selectedPlaylist.id}
+                        />
+                      ))}
+                    </ul>
+                  </SortableContext>
+                  <DragOverlay>
+                    {activeId ? (
+                      <div className="drag-overlay">
+                        Dragging...
+                      </div>
+                    ) : null}
+                  </DragOverlay>
+                </DndContext>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#666' }}>
+                  <div style={{ fontSize: 48, marginBottom: 16 }}>🎶</div>
+                  <p style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>No songs in this playlist yet</p>
+                  <p style={{ margin: '8px 0 0 0', fontSize: 14 }}>Click "Add to Playlist" on any song to add it here!</p>
+                </div>
+              )}
             </div>
           </div>
         )}

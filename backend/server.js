@@ -11,6 +11,7 @@ const sharp = require('sharp');
 const axios = require('axios');
 const User = require('./models/users.sql');
 const Vinyl = require('./models/vinyl.sql');
+const Playlist = require('./models/playlist.sql');
 
 const app = express();
 app.use(cors());
@@ -309,6 +310,106 @@ app.put('/users/:id/role', authMiddleware, roleMiddleware(['admin']), async (req
 app.delete('/users/:id', authMiddleware, roleMiddleware(['admin']), async (req, res) => {
   if (!await User.delete(req.params.id)) return res.status(404).json({ message: 'Not found' });
   res.status(204).end();
+});
+
+// ===== PLAYLIST ROUTES =====
+
+// Get all playlists for current user
+app.get('/playlists', authMiddleware, async (req, res) => {
+  try {
+    const playlists = await Playlist.getAllByUser(req.user.id);
+    res.json(playlists);
+  } catch (err) {
+    console.error('Get playlists error:', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get single playlist with songs
+app.get('/playlists/:id', authMiddleware, async (req, res) => {
+  try {
+    const playlist = await Playlist.getById(req.params.id, req.user.id);
+    if (!playlist) return res.status(404).json({ message: 'Playlist not found' });
+    res.json(playlist);
+  } catch (err) {
+    console.error('Get playlist error:', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Create new playlist
+app.post('/playlists', authMiddleware, async (req, res) => {
+  try {
+    const { name, description, coverUrl } = req.body;
+    if (!name) return res.status(400).json({ message: 'Name is required' });
+    const playlist = await Playlist.create(name, description, coverUrl, req.user.id);
+    res.status(201).json(playlist);
+  } catch (err) {
+    console.error('Create playlist error:', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Update playlist
+app.put('/playlists/:id', authMiddleware, async (req, res) => {
+  try {
+    const { name, description, coverUrl } = req.body;
+    if (!name) return res.status(400).json({ message: 'Name is required' });
+    const playlist = await Playlist.update(req.params.id, req.user.id, name, description, coverUrl);
+    if (!playlist) return res.status(404).json({ message: 'Playlist not found' });
+    res.json(playlist);
+  } catch (err) {
+    console.error('Update playlist error:', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Delete playlist
+app.delete('/playlists/:id', authMiddleware, async (req, res) => {
+  try {
+    await Playlist.delete(req.params.id, req.user.id);
+    res.status(204).end();
+  } catch (err) {
+    console.error('Delete playlist error:', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Add song to playlist
+app.post('/playlists/:id/songs', authMiddleware, async (req, res) => {
+  try {
+    const { vinylId } = req.body;
+    if (!vinylId) return res.status(400).json({ message: 'vinylId is required' });
+    await Playlist.addSong(req.params.id, vinylId, req.user.id);
+    res.status(201).json({ message: 'Song added to playlist' });
+  } catch (err) {
+    console.error('Add song error:', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Remove song from playlist
+app.delete('/playlists/:id/songs/:vinylId', authMiddleware, async (req, res) => {
+  try {
+    await Playlist.removeSong(req.params.id, req.params.vinylId, req.user.id);
+    res.status(204).end();
+  } catch (err) {
+    console.error('Remove song error:', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Reorder songs in playlist
+app.put('/playlists/:id/reorder', authMiddleware, async (req, res) => {
+  try {
+    const { songOrder } = req.body;
+    if (!Array.isArray(songOrder)) return res.status(400).json({ message: 'songOrder must be an array' });
+    await Playlist.reorderSongs(req.params.id, req.user.id, songOrder);
+    res.json({ message: 'Playlist reordered' });
+  } catch (err) {
+    console.error('Reorder error:', err);
+    res.status(500).json({ message: err.message });
+  }
 });
 
 // Health check endpoint

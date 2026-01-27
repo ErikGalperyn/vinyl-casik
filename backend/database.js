@@ -48,6 +48,16 @@ if (USE_POSTGRES) {
       } else {
         console.log('✓ PostgreSQL schema present');
       }
+      
+      // Initialize playlist tables if missing
+      const { rows: playlistRows } = await pool.query("SELECT to_regclass('public.playlists') AS exists");
+      if (!playlistRows[0] || !playlistRows[0].exists) {
+        const playlistSql = fs.readFileSync(path.join(__dirname, 'scripts/playlists-schema.sql'), 'utf8');
+        await pool.query(playlistSql);
+        console.log('✓ Playlist tables created');
+      } else {
+        console.log('✓ Playlist tables present');
+      }
       // Seed data from JSON files (idempotent):
       // - Always upsert users from users.json
       // - Insert vinyls/likes only if vinyls table is empty
