@@ -51,7 +51,7 @@ class Playlist {
               'id', v.id,
               'title', v.title,
               'artist', v.artist,
-              'coverUrl', v.cover_url
+              'coverUrl', v.\"coverUrl\"
             ) ORDER BY ps.position
           ) FILTER (WHERE v.id IS NOT NULL) as songs
         FROM playlists p
@@ -92,8 +92,8 @@ class Playlist {
               'title', v.title,
               'artist', v.artist,
               'year', v.year,
-              'coverUrl', v.cover_url,
-              'musicUrl', v.music_url,
+              'coverUrl', v.\"coverUrl\",
+              'musicUrl', v.\"musicUrl\",
               'note', v.note,
               'position', ps.position
             ) ORDER BY ps.position
