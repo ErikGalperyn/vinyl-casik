@@ -103,6 +103,15 @@ export async function uploadMusic(file) {
   return res.data;
 }
 
+export async function uploadPlaylistCover(file) {
+  const formData = new FormData();
+  formData.append('cover', file);
+  const res = await api.post('/upload-playlist-cover', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return res.data;
+}
+
 // Spotify
 export async function searchSpotify(query) {
   const res = await api.get('/spotify/search', { params: { q: query } });

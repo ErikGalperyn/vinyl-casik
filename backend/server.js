@@ -172,6 +172,27 @@ app.post('/upload-music', authMiddleware, audioUpload.single('music'), async (re
   }
 });
 
+app.post('/upload-playlist-cover', authMiddleware, upload.single('cover'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
+  
+  try {
+    const filename = `playlist-cover-${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
+    const filepath = path.join(__dirname, 'uploads', filename);
+    
+    await sharp(req.file.buffer)
+      .resize(400, 400, { fit: 'cover', position: 'center' })
+      .webp({ quality: 85 })
+      .toFile(filepath);
+    
+    const PUBLIC_URL = process.env.BACKEND_PUBLIC_URL || process.env.PUBLIC_BACKEND_URL || 'http://localhost:4001';
+    const url = `${PUBLIC_URL}/${filename}`;
+    res.json({ url, filename });
+  } catch (error) {
+    console.error('Playlist cover upload error:', error);
+    res.status(500).json({ message: 'Upload failed' });
+  }
+});
+
 app.get('/spotify/search', authMiddleware, async (req, res) => {
   const { q } = req.query;
   

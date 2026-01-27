@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
-import { getVinyls, createVinyl, updateVinyl, deleteVinyl, getToken, clearToken, likeVinyl, unlikeVinyl, uploadCover, uploadMusic, searchSpotify, getPlaylists, createPlaylist, updatePlaylist, deletePlaylist, addSongToPlaylist, removeSongFromPlaylist, reorderPlaylist, getPlaylist } from '../utils/api';
+import { getVinyls, createVinyl, updateVinyl, deleteVinyl, getToken, clearToken, likeVinyl, unlikeVinyl, uploadCover, uploadMusic, uploadPlaylistCover, searchSpotify, getPlaylists, createPlaylist, updatePlaylist, deletePlaylist, addSongToPlaylist, removeSongFromPlaylist, reorderPlaylist, getPlaylist } from '../utils/api';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -122,6 +122,7 @@ export default function Home() {
   const [showPlaylistForm, setShowPlaylistForm] = useState(false);
   const [playlistForm, setPlaylistForm] = useState({ name: '', description: '', coverUrl: '' });
   const [editingPlaylist, setEditingPlaylist] = useState(null);
+  const [uploadingPlaylistCover, setUploadingPlaylistCover] = useState(false);
   const [selectedPlaylist, setSelectedPlaylist] = useState(null);
   const [showAddToPlaylist, setShowAddToPlaylist] = useState(null); // vinyl to add
   const [activeId, setActiveId] = useState(null); // for drag and drop
@@ -913,8 +914,32 @@ export default function Home() {
       const playlistsData = await getPlaylists();
       setPlaylists(playlistsData);
       setShowPlaylistForm(false);
+      setPlaylistForm({ name: '', description: '', coverUrl: '' });
     } catch (err) {
       alert('Error: ' + (err.response?.data?.message || err.message));
+    }
+  }
+
+  async function handlePlaylistCoverUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    try {
+      setUploadingPlaylistCover(true);
+      const data = await uploadPlaylistCover(file);
+      setPlaylistForm({ ...playlistForm, coverUrl: data.url });
+    } catch (err) {
+      alert('Upload failed: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setUploadingPlaylistCover(false);
+    }
+  }
+
+  function handlePlaylistCoverDrop(e) {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      handlePlaylistCoverUpload({ target: { files: [file] } });
     }
   }
 
@@ -2143,12 +2168,49 @@ export default function Home() {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Cover URL</label>
+                  <label>Cover Image</label>
+                  <div 
+                    className="cover-upload-zone"
+                    onDrop={handlePlaylistCoverDrop}
+                    onDragOver={(e) => e.preventDefault()}
+                    style={{
+                      border: '2px dashed #ccc',
+                      borderRadius: '8px',
+                      padding: '20px',
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      marginBottom: '10px',
+                      background: playlistForm.coverUrl ? `url(${playlistForm.coverUrl}) center/cover` : '#f9f9f9'
+                    }}
+                    onClick={() => document.getElementById('playlist-cover-file-input').click()}
+                  >
+                    {uploadingPlaylistCover ? (
+                      <p>Uploading...</p>
+                    ) : playlistForm.coverUrl ? (
+                      <div style={{ background: 'rgba(0,0,0,0.7)', color: 'white', padding: '10px', borderRadius: '4px' }}>
+                        <p>✓ Cover uploaded</p>
+                        <small>Click or drag to replace</small>
+                      </div>
+                    ) : (
+                      <>
+                        <p>📁 Drop image here or click to browse</p>
+                        <small style={{ color: '#666' }}>PNG, JPG, WEBP up to 5MB</small>
+                      </>
+                    )}
+                  </div>
+                  <input
+                    id="playlist-cover-file-input"
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePlaylistCoverUpload}
+                    style={{ display: 'none' }}
+                  />
                   <input
                     type="url"
                     value={playlistForm.coverUrl}
                     onChange={(e) => setPlaylistForm({ ...playlistForm, coverUrl: e.target.value })}
-                    placeholder="https://..."
+                    placeholder="Or paste URL..."
+                    style={{ marginTop: '10px' }}
                   />
                 </div>
                 <div className="modal-actions">

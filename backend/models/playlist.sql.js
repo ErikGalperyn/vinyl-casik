@@ -56,7 +56,7 @@ class Playlist {
           ) FILTER (WHERE v.id IS NOT NULL) as songs
         FROM playlists p
         LEFT JOIN playlist_songs ps ON p.id = ps.playlist_id
-        LEFT JOIN vinyls v ON ps.vinyl_id = v.id
+        LEFT JOIN vinyls v ON ps.vinyl_id::text = v.id::text
         WHERE p.owner_id = $1
         GROUP BY p.id
         ORDER BY p.created_at DESC
@@ -100,7 +100,7 @@ class Playlist {
           ) FILTER (WHERE v.id IS NOT NULL) as songs
         FROM playlists p
         LEFT JOIN playlist_songs ps ON p.id = ps.playlist_id
-        LEFT JOIN vinyls v ON ps.vinyl_id = v.id
+        LEFT JOIN vinyls v ON ps.vinyl_id::text = v.id::text
         WHERE p.id = $1 AND p.owner_id = $2
         GROUP BY p.id
       `;
