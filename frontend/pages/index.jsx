@@ -2329,11 +2329,23 @@ export default function Home() {
                     </ul>
                   </SortableContext>
                   <DragOverlay>
-                    {activeId ? (
-                      <div className="drag-overlay">
-                        Dragging...
-                      </div>
-                    ) : null}
+                    {(() => {
+                      const song = selectedPlaylist.songs.find((s) => s.id === activeId);
+                      if (!song) return null;
+                      return (
+                        <div className="drag-overlay" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 12, background: 'white', borderRadius: 10, boxShadow: '0 15px 40px rgba(0,0,0,0.18)' }}>
+                          {song.coverUrl ? (
+                            <img src={song.coverUrl} alt={song.title} style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 8 }} />
+                          ) : (
+                            <div style={{ width: 50, height: 50, borderRadius: 8, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }} />
+                          )}
+                          <div>
+                            <div style={{ fontWeight: 700 }}>{song.title}</div>
+                            <div style={{ fontSize: 12, color: '#666' }}>{song.artist} • {song.year}</div>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </DragOverlay>
                 </DndContext>
               ) : (
