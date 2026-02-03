@@ -1568,11 +1568,11 @@ export default function Home() {
                           {v.artist}
                         </div>
 
-                        {!spinningVinyls[v.id] && (
+                        {!spinningVinyls[v.id] && (v.previewUrl || v.musicUrl) && (
                           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, background: '#0b0b0b', border: (v.previewUrl || (v.musicUrl && typeof v.musicUrl === 'string' && v.musicUrl.includes('spotify'))) ? '1px solid #FFD54A' : (v.musicUrl ? '1px solid #E00000' : '1px solid #444'), padding: '6px 12px', borderRadius: 20, color: (v.previewUrl || (v.musicUrl && typeof v.musicUrl === 'string' && v.musicUrl.includes('spotify'))) ? '#FFD54A' : (v.musicUrl ? '#E00000' : '#777'), fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, background: '#0b0b0b', border: '1px solid #FFD54A', padding: '6px 12px', borderRadius: 20, color: '#FFD54A', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                               <span>♫</span>
-                              <span>{(v.previewUrl || (v.musicUrl && typeof v.musicUrl === 'string' && v.musicUrl.includes('spotify'))) ? 'Demo Track' : (v.musicUrl ? 'Uploaded Audio' : 'No Audio')}</span>
+                              <span>Audio Available</span>
                             </div>
                           </div>
                         )}
