@@ -20,42 +20,7 @@ app.use(express.static('uploads'));
 
 const SECRET = 'medioteka-secret-key-2025';
 
-// Spotify API credentials (временные для демо - позже нужно будет создать свое приложение на https://developer.spotify.com/)
-const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
-const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
-let spotifyAccessToken = null;
-let spotifyTokenExpiry = 0;
-
-async function getSpotifyToken() {
-  if (!SPOTIFY_CLIENT_ID || !SPOTIFY_CLIENT_SECRET) {
-    throw new Error('Spotify credentials missing');
-  }
-  if (spotifyAccessToken && Date.now() < spotifyTokenExpiry) {
-    return spotifyAccessToken;
-  }
-
-  try {
-    const response = await axios.post('https://accounts.spotify.com/api/token', 
-      'grant_type=client_credentials', {
-      headers: {
-        'Authorization': 'Basic ' + Buffer.from(SPOTIFY_CLIENT_ID + ':' + SPOTIFY_CLIENT_SECRET).toString('base64'),
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
-    });
-
-    spotifyAccessToken = response.data.access_token;
-    spotifyTokenExpiry = Date.now() + (response.data.expires_in * 1000);
-    return spotifyAccessToken;
-  } catch (error) {
-    const resp = error.response?.data;
-    const msg = resp?.error_description || resp?.error || error.message;
-    console.error('Spotify token error:', resp || msg);
-    if (msg && msg.toLowerCase().includes('invalid client')) {
-      throw new Error('Spotify credentials invalid');
-    }
-    throw new Error('Failed to get Spotify token');
-  }
-}
+// iTunes API - no authentication required! 🎵
 
 // Normalize DB keys (PostgreSQL returns lowercase column names)
 function normalizeVinyl(v) {
@@ -193,33 +158,33 @@ app.post('/upload-playlist-cover', authMiddleware, upload.single('cover'), async
   }
 });
 
-// Search iTunes for preview URLs when Spotify doesn't have them
-async function getItunesPreview(title, artist) {
+// Search iTunes for music tracks with preview URLs
+async function searchItunes(query) {
   try {
-    const query = `${title} ${artist}`.trim();
     const response = await axios.get('https://itunes.apple.com/search', {
       params: {
         term: query,
         media: 'music',
         entity: 'song',
-        limit: 5
+        limit: 20
       }
     });
     
-    // Find best match with preview URL
-    for (const result of response.data.results) {
-      if (result.previewUrl) {
-        return {
-          previewUrl: result.previewUrl,
-          coverUrl: result.artworkUrl100 || result.artworkUrl60,
-          itunesId: result.trackId
-        };
-      }
-    }
-    return null;
+    return response.data.results.map(result => ({
+      id: result.trackId,
+      title: result.trackName,
+      artist: result.artistName,
+      album: result.collectionName,
+      year: parseInt(result.releaseDate.split('-')[0]),
+      coverUrl: result.artworkUrl100 || result.artworkUrl60,
+      previewUrl: result.previewUrl || null
+    })).filter((track, index, self) => 
+      // Remove duplicates, keep only tracks with preview
+      self.findIndex(t => t.title.toLowerCase() === track.title.toLowerCase()) === index && track.previewUrl
+    );
   } catch (error) {
     console.error('iTunes search error:', error.message);
-    return null;
+    return [];
   }
 }
 
@@ -231,88 +196,25 @@ app.get('/spotify/search', authMiddleware, async (req, res) => {
   }
 
   try {
-    const token = await getSpotifyToken();
+    console.log('🎵 iTunes Search for:', q);
+    const tracks = await searchItunes(q);
     
-    const response = await axios.get('https://api.spotify.com/v1/search', {
-      params: {
-        q,
-        type: 'track',
-        limit: 10,
-        market: 'US',
-        include_external: 'audio'
-      },
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-
-    const tracks = await Promise.all(response.data.tracks.items.map(async (track) => {
-      let previewUrl = track.preview_url;
-      let coverUrl = track.album.images[0]?.url || null;
-      
-      // If Spotify doesn't have preview, try iTunes
-      if (!previewUrl) {
-        const itunesResult = await getItunesPreview(track.name, track.artists.map(a => a.name).join(', '));
-        if (itunesResult) {
-          previewUrl = itunesResult.previewUrl;
-          if (!coverUrl) {
-            coverUrl = itunesResult.coverUrl;
-          }
-        }
-      }
-      
-      return {
-        id: track.id,
-        title: track.name,
-        artist: track.artists.map(a => a.name).join(', '),
-        album: track.album.name,
-        year: parseInt(track.album.release_date.split('-')[0]),
-        coverUrl,
-        previewUrl,
-        spotifyUrl: track.external_urls.spotify
-      };
-    }));
-
-    console.log('=== Spotify Search Response ===');
+    console.log('=== iTunes Search Results ===');
     console.log('Query:', q);
     console.log('Total results:', tracks.length);
-    console.log('First track:', JSON.stringify(tracks[0], null, 2));
-    console.log('Spotify preview:', tracks.filter(t => t.previewUrl && response.data.tracks.items.find(sp => sp.name === t.title)?.preview_url).length);
-    console.log('iTunes preview:', tracks.filter(t => t.previewUrl && !response.data.tracks.items.find(sp => sp.name === t.title)?.preview_url).length);
+    if (tracks.length > 0) {
+      console.log('First track:', JSON.stringify(tracks[0], null, 2));
+    }
+    console.log('Tracks with preview:', tracks.filter(t => t.previewUrl).length);
 
     res.json(tracks);
   } catch (error) {
     const msg = error?.message || 'Unknown error';
-    console.error('Spotify search error:', error.response?.data || msg);
-    if (msg.includes('Spotify credentials missing')) {
-      return res.status(400).json({ message: 'Spotify credentials missing. Set SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET.' });
-    }
-    if (msg.includes('Spotify credentials invalid')) {
-      return res.status(400).json({ message: 'Spotify credentials invalid. Check SPOTIFY_CLIENT_ID/SPOTIFY_CLIENT_SECRET values.' });
-    }
-    console.error('Full error:', error);
+    console.error('Search error:', msg);
     res.status(500).json({ message: msg });
   }
 });
 
-// iTunes preview search (no auth required for testing)
-app.get('/itunes/search', async (req, res) => {
-  const { q } = req.query;
-  if (!q) {
-    return res.status(400).json({ message: 'Query parameter "q" is required' });
-  }
-
-  try {
-    const itunesResult = await getItunesPreview(q, '');
-    if (itunesResult) {
-      res.json({ previewUrl: itunesResult.previewUrl, coverUrl: itunesResult.coverUrl });
-    } else {
-      res.json({ previewUrl: null, message: 'No preview found on iTunes' });
-    }
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
 
 app.post('/auth/register', async (req, res) => {
   const { username, password } = req.body;
