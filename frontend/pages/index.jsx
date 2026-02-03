@@ -1568,7 +1568,7 @@ export default function Home() {
                           {v.artist}
                         </div>
 
-                        {(v.previewUrl || v.musicUrl) && (
+                        {!spinningVinyls[v.id] && (v.previewUrl || v.musicUrl) && (
                           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, background: '#0b0b0b', border: '1px solid #FFD54A', padding: '6px 12px', borderRadius: 20, color: '#FFD54A', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                               <span>♫</span>
@@ -1577,7 +1577,7 @@ export default function Home() {
                           </div>
                         )}
 
-                        {v.musicUrl && (
+                        {v.musicUrl && spinningVinyls[v.id] && (
                           <div style={{ background: '#0f0f0f', border: '1px solid #1f1f1f', borderRadius: 8, padding: 12, marginTop: 8 }}>
                             {spinningVinyls[v.id] && (
                               <div style={{ marginBottom: 8 }}>
