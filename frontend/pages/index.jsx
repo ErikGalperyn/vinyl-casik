@@ -85,6 +85,8 @@ export default function Home() {
   const [spotifyResults, setSpotifyResults] = useState([]);
   const [searchingSpotify, setSearchingSpotify] = useState(false);
   const [spotifyUploads, setSpotifyUploads] = useState({}); // trackId -> { musicUrl, uploading }
+  const [playingPreview, setPlayingPreview] = useState(null); // track id being previewed
+  const previewAudioRef = useRef(null);
   const [showArcade, setShowArcade] = useState(false);
   const [gameMode, setGameMode] = useState('normal'); // easy, normal, hard
   const [currentGame, setCurrentGame] = useState('blackjack'); // blackjack, poker, roulette, slots
@@ -242,6 +244,8 @@ export default function Home() {
     setSpotifySearch('');
     setSpotifyResults([]);
     setSpotifyUploads({});
+    setPlayingPreview(null);
+    if (previewAudioRef.current) previewAudioRef.current.pause();
     setShowForm(true);
   }
 
@@ -845,6 +849,27 @@ export default function Home() {
     } catch (err) {
       alert('Failed to upload: ' + (err.response?.data?.message || err.message));
       setSpotifyUploads(prev => ({ ...prev, [trackId]: { ...(prev[trackId] || {}), uploading: false } }));
+    }
+  }
+
+  function togglePreview(track) {
+    if (playingPreview === track.id) {
+      // Stop playing
+      if (previewAudioRef.current) {
+        previewAudioRef.current.pause();
+      }
+      setPlayingPreview(null);
+    } else {
+      // Start playing
+      if (previewAudioRef.current) {
+        previewAudioRef.current.pause();
+      }
+      const audio = new Audio(track.previewUrl);
+      audio.volume = 0.7;
+      audio.onended = () => setPlayingPreview(null);
+      audio.play();
+      previewAudioRef.current = audio;
+      setPlayingPreview(track.id);
     }
   }
 
@@ -1835,6 +1860,17 @@ export default function Home() {
                                 {spotifyUploads[track.id]?.uploading ? 'Uploading...' : 'Upload audio'}
                               </span>
                             </label>
+                          )}
+                          {track.previewUrl && (
+                            <button
+                              type="button"
+                              onClick={() => togglePreview(track)}
+                              style={{ background: playingPreview === track.id ? '#ff006e' : '#1DB954', color: 'white', border: 'none', padding: '6px 12px', borderRadius: 4, cursor: 'pointer', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap', transition: 'all 0.2s' }}
+                              onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                              onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                            >
+                              {playingPreview === track.id ? '⏸ Stop' : '▶ Play'}
+                            </button>
                           )}
                           <button
                             type="button"
