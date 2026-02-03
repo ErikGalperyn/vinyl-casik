@@ -193,6 +193,36 @@ app.post('/upload-playlist-cover', authMiddleware, upload.single('cover'), async
   }
 });
 
+// Search iTunes for preview URLs when Spotify doesn't have them
+async function getItunesPreview(title, artist) {
+  try {
+    const query = `${title} ${artist}`.trim();
+    const response = await axios.get('https://itunes.apple.com/search', {
+      params: {
+        term: query,
+        media: 'music',
+        entity: 'song',
+        limit: 5
+      }
+    });
+    
+    // Find best match with preview URL
+    for (const result of response.data.results) {
+      if (result.previewUrl) {
+        return {
+          previewUrl: result.previewUrl,
+          coverUrl: result.artworkUrl100 || result.artworkUrl60,
+          itunesId: result.trackId
+        };
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error('iTunes search error:', error.message);
+    return null;
+  }
+}
+
 app.get('/spotify/search', authMiddleware, async (req, res) => {
   const { q } = req.query;
   
@@ -216,22 +246,39 @@ app.get('/spotify/search', authMiddleware, async (req, res) => {
       }
     });
 
-    const tracks = response.data.tracks.items.map(track => ({
-      id: track.id,
-      title: track.name,
-      artist: track.artists.map(a => a.name).join(', '),
-      album: track.album.name,
-      year: parseInt(track.album.release_date.split('-')[0]),
-      coverUrl: track.album.images[0]?.url || null,
-      previewUrl: track.preview_url,
-      spotifyUrl: track.external_urls.spotify
+    const tracks = await Promise.all(response.data.tracks.items.map(async (track) => {
+      let previewUrl = track.preview_url;
+      let coverUrl = track.album.images[0]?.url || null;
+      
+      // If Spotify doesn't have preview, try iTunes
+      if (!previewUrl) {
+        const itunesResult = await getItunesPreview(track.name, track.artists.map(a => a.name).join(', '));
+        if (itunesResult) {
+          previewUrl = itunesResult.previewUrl;
+          if (!coverUrl) {
+            coverUrl = itunesResult.coverUrl;
+          }
+        }
+      }
+      
+      return {
+        id: track.id,
+        title: track.name,
+        artist: track.artists.map(a => a.name).join(', '),
+        album: track.album.name,
+        year: parseInt(track.album.release_date.split('-')[0]),
+        coverUrl,
+        previewUrl,
+        spotifyUrl: track.external_urls.spotify
+      };
     }));
 
     console.log('=== Spotify Search Response ===');
     console.log('Query:', q);
     console.log('Total results:', tracks.length);
     console.log('First track:', JSON.stringify(tracks[0], null, 2));
-    console.log('Tracks with preview:', tracks.filter(t => t.previewUrl).length);
+    console.log('Spotify preview:', tracks.filter(t => t.previewUrl && response.data.tracks.items.find(sp => sp.name === t.title)?.preview_url).length);
+    console.log('iTunes preview:', tracks.filter(t => t.previewUrl && !response.data.tracks.items.find(sp => sp.name === t.title)?.preview_url).length);
 
     res.json(tracks);
   } catch (error) {
@@ -243,7 +290,27 @@ app.get('/spotify/search', authMiddleware, async (req, res) => {
     if (msg.includes('Spotify credentials invalid')) {
       return res.status(400).json({ message: 'Spotify credentials invalid. Check SPOTIFY_CLIENT_ID/SPOTIFY_CLIENT_SECRET values.' });
     }
-    res.status(500).json({ message: 'Spotify search failed', error: msg });
+    console.error('Full error:', error);
+    res.status(500).json({ message: msg });
+  }
+});
+
+// iTunes preview search (no auth required for testing)
+app.get('/itunes/search', async (req, res) => {
+  const { q } = req.query;
+  if (!q) {
+    return res.status(400).json({ message: 'Query parameter "q" is required' });
+  }
+
+  try {
+    const itunesResult = await getItunesPreview(q, '');
+    if (itunesResult) {
+      res.json({ previewUrl: itunesResult.previewUrl, coverUrl: itunesResult.coverUrl });
+    } else {
+      res.json({ previewUrl: null, message: 'No preview found on iTunes' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 
