@@ -170,6 +170,13 @@ async function searchItunes(query) {
       }
     });
     
+    // Helper function to get high quality image URL
+    const getHighQualityCover = (artworkUrl) => {
+      if (!artworkUrl) return null;
+      // Replace 100x100 or 60x60 with 500x500 for high quality
+      return artworkUrl.replace(/\d{2,3}x\d{2,3}/, '500x500');
+    };
+    
     // Map results and remove duplicates
     const seen = new Set();
     const tracks = [];
@@ -180,13 +187,14 @@ async function searchItunes(query) {
         const key = `${result.trackName.toLowerCase()}-${result.artistName.toLowerCase()}`;
         if (!seen.has(key)) {
           seen.add(key);
+          const coverUrl = result.artworkUrl100 || result.artworkUrl60;
           tracks.push({
             id: result.trackId,
             title: result.trackName,
             artist: result.artistName,
             album: result.collectionName,
             year: parseInt(result.releaseDate.split('-')[0]),
-            coverUrl: result.artworkUrl100 || result.artworkUrl60,
+            coverUrl: getHighQualityCover(coverUrl),
             previewUrl: result.previewUrl
           });
         }
@@ -199,13 +207,14 @@ async function searchItunes(query) {
         const key = `${result.trackName.toLowerCase()}-${result.artistName.toLowerCase()}`;
         if (!seen.has(key) && tracks.length < 20) {
           seen.add(key);
+          const coverUrl = result.artworkUrl100 || result.artworkUrl60;
           tracks.push({
             id: result.trackId,
             title: result.trackName,
             artist: result.artistName,
             album: result.collectionName,
             year: parseInt(result.releaseDate.split('-')[0]),
-            coverUrl: result.artworkUrl100 || result.artworkUrl60,
+            coverUrl: getHighQualityCover(coverUrl),
             previewUrl: null
           });
         }
