@@ -1568,11 +1568,20 @@ export default function Home() {
                           {v.artist}
                         </div>
 
+                        {!spinningVinyls[v.id] && (
+                          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, background: '#0b0b0b', border: (v.previewUrl || (v.musicUrl && typeof v.musicUrl === 'string' && v.musicUrl.includes('spotify'))) ? '1px solid #FFD54A' : (v.musicUrl ? '1px solid #E00000' : '1px solid #444'), padding: '6px 12px', borderRadius: 20, color: (v.previewUrl || (v.musicUrl && typeof v.musicUrl === 'string' && v.musicUrl.includes('spotify'))) ? '#FFD54A' : (v.musicUrl ? '#E00000' : '#777'), fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                              <span>♫</span>
+                              <span>{(v.previewUrl || (v.musicUrl && typeof v.musicUrl === 'string' && v.musicUrl.includes('spotify'))) ? 'Demo Track' : (v.musicUrl ? 'Uploaded Audio' : 'No Audio')}</span>
+                            </div>
+                          </div>
+                        )}
+
                         {v.musicUrl && (
-                          <div style={{ background: '#f5f5f5', borderRadius: 8, padding: 12, marginTop: 8 }}>
+                          <div style={{ background: '#0f0f0f', border: '1px solid #1f1f1f', borderRadius: 8, padding: 12, marginTop: 8 }}>
                             {spinningVinyls[v.id] && (
                               <div style={{ marginBottom: 8 }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#666', marginBottom: 4 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#bdbdbd', marginBottom: 4 }}>
                                   <span>{formatTime(currentTime[v.id] || 0)}</span>
                                   <span>{formatTime(duration[v.id] || 0)}</span>
                                 </div>
@@ -1633,14 +1642,7 @@ export default function Home() {
                                     background: `linear-gradient(to right, #E00000 0%, #E00000 ${volume * 100}%, #2a2a2a ${volume * 100}%, #2a2a2a 100%)`
                                   }}
                                 />
-                                <span style={{ fontSize: 10, color: '#666', minWidth: 30 }}>{Math.round(volume * 100)}%</span>
-                              </div>
-                            )}
-                            
-                            {!spinningVinyls[v.id] && (v.musicUrl || v.previewUrl) && (
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, background: '#0b0b0b', border: (v.previewUrl || (v.musicUrl && typeof v.musicUrl === 'string' && v.musicUrl.includes('spotify'))) ? '1px solid #FFD54A' : '1px solid #E00000', padding: '6px 12px', borderRadius: 20, color: (v.previewUrl || (v.musicUrl && typeof v.musicUrl === 'string' && v.musicUrl.includes('spotify'))) ? '#FFD54A' : '#E00000', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                                <span>♫</span>
-                                <span>{(v.previewUrl || (v.musicUrl && typeof v.musicUrl === 'string' && v.musicUrl.includes('spotify'))) ? 'Demo Track' : 'Uploaded Audio'}</span>
+                                <span style={{ fontSize: 10, color: '#bdbdbd', minWidth: 30 }}>{Math.round(volume * 100)}%</span>
                               </div>
                             )}
                           </div>
