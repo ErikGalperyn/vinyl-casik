@@ -1175,10 +1175,19 @@ export default function Home() {
         }}
         aria-label="Toggle menu"
       >
-        <div style={{ width: 18, height: 12, position: 'relative' }}>
-          <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: menuOpen ? '#0b0b0b' : '#FFD54A', transition: 'all 0.2s', transform: menuOpen ? 'rotate(45deg) translateY(5px)' : 'none' }} />
-          <span style={{ position: 'absolute', top: 5, left: 0, right: 0, height: 2, background: menuOpen ? 'transparent' : '#FFD54A', transition: 'all 0.2s' }} />
-          <span style={{ position: 'absolute', top: 10, left: 0, right: 0, height: 2, background: menuOpen ? '#0b0b0b' : '#FFD54A', transition: 'all 0.2s', transform: menuOpen ? 'rotate(-45deg) translateY(-5px)' : 'none' }} />
+        <div style={{ width: 20, height: 20, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {!menuOpen ? (
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div style={{ width: '100%', height: 2.5, background: '#FFD54A', borderRadius: 2, transition: 'all 0.3s ease' }} />
+              <div style={{ width: '70%', height: 2.5, background: '#FFD54A', borderRadius: 2, marginLeft: 'auto', transition: 'all 0.3s ease' }} />
+              <div style={{ width: '100%', height: 2.5, background: '#FFD54A', borderRadius: 2, transition: 'all 0.3s ease' }} />
+            </div>
+          ) : (
+            <div style={{ position: 'relative', width: 20, height: 20 }}>
+              <div style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 2.5, background: '#FFD54A', borderRadius: 2, transform: 'rotate(45deg)', transition: 'all 0.3s ease' }} />
+              <div style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 2.5, background: '#FFD54A', borderRadius: 2, transform: 'rotate(-45deg)', transition: 'all 0.3s ease' }} />
+            </div>
+          )}
         </div>
       </button>
 
@@ -1190,12 +1199,12 @@ export default function Home() {
           <>
             {viewMode === 'songs' && (
             <>
-              <div style={{ marginBottom: 32, background: '#0f172a', color: '#e2e8f0', border: '2px solid #1e293b', borderRadius: 12, padding: 16, boxShadow: '0 8px 24px rgba(0,0,0,0.2)', position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(0deg, rgba(255,255,255,0.03) 1px, transparent 1px)', backgroundSize: '14px 14px', pointerEvents: 'none' }} />
+              <div style={{ marginBottom: 32, background: 'linear-gradient(135deg, #0b0b0b, #151515)', color: '#FFD54A', border: '2px solid #2a2a2a', borderRadius: 12, padding: 16, boxShadow: '0 8px 24px rgba(0,0,0,0.35)', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(90deg, rgba(255,213,74,0.03) 1px, transparent 1px), linear-gradient(0deg, rgba(255,213,74,0.03) 1px, transparent 1px)', backgroundSize: '14px 14px', pointerEvents: 'none' }} />
               <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
                 <div style={{ fontFamily: 'monospace', letterSpacing: '0.05em', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ padding: '4px 8px', background: '#111827', border: '1px solid #1e293b', borderRadius: 6, color: '#a5b4fc', fontWeight: 700 }}>8-bit</span>
-                  <span>Arcade</span>
+                  <span style={{ padding: '4px 8px', background: '#0b0b0b', border: '1px solid #FFD54A', borderRadius: 6, color: '#FFD54A', fontWeight: 700 }}>8-bit</span>
+                  <span style={{ color: '#e6e6e6' }}>Arcade</span>
                 </div>
                 
                 {/* Simple game tabs */}
@@ -1203,9 +1212,9 @@ export default function Home() {
                   <button
                     onClick={() => setCurrentGame('blackjack')}
                     style={{ 
-                      background: currentGame === 'blackjack' ? '#22c55e' : '#334155', 
-                      color: currentGame === 'blackjack' ? '#0f172a' : '#e2e8f0', 
-                      border: '1px solid ' + (currentGame === 'blackjack' ? '#16a34a' : '#475569'), 
+                      background: currentGame === 'blackjack' ? '#FFD54A' : '#1a1a1a', 
+                      color: currentGame === 'blackjack' ? '#0b0b0b' : '#9a9a9a', 
+                      border: '1px solid ' + (currentGame === 'blackjack' ? '#FFD54A' : '#2a2a2a'), 
                       padding: '8px 14px', 
                       borderRadius: 8, 
                       cursor: 'pointer', 
@@ -1213,7 +1222,7 @@ export default function Home() {
                       fontWeight: 700, 
                       textTransform: 'uppercase',
                       transition: 'all 0.2s',
-                      boxShadow: currentGame === 'blackjack' ? '0 4px 0 #0b5c2c' : 'none'
+                      boxShadow: currentGame === 'blackjack' ? '0 4px 0 rgba(255,213,74,0.3)' : 'none'
                     }}
                   >
                     🃏 21
@@ -1221,9 +1230,9 @@ export default function Home() {
                   <button
                     onClick={() => setCurrentGame('poker')}
                     style={{ 
-                      background: currentGame === 'poker' ? '#22c55e' : '#334155', 
-                      color: currentGame === 'poker' ? '#0f172a' : '#e2e8f0', 
-                      border: '1px solid ' + (currentGame === 'poker' ? '#16a34a' : '#475569'), 
+                      background: currentGame === 'poker' ? '#FFD54A' : '#1a1a1a', 
+                      color: currentGame === 'poker' ? '#0b0b0b' : '#9a9a9a', 
+                      border: '1px solid ' + (currentGame === 'poker' ? '#FFD54A' : '#2a2a2a'), 
                       padding: '8px 14px', 
                       borderRadius: 8, 
                       cursor: 'pointer', 
@@ -1231,7 +1240,7 @@ export default function Home() {
                       fontWeight: 700, 
                       textTransform: 'uppercase',
                       transition: 'all 0.2s',
-                      boxShadow: currentGame === 'poker' ? '0 4px 0 #0b5c2c' : 'none'
+                      boxShadow: currentGame === 'poker' ? '0 4px 0 rgba(255,213,74,0.3)' : 'none'
                     }}
                   >
                     ♣️ Poker
@@ -1241,7 +1250,7 @@ export default function Home() {
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button
                     onClick={() => setShowArcade(true)}
-                    style={{ background: '#22c55e', color: '#0f172a', border: '1px solid #16a34a', padding: '8px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 #0b5c2c', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                    style={{ background: '#FFD54A', color: '#0b0b0b', border: '1px solid #FFD54A', padding: '8px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 rgba(255,213,74,0.3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
                     onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
                     onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                   >
@@ -1250,7 +1259,7 @@ export default function Home() {
                   {showArcade && (
                     <button
                       onClick={() => setShowArcade(false)}
-                      style={{ background: '#f97316', color: '#0f172a', border: '1px solid #ea580c', padding: '8px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 #b45309', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                      style={{ background: '#E00000', color: '#fff', border: '1px solid #DC0000', padding: '8px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 rgba(224,0,0,0.3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
                       onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
                       onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                     >
@@ -1261,14 +1270,14 @@ export default function Home() {
               </div>
 
               {showArcade && currentGame === 'blackjack' && (
-                <div style={{ position: 'relative', marginTop: 12, border: '1px solid #1e293b', borderRadius: 10, background: '#111827', padding: 14, fontFamily: 'monospace' }}>
+                <div style={{ position: 'relative', marginTop: 12, border: '2px solid #2a2a2a', borderRadius: 10, background: '#0b0b0b', padding: 14, fontFamily: 'monospace' }}>
                   {/* Mode selector */}
                   <div style={{ marginBottom: 12, display: 'flex', gap: 8, justifyContent: 'center' }}>
                     {['easy', 'normal', 'hard'].map(mode => (
                       <button
                         key={mode}
                         onClick={() => { if (blackjack.status === 'idle' || blackjack.status === 'finished') setGameMode(mode); }}
-                        style={{ background: gameMode === mode ? '#22c55e' : '#334155', color: '#e2e8f0', border: '1px solid ' + (gameMode === mode ? '#16a34a' : '#475569'), padding: '6px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', transition: 'all 0.2s' }}
+                        style={{ background: gameMode === mode ? '#FFD54A' : '#1a1a1a', color: gameMode === mode ? '#0b0b0b' : '#9a9a9a', border: '1px solid ' + (gameMode === mode ? '#FFD54A' : '#2a2a2a'), padding: '6px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', transition: 'all 0.2s' }}
                       >
                         {mode === 'easy' ? '🎮 Easy' : mode === 'normal' ? '⚖️ Normal' : '💪 Hard'}
                       </button>
@@ -1277,16 +1286,16 @@ export default function Home() {
 
                   {/* Balance & Stats */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 12, marginBottom: 12, fontSize: 12 }}>
-                    <div style={{ background: '#0f172a', padding: '8px', borderRadius: 6, border: '1px solid #1e293b', color: '#cbd5e1' }}>
-                      💰 Balance: <span style={{ color: '#10b981', fontWeight: 700 }}>{blackjack.balance}</span>
+                    <div style={{ background: '#0f0f0f', padding: '8px', borderRadius: 6, border: '1px solid #2a2a2a', color: '#e6e6e6' }}>
+                      💰 Balance: <span style={{ color: '#FFD54A', fontWeight: 700 }}>{blackjack.balance}</span>
                     </div>
-                    <div style={{ background: '#0f172a', padding: '8px', borderRadius: 6, border: '1px solid #1e293b', color: '#cbd5e1' }}>
-                      💵 Bet: <span style={{ color: '#f59e0b', fontWeight: 700 }}>{blackjack.bet}</span>
+                    <div style={{ background: '#0f0f0f', padding: '8px', borderRadius: 6, border: '1px solid #2a2a2a', color: '#e6e6e6' }}>
+                      💵 Bet: <span style={{ color: '#E00000', fontWeight: 700 }}>{blackjack.bet}</span>
                     </div>
-                    <div style={{ background: '#0f172a', padding: '8px', borderRadius: 6, border: '1px solid #1e293b', color: '#cbd5e1' }}>
-                      🏆 Wins: <span style={{ color: '#10b981', fontWeight: 700 }}>{blackjack.stats.wins}</span>
+                    <div style={{ background: '#0f0f0f', padding: '8px', borderRadius: 6, border: '1px solid #2a2a2a', color: '#e6e6e6' }}>
+                      🏆 Wins: <span style={{ color: '#FFD54A', fontWeight: 700 }}>{blackjack.stats.wins}</span>
                     </div>
-                    <div style={{ background: '#0f172a', padding: '8px', borderRadius: 6, border: '1px solid #1e293b', color: '#cbd5e1' }}>
+                    <div style={{ background: '#0f0f0f', padding: '8px', borderRadius: 6, border: '1px solid #2a2a2a', color: '#e6e6e6' }}>
                       📊 +{blackjack.stats.totalEarnings}
                     </div>
                   </div>
@@ -1295,7 +1304,7 @@ export default function Home() {
                   {(blackjack.status === 'idle' || blackjack.status === 'finished') && (
                     <div style={{ marginBottom: 12 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                        <label style={{ color: '#94a3b8', fontSize: 12, fontWeight: 700 }}>Bet amount:</label>
+                        <label style={{ color: '#9a9a9a', fontSize: 12, fontWeight: 700 }}>Bet amount:</label>
                         <input 
                           type="range" 
                           min="10" 
@@ -1308,7 +1317,7 @@ export default function Home() {
                           type="number" 
                           value={blackjack.bet}
                           onChange={(e) => setBlackjack(prev => ({ ...prev, bet: Math.max(10, Math.min(prev.balance, Number(e.target.value))) }))}
-                          style={{ width: 70, padding: '4px 8px', background: '#0f172a', color: '#cbd5e1', border: '1px solid #1e293b', borderRadius: 4, fontSize: 12 }}
+                          style={{ width: 70, padding: '4px 8px', background: '#0f0f0f', color: '#e6e6e6', border: '1px solid #2a2a2a', borderRadius: 4, fontSize: 12 }}
                         />
                       </div>
 
@@ -1319,9 +1328,9 @@ export default function Home() {
                             key={amount}
                             onClick={() => setBlackjack(prev => ({ ...prev, bet: Math.min(amount, prev.balance) }))}
                             style={{ 
-                              background: blackjack.bet === amount ? '#22c55e' : '#334155', 
-                              color: '#e2e8f0', 
-                              border: '1px solid ' + (blackjack.bet === amount ? '#16a34a' : '#475569'), 
+                              background: blackjack.bet === amount ? '#FFD54A' : '#1a1a1a', 
+                              color: blackjack.bet === amount ? '#0b0b0b' : '#9a9a9a', 
+                              border: '1px solid ' + (blackjack.bet === amount ? '#FFD54A' : '#2a2a2a'), 
                               padding: '6px 10px', 
                               borderRadius: 6, 
                               cursor: 'pointer', 
@@ -1340,9 +1349,9 @@ export default function Home() {
                         <button
                           onClick={() => setBlackjack(prev => ({ ...prev, bet: prev.balance }))}
                           style={{ 
-                            background: blackjack.bet === blackjack.balance ? '#ef4444' : '#7f1d1d', 
-                            color: '#fca5a5', 
-                            border: '1px solid ' + (blackjack.bet === blackjack.balance ? '#dc2626' : '#b91c1c'), 
+                            background: blackjack.bet === blackjack.balance ? '#E00000' : '#2a0000', 
+                            color: blackjack.bet === blackjack.balance ? '#fff' : '#9a5a5a', 
+                            border: '1px solid ' + (blackjack.bet === blackjack.balance ? '#DC0000' : '#4a1a1a'), 
                             padding: '6px 10px', 
                             borderRadius: 6, 
                             cursor: 'pointer', 
@@ -1351,7 +1360,7 @@ export default function Home() {
                             textTransform: 'uppercase', 
                             letterSpacing: '0.05em',
                             transition: 'all 0.2s',
-                            boxShadow: blackjack.bet === blackjack.balance ? '0 0 12px rgba(239,68,68,0.5)' : 'none'
+                            boxShadow: blackjack.bet === blackjack.balance ? '0 0 12px rgba(224,0,0,0.5)' : 'none'
                           }}
                         >
                           🔥 ALL IN
@@ -1359,10 +1368,10 @@ export default function Home() {
                       </div>
 
                       {/* Bet info */}
-                      <div style={{ fontSize: 11, color: '#cbd5e1', padding: '6px 8px', background: '#0f172a', borderRadius: 6, border: '1px solid #1e293b', display: 'flex', justifyContent: 'space-between' }}>
-                        <span>Win: <strong style={{ color: '#10b981' }}>+{blackjack.bet}</strong></span>
-                        <span>Blackjack: <strong style={{ color: '#a5f3fc' }}>+{blackjack.bet * 2}</strong></span>
-                        <span>Lose: <strong style={{ color: '#ff6b6b' }}>-{blackjack.bet}</strong></span>
+                      <div style={{ fontSize: 11, color: '#e6e6e6', padding: '6px 8px', background: '#0f0f0f', borderRadius: 6, border: '1px solid #2a2a2a', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Win: <strong style={{ color: '#FFD54A' }}>+{blackjack.bet}</strong></span>
+                        <span>Blackjack: <strong style={{ color: '#FFD700' }}>+{blackjack.bet * 2}</strong></span>
+                        <span>Lose: <strong style={{ color: '#E00000' }}>-{blackjack.bet}</strong></span>
                       </div>
                     </div>
                   )}
@@ -1370,46 +1379,46 @@ export default function Home() {
                   {/* Game cards */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
                     <div>
-                      <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 6 }}>Dealer</div>
+                      <div style={{ fontSize: 12, color: '#9a9a9a', marginBottom: 6 }}>Dealer</div>
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                         {blackjack.dealer.map((card, idx) => {
                           const hidden = blackjack.status === 'player' && idx === 1;
                           return (
-                            <div key={`dealer-${idx}`} style={{ width: 52, height: 72, background: hidden ? '#0f172a' : '#e2e8f0', color: '#0f172a', border: '2px solid #1e293b', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, boxShadow: '0 4px 0 #0b1220', transition: 'all 0.3s' }}>
+                            <div key={`dealer-${idx}`} style={{ width: 52, height: 72, background: hidden ? '#0f0f0f' : '#fff', color: '#0b0b0b', border: '2px solid #2a2a2a', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, boxShadow: '0 4px 0 rgba(0,0,0,0.3)', transition: 'all 0.3s' }}>
                               {hidden ? '??' : cardLabel(card)}
                             </div>
                           );
                         })}
                       </div>
                       {blackjack.status !== 'player' && blackjack.dealer.length > 0 && (
-                        <div style={{ marginTop: 6, fontSize: 12, color: dealerScore > 21 ? '#ff6b6b' : '#cbd5e1' }}>Total: <strong>{dealerScore}</strong></div>
+                        <div style={{ marginTop: 6, fontSize: 12, color: dealerScore > 21 ? '#E00000' : '#e6e6e6' }}>Total: <strong>{dealerScore}</strong></div>
                       )}
                     </div>
 
                     <div>
-                      <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 6 }}>You</div>
+                      <div style={{ fontSize: 12, color: '#9a9a9a', marginBottom: 6 }}>You</div>
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                         {blackjack.player.map((card, idx) => (
-                          <div key={`player-${idx}`} style={{ width: 52, height: 72, background: '#e2e8f0', color: '#0f172a', border: '2px solid #1e293b', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, boxShadow: '0 4px 0 #0b1220', transition: 'all 0.3s' }}>
+                          <div key={`player-${idx}`} style={{ width: 52, height: 72, background: '#fff', color: '#0b0b0b', border: '2px solid #2a2a2a', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, boxShadow: '0 4px 0 rgba(0,0,0,0.3)', transition: 'all 0.3s' }}>
                             {cardLabel(card)}
                           </div>
                         ))}
                       </div>
                       {blackjack.player.length > 0 && (
-                        <div style={{ marginTop: 6, fontSize: 12, color: playerScore > 21 ? '#ff6b6b' : '#cbd5e1' }}>Total: <strong>{playerScore}</strong></div>
+                        <div style={{ marginTop: 6, fontSize: 12, color: playerScore > 21 ? '#E00000' : '#e6e6e6' }}>Total: <strong>{playerScore}</strong></div>
                       )}
                     </div>
                   </div>
 
                   {/* Message & actions */}
                   <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'space-between' }}>
-                    <span style={{ color: blackjack.status === 'finished' ? (blackjack.message.includes('win') ? '#10b981' : blackjack.message.includes('Push') ? '#f59e0b' : '#ff6b6b') : '#a5b4fc', fontSize: 12, fontWeight: 700 }}>{blackjack.message}</span>
+                    <span style={{ color: blackjack.status === 'finished' ? (blackjack.message.includes('win') ? '#FFD54A' : blackjack.message.includes('Push') ? '#9a9a9a' : '#E00000') : '#FFD54A', fontSize: 12, fontWeight: 700 }}>{blackjack.message}</span>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                       {blackjack.status === 'idle' ? (
                         <button
                           onClick={startBlackjack}
                           disabled={blackjack.balance < blackjack.bet}
-                          style={{ background: '#22c55e', color: '#0f172a', border: '1px solid #16a34a', padding: '8px 12px', borderRadius: 8, cursor: blackjack.balance >= blackjack.bet ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 #0f172a', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: blackjack.balance >= blackjack.bet ? 1 : 0.5 }}
+                          style={{ background: '#FFD54A', color: '#0b0b0b', border: '1px solid #FFD54A', padding: '8px 12px', borderRadius: 8, cursor: blackjack.balance >= blackjack.bet ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 rgba(255,213,74,0.3)', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: blackjack.balance >= blackjack.bet ? 1 : 0.5 }}
                         >
                           Deal
                         </button>
@@ -1417,20 +1426,20 @@ export default function Home() {
                         <>
                           <button
                             onClick={hitBlackjack}
-                            style={{ background: '#22d3ee', color: '#0f172a', border: '1px solid #0891b2', padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 #0f172a', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                            style={{ background: '#FFD54A', color: '#0b0b0b', border: '1px solid #FFD54A', padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 rgba(255,213,74,0.3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
                           >
                             Hit
                           </button>
                           <button
                             onClick={standBlackjack}
-                            style={{ background: '#a855f7', color: '#0f172a', border: '1px solid #7e22ce', padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 #0f172a', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                            style={{ background: '#1a1a1a', color: '#FFD54A', border: '1px solid #FFD54A', padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 rgba(0,0,0,0.3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
                           >
                             Stand
                           </button>
                           {blackjack.canDoubleDown && (
                             <button
                               onClick={doubleDownBlackjack}
-                              style={{ background: '#ef4444', color: '#0f172a', border: '1px solid #dc2626', padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 #0f172a', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                              style={{ background: '#E00000', color: '#fff', border: '1px solid #DC0000', padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 rgba(224,0,0,0.3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
                             >
                               Double
                             </button>
@@ -1438,7 +1447,7 @@ export default function Home() {
                           {blackjack.canSplit && (
                             <button
                               onClick={splitBlackjack}
-                              style={{ background: '#fbbf24', color: '#0f172a', border: '1px solid #d97706', padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 #0f172a', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                              style={{ background: '#FFD700', color: '#0b0b0b', border: '1px solid #FFD700', padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 rgba(255,215,0,0.3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
                             >
                               Split
                             </button>
@@ -1449,13 +1458,13 @@ export default function Home() {
                           <button
                             onClick={startBlackjack}
                             disabled={blackjack.balance < blackjack.bet}
-                            style={{ background: '#22c55e', color: '#0f172a', border: '1px solid #16a34a', padding: '8px 12px', borderRadius: 8, cursor: blackjack.balance >= blackjack.bet ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 #0f172a', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: blackjack.balance >= blackjack.bet ? 1 : 0.5 }}
+                            style={{ background: '#FFD54A', color: '#0b0b0b', border: '1px solid #FFD54A', padding: '8px 12px', borderRadius: 8, cursor: blackjack.balance >= blackjack.bet ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 rgba(255,213,74,0.3)', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: blackjack.balance >= blackjack.bet ? 1 : 0.5 }}
                           >
                             Deal Again
                           </button>
                           <button
                             onClick={resetBlackjack}
-                            style={{ background: '#f97316', color: '#0f172a', border: '1px solid #ea580c', padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 #0f172a', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                            style={{ background: '#E00000', color: '#fff', border: '1px solid #DC0000', padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 rgba(224,0,0,0.3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
                           >
                             Reset Stats
                           </button>
@@ -1465,10 +1474,10 @@ export default function Home() {
                   </div>
 
                   {/* Stats breakdown */}
-                  <div style={{ marginTop: 12, padding: 8, background: '#0f172a', borderRadius: 6, border: '1px solid #1e293b', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, fontSize: 11, color: '#cbd5e1' }}>
-                    <div>Wins: <span style={{ color: '#10b981', fontWeight: 700 }}>{blackjack.stats.wins}</span> | Losses: <span style={{ color: '#ff6b6b', fontWeight: 700 }}>{blackjack.stats.losses}</span> | Pushes: <span style={{ color: '#f59e0b', fontWeight: 700 }}>{blackjack.stats.pushes}</span></div>
-                    <div>Win rate: <span style={{ color: '#a5b4fc', fontWeight: 700 }}>{blackjack.stats.wins + blackjack.stats.losses > 0 ? Math.round(blackjack.stats.wins * 100 / (blackjack.stats.wins + blackjack.stats.losses)) : 0}%</span></div>
-                    <div>Balance: <span style={{ color: blackjack.balance > 1000 ? '#10b981' : blackjack.balance < 100 ? '#ff6b6b' : '#cbd5e1', fontWeight: 700 }}>{blackjack.balance}</span></div>
+                  <div style={{ marginTop: 12, padding: 8, background: '#0f0f0f', borderRadius: 6, border: '1px solid #2a2a2a', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, fontSize: 11, color: '#e6e6e6' }}>
+                    <div>Wins: <span style={{ color: '#FFD54A', fontWeight: 700 }}>{blackjack.stats.wins}</span> | Losses: <span style={{ color: '#E00000', fontWeight: 700 }}>{blackjack.stats.losses}</span> | Pushes: <span style={{ color: '#9a9a9a', fontWeight: 700 }}>{blackjack.stats.pushes}</span></div>
+                    <div>Win rate: <span style={{ color: '#FFD54A', fontWeight: 700 }}>{blackjack.stats.wins + blackjack.stats.losses > 0 ? Math.round(blackjack.stats.wins * 100 / (blackjack.stats.wins + blackjack.stats.losses)) : 0}%</span></div>
+                    <div>Balance: <span style={{ color: blackjack.balance > 1000 ? '#FFD54A' : blackjack.balance < 100 ? '#E00000' : '#e6e6e6', fontWeight: 700 }}>{blackjack.balance}</span></div>
                   </div>
                 </div>
               )}
@@ -1545,20 +1554,8 @@ export default function Home() {
                         <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, lineHeight: 1.3, color: '#e6e6e6', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                           {v.title}
                         </div>
-                        <div style={{ fontSize: 12, color: '#9a9a9a', marginBottom: 8 }}>
+                        <div style={{ fontSize: 12, color: '#9a9a9a', marginBottom: 12 }}>
                           {v.artist}
-                        </div>
-
-                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                          <button 
-                            onClick={() => handleLike(v.id)} 
-                            style={{ background: '#0b0b0b', border: '1px solid #2a2a2a', cursor: 'pointer', fontSize: 12, padding: '6px 10px', borderRadius: 16, color: '#FFD54A', display: 'flex', alignItems: 'center', gap: 6 }}
-                            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.08)'}
-                            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                          >
-                            {v.likes?.includes(user?.id) ? '💛' : '♡'}
-                            <span style={{ fontSize: 11, color: '#FFD54A', fontWeight: 700 }}>{v.likes?.length || 0}</span>
-                          </button>
                         </div>
 
                         {v.musicUrl && (
@@ -1708,9 +1705,9 @@ export default function Home() {
                       key={playlist.id}
                       className="playlist-card"
                       onClick={() => openPlaylistDetail(playlist)}
-                      style={{ background: '#121212', border: '1px solid #2a2a2a', borderRadius: 12, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 8px 18px rgba(0,0,0,0.35)' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#FFD54A'; e.currentTarget.style.boxShadow = '0 10px 24px rgba(255,213,74,0.15)'; e.currentTarget.style.transform = 'translateY(-4px)'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.boxShadow = '0 8px 18px rgba(0,0,0,0.35)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                      style={{ background: 'linear-gradient(135deg, #0b0b0b, #121212)', border: '2px solid #2a2a2a', borderRadius: 16, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.3s ease', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#FFD54A'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(255,213,74,0.25)'; e.currentTarget.style.transform = 'translateY(-6px) scale(1.02)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.boxShadow = '0 10px 25px rgba(0,0,0,0.5)'; e.currentTarget.style.transform = 'translateY(0) scale(1)'; }}
                     >
                       {playlist.cover_url ? (
                         <img src={playlist.cover_url} alt={playlist.name} className="playlist-cover" />
