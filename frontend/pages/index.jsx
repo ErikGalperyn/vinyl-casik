@@ -1165,7 +1165,7 @@ export default function Home() {
                 )}
               </div>
             </button>
-            <h1 className="logo-animated" style={{ margin: 0, fontSize: 32, fontWeight: 900, letterSpacing: '0.08em', background: 'linear-gradient(90deg, #FFD700 0%, #000000 25%, #FFD54A 50%, #000000 75%, #FFD700 100%)', backgroundSize: '200% auto', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', animation: 'gradient-shift 3s ease infinite', textShadow: '0 0 30px rgba(255,215,0,0.3)', filter: 'drop-shadow(0 2px 8px rgba(255,215,0,0.4))' }}>
+            <h1 className="logo-animated" style={{ margin: 0, fontSize: 32, fontWeight: 900, letterSpacing: '0.08em', color: '#ffffff', textShadow: '0 2px 16px rgba(255,255,255,0.5), 0 0 20px rgba(255,215,74,0.3)', filter: 'drop-shadow(0 2px 8px rgba(255,255,255,0.2))', transition: 'all 0.3s ease' }}>
               MEDIOTEKA
             </h1>
           </div>
