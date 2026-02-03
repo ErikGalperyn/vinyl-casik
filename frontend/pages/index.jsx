@@ -80,6 +80,7 @@ export default function Home() {
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [viewMode, setViewMode] = useState('songs');
+  const [actionMenuId, setActionMenuId] = useState(null);
   const [fullscreenPlayer, setFullscreenPlayer] = useState(false);
   const itemsPerPage = 12;
   const [coverGradient, setCoverGradient] = useState('linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)');
@@ -768,6 +769,10 @@ export default function Home() {
   }
 
   async function handleLike(vinylId) {
+    if (!user) {
+      alert('Please log in to like tracks.');
+      return;
+    }
     try {
       const vinyl = vinyls.find(v => v.id === vinylId);
       const isLiked = vinyl.likes?.includes(user.id);
@@ -1112,29 +1117,6 @@ export default function Home() {
       <div style={{ position: 'sticky', top: 0, zIndex: 100, background: 'linear-gradient(135deg, #0a0a0a, #1a1a1a)', borderBottom: '2px solid #FFD700' }}>
         <div style={{ maxWidth: 1400, margin: '0 auto', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              style={{
-                width: 42,
-                height: 42,
-                borderRadius: 8,
-                border: '2px solid #FFD700',
-                background: menuOpen ? '#FFD700' : 'transparent',
-                color: menuOpen ? '#000' : '#FFD700',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.2s'
-              }}
-              aria-label="Toggle menu"
-            >
-              <div style={{ width: 18, height: 12, position: 'relative' }}>
-                <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: menuOpen ? '#000' : '#FFD700', transition: 'all 0.2s', transform: menuOpen ? 'rotate(45deg) translateY(5px)' : 'none' }} />
-                <span style={{ position: 'absolute', top: 5, left: 0, right: 0, height: 2, background: menuOpen ? 'transparent' : '#FFD700', transition: 'all 0.2s' }} />
-                <span style={{ position: 'absolute', top: 10, left: 0, right: 0, height: 2, background: menuOpen ? '#000' : '#FFD700', transition: 'all 0.2s', transform: menuOpen ? 'rotate(-45deg) translateY(-5px)' : 'none' }} />
-              </div>
-            </button>
             <h1 style={{ margin: 0, fontSize: 28, fontWeight: 900, letterSpacing: '0.04em', background: 'linear-gradient(90deg, #FFD700, #FFA500)', WebkitBackgroundClip: 'text', color: 'transparent' }}>
               MEDIOTEKA
             </h1>
@@ -1170,6 +1152,35 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      <button
+        onClick={() => setMenuOpen(!menuOpen)}
+        style={{
+          position: 'fixed',
+          left: 20,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          width: 48,
+          height: 48,
+          borderRadius: 10,
+          border: '2px solid #FFD54A',
+          background: menuOpen ? '#FFD54A' : '#0b0b0b',
+          color: menuOpen ? '#0b0b0b' : '#FFD54A',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 101,
+          boxShadow: '0 8px 20px rgba(0,0,0,0.4)'
+        }}
+        aria-label="Toggle menu"
+      >
+        <div style={{ width: 18, height: 12, position: 'relative' }}>
+          <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: menuOpen ? '#0b0b0b' : '#FFD54A', transition: 'all 0.2s', transform: menuOpen ? 'rotate(45deg) translateY(5px)' : 'none' }} />
+          <span style={{ position: 'absolute', top: 5, left: 0, right: 0, height: 2, background: menuOpen ? 'transparent' : '#FFD54A', transition: 'all 0.2s' }} />
+          <span style={{ position: 'absolute', top: 10, left: 0, right: 0, height: 2, background: menuOpen ? '#0b0b0b' : '#FFD54A', transition: 'all 0.2s', transform: menuOpen ? 'rotate(-45deg) translateY(-5px)' : 'none' }} />
+        </div>
+      </button>
 
       <div style={{ maxWidth: 1400, margin: '0 auto', padding: '40px 24px' }}>
 
@@ -1538,16 +1549,16 @@ export default function Home() {
                           {v.artist}
                         </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 4, marginBottom: 12 }}>
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6, marginBottom: 12 }}>
                           <button 
                             onClick={() => handleLike(v.id)} 
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, padding: 4, transition: 'all 0.2s' }}
-                            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.2)'}
+                            style={{ background: '#0b0b0b', border: '1px solid #2a2a2a', cursor: 'pointer', fontSize: 12, padding: '6px 10px', borderRadius: 16, color: '#FFD54A', display: 'flex', alignItems: 'center', gap: 6 }}
+                            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.08)'}
                             onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                           >
-                            {v.likes?.includes(user?.id) ? '❤️' : '🤍'}
+                            {v.likes?.includes(user?.id) ? '💛' : '♡'}
+                            <span style={{ fontSize: 11, color: '#FFD54A', fontWeight: 700 }}>{v.likes?.length || 0}</span>
                           </button>
-                          <span style={{ fontSize: 11, color: '#8b8b8b', fontWeight: 600 }}>{v.likes?.length || 0}</span>
                         </div>
 
                         {v.musicUrl && (
@@ -1739,6 +1750,7 @@ export default function Home() {
             </div>
             )}
 
+            {viewMode === 'songs' && (
             <div style={{ marginTop: 60, borderTop: '1px solid #222', paddingTop: 40 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                 <h2 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: '#FFD54A', letterSpacing: '0.02em' }}>Complete Collection</h2>
@@ -1800,7 +1812,7 @@ export default function Home() {
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', position: 'relative' }}>
                       {v.musicUrl && (
                         <button
                           onClick={() => toggleSpin(v.id)}
@@ -1811,33 +1823,51 @@ export default function Home() {
                       )}
                       <button 
                         onClick={() => handleLike(v.id)} 
-                        style={{ background: '#0b0b0b', border: '1px solid #2a2a2a', cursor: 'pointer', fontSize: 12, padding: '6px 10px', borderRadius: 20, color: '#eaeaea', display: 'flex', alignItems: 'center', gap: 6 }}
+                        style={{ background: '#0b0b0b', border: '1px solid #2a2a2a', cursor: 'pointer', fontSize: 12, padding: '6px 10px', borderRadius: 20, color: '#FFD54A', display: 'flex', alignItems: 'center', gap: 6 }}
                       >
-                        {v.likes?.includes(user?.id) ? '❤️' : '🤍'}
-                        <span style={{ fontSize: 11, color: '#9a9a9a' }}>{v.likes?.length || 0}</span>
+                        {v.likes?.includes(user?.id) ? '💛' : '♡'}
+                        <span style={{ fontSize: 11, color: '#FFD54A' }}>{v.likes?.length || 0}</span>
                       </button>
                       <button
-                        onClick={() => setShowAddToPlaylist(v)}
-                        style={{ background: 'transparent', border: '1px solid #2a2a2a', color: '#FFD54A', padding: '6px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
+                        onClick={() => setActionMenuId(actionMenuId === v.id ? null : v.id)}
+                        style={{ background: '#0b0b0b', border: '1px solid #2a2a2a', color: '#FFD54A', padding: '6px 10px', borderRadius: 20, fontSize: 12, fontWeight: 800, cursor: 'pointer', letterSpacing: '0.5px' }}
+                        aria-label="Open actions"
                       >
-                        + Playlist
+                        ⋯
                       </button>
-                    </div>
 
-                    {(user?.role === 'admin' || (user?.role === 'user' && v.ownerId === user?.id)) && (
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <button onClick={() => openEdit(v)} style={{ background: 'transparent', color: '#FFD54A', border: '1px solid #FFD54A', padding: '6px 10px', borderRadius: 6, cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
-                          Edit
-                        </button>
-                        <button onClick={() => onDelete(v.id)} style={{ background: 'transparent', color: '#E00000', border: '1px solid #E00000', padding: '6px 10px', borderRadius: 6, cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
-                          Delete
-                        </button>
-                      </div>
-                    )}
+                      {actionMenuId === v.id && (
+                        <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: '#0b0b0b', border: '1px solid #2a2a2a', borderRadius: 10, padding: 8, minWidth: 170, zIndex: 5, boxShadow: '0 12px 24px rgba(0,0,0,0.5)' }}>
+                          <button
+                            onClick={() => { setShowAddToPlaylist(v); setActionMenuId(null); }}
+                            style={{ width: '100%', background: 'transparent', color: '#FFD54A', border: '1px solid #2a2a2a', padding: '8px 10px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer', textAlign: 'left' }}
+                          >
+                            + Add to Playlist
+                          </button>
+                          {(user?.role === 'admin' || (user?.role === 'user' && v.ownerId === user?.id)) && (
+                            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                              <button
+                                onClick={() => { openEdit(v); setActionMenuId(null); }}
+                                style={{ flex: 1, background: 'transparent', color: '#FFD54A', border: '1px solid #FFD54A', padding: '8px 10px', borderRadius: 8, fontSize: 11, fontWeight: 800, cursor: 'pointer' }}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => { onDelete(v.id); setActionMenuId(null); }}
+                                style={{ flex: 1, background: 'transparent', color: '#E00000', border: '1px solid #E00000', padding: '8px 10px', borderRadius: 8, fontSize: 11, fontWeight: 800, cursor: 'pointer' }}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
+            )}
           </>
         )}
 
@@ -2035,7 +2065,7 @@ export default function Home() {
         )}
 
         {currentlyPlaying && (
-          <div style={{ position: 'fixed', bottom: 20, left: 20, width: 320, background: 'white', borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.2)', padding: 16, zIndex: 1000 }}>
+          <div style={{ position: 'fixed', bottom: 20, left: 20, width: 340, background: 'linear-gradient(135deg, #0f0f0f, #151515)', borderRadius: 14, border: '1px solid #2a2a2a', boxShadow: '0 12px 32px rgba(0,0,0,0.45)', padding: 16, zIndex: 1000 }}>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
               <button
                 onClick={() => {
@@ -2045,42 +2075,42 @@ export default function Home() {
                   setSpinningVinyls(prev => ({ ...prev, [currentlyPlaying.id]: false }));
                   setCurrentlyPlaying(null);
                 }}
-                style={{ background: 'none', border: 'none', fontSize: 20, color: '#999', cursor: 'pointer', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', transition: 'all 0.2s' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#f0f0f0'; e.currentTarget.style.color = '#000'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#999'; }}
+                style={{ background: '#0b0b0b', border: '1px solid #2a2a2a', fontSize: 18, color: '#FFD54A', cursor: 'pointer', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', transition: 'all 0.2s' }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#FFD54A'; e.currentTarget.style.boxShadow = '0 0 10px rgba(255,213,74,0.35)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.boxShadow = 'none'; }}
               >
                 ×
               </button>
             </div>
 
             <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-              <div style={{ width: 60, height: 60, background: 'radial-gradient(circle at 35% 35%, #444, #111)', borderRadius: 8, overflow: 'hidden', flexShrink: 0 }}>
+              <div style={{ width: 64, height: 64, background: 'radial-gradient(circle at 35% 35%, #2a2a2a, #0b0b0b)', borderRadius: 10, overflow: 'hidden', flexShrink: 0, border: '1px solid #2a2a2a' }}>
                 {currentlyPlaying.coverUrl && <img src={currentlyPlaying.coverUrl} alt={currentlyPlaying.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
               </div>
 
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#eaeaea', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {currentlyPlaying.title}
                 </div>
-                <div style={{ fontSize: 12, color: '#666', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ fontSize: 12, color: '#9a9a9a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {currentlyPlaying.artist}
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+              <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                 <button
                   onClick={() => toggleSpin(currentlyPlaying.id)}
-                  style={{ background: '#ff006e', color: 'white', border: 'none', width: 40, height: 40, borderRadius: '50%', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
-                  onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                  style={{ background: '#FFD54A', color: '#0b0b0b', border: 'none', width: 40, height: 40, borderRadius: '50%', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', boxShadow: '0 6px 16px rgba(255,213,74,0.35)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.08)'}
                   onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
                   {spinningVinyls[currentlyPlaying.id] ? '⏸' : '▶'}
                 </button>
                 <button
                   onClick={() => setFullscreenPlayer(true)}
-                  style={{ background: '#000', color: 'white', border: 'none', width: 40, height: 40, borderRadius: '50%', cursor: 'pointer', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = '#333'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = '#000'}
+                  style={{ background: '#0b0b0b', color: '#FFD54A', border: '1px solid #2a2a2a', width: 40, height: 40, borderRadius: '50%', cursor: 'pointer', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#FFD54A'; e.currentTarget.style.boxShadow = '0 0 10px rgba(255,213,74,0.35)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.boxShadow = 'none'; }}
                   title="Fullscreen player"
                 >
                   ⛶
@@ -2088,13 +2118,13 @@ export default function Home() {
               </div>
             </div>
 
-            <div style={{ marginBottom: 8 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#666', marginBottom: 4 }}>
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#9a9a9a', marginBottom: 6 }}>
                 <span>{formatTime(currentTime[currentlyPlaying.id] || 0)}</span>
                 <span>{formatTime(duration[currentlyPlaying.id] || 0)}</span>
               </div>
               <div
-                style={{ height: 6, background: '#ddd', borderRadius: 3, overflow: 'hidden', cursor: 'pointer', position: 'relative' }}
+                style={{ height: 6, background: '#1a1a1a', borderRadius: 3, overflow: 'hidden', cursor: 'pointer', position: 'relative', border: '1px solid #2a2a2a' }}
                 onClick={(e) => {
                   if (!audioRefsRef.current[currentlyPlaying.id] || !duration[currentlyPlaying.id]) return;
                   const rect = e.currentTarget.getBoundingClientRect();
@@ -2105,14 +2135,14 @@ export default function Home() {
               >
                 <div style={{
                   height: '100%',
-                  background: 'linear-gradient(90deg, #ff006e, #ff4081)',
+                  background: 'linear-gradient(90deg, #FFD54A, #E00000)',
                   width: `${((currentTime[currentlyPlaying.id] || 0) / (duration[currentlyPlaying.id] || 1)) * 100}%`,
                   transition: 'width 0.1s linear'
                 }}></div>
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#9a9a9a' }}>
               <span style={{ fontSize: 14 }}>🔊</span>
               <input
                 type="range"
@@ -2131,10 +2161,10 @@ export default function Home() {
                   height: 4,
                   borderRadius: 2,
                   outline: 'none',
-                  background: `linear-gradient(to right, #ff006e 0%, #ff006e ${volume * 100}%, #ddd ${volume * 100}%, #ddd 100%)`
+                  background: `linear-gradient(to right, #FFD54A 0%, #FFD54A ${volume * 100}%, #2a2a2a ${volume * 100}%, #2a2a2a 100%)`
                 }}
               />
-              <span style={{ fontSize: 10, color: '#666', minWidth: 30 }}>{Math.round(volume * 100)}%</span>
+              <span style={{ fontSize: 10, color: '#9a9a9a', minWidth: 30 }}>{Math.round(volume * 100)}%</span>
             </div>
           </div>
         )}
