@@ -160,6 +160,23 @@ if (USE_POSTGRES) {
         } catch (coverErr) {
           console.error('Cover restore error:', coverErr.message);
         }
+        
+        // Restore musicUrl for manually uploaded tracks
+        try {
+          console.log('🔄 Restoring musicUrl for uploaded tracks...');
+          const musicUpdates = [
+            { title: 'Good Lies', url: 'https://vinyl-casik-production.up.railway.app/music/music-1764856895756-n17aj.mp3' },
+            { title: 'End of Beginning ', url: 'https://vinyl-casik-production.up.railway.app/music/music-1764876868532-9q0mz.mp3' }
+          ];
+          
+          for (const { title, url } of musicUpdates) {
+            const res = await pool.query("UPDATE vinyls SET musicUrl = $1 WHERE title = $2", [url, title]);
+            console.log(`✓ Updated music for "${title}" - rows: ${res.rowCount}`);
+          }
+          console.log('✓ All music URLs restored');
+        } catch (musicErr) {
+          console.error('Music restore error:', musicErr.message);
+        }
       } catch (seedErr) {
         console.error('Seed warning:', seedErr.message);
       }
