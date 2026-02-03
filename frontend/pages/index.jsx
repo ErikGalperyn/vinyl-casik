@@ -78,6 +78,8 @@ export default function Home() {
   const [currentTime, setCurrentTime] = useState({});
   const [duration, setDuration] = useState({});
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [viewMode, setViewMode] = useState('songs');
   const [fullscreenPlayer, setFullscreenPlayer] = useState(false);
   const itemsPerPage = 12;
   const [coverGradient, setCoverGradient] = useState('linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)');
@@ -1106,23 +1108,78 @@ export default function Home() {
   const paginatedVinyls = filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f5f5f5' }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40, borderBottom: '2px solid #000', paddingBottom: 20 }}>
-          <h1 style={{ margin: 0, fontSize: 32, fontWeight: 700, letterSpacing: '-1px' }}>Medioteka</h1>
+    <div style={{ minHeight: '100vh', background: '#0a0a0a' }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 100, background: 'linear-gradient(135deg, #0a0a0a, #1a1a1a)', borderBottom: '2px solid #FFD700' }}>
+        <div style={{ maxWidth: 1400, margin: '0 auto', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              style={{
+                width: 42,
+                height: 42,
+                borderRadius: 8,
+                border: '2px solid #FFD700',
+                background: menuOpen ? '#FFD700' : 'transparent',
+                color: menuOpen ? '#000' : '#FFD700',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s'
+              }}
+              aria-label="Toggle menu"
+            >
+              <div style={{ width: 18, height: 12, position: 'relative' }}>
+                <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: menuOpen ? '#000' : '#FFD700', transition: 'all 0.2s', transform: menuOpen ? 'rotate(45deg) translateY(5px)' : 'none' }} />
+                <span style={{ position: 'absolute', top: 5, left: 0, right: 0, height: 2, background: menuOpen ? 'transparent' : '#FFD700', transition: 'all 0.2s' }} />
+                <span style={{ position: 'absolute', top: 10, left: 0, right: 0, height: 2, background: menuOpen ? '#000' : '#FFD700', transition: 'all 0.2s', transform: menuOpen ? 'rotate(-45deg) translateY(-5px)' : 'none' }} />
+              </div>
+            </button>
+            <h1 style={{ margin: 0, fontSize: 28, fontWeight: 900, letterSpacing: '0.04em', background: 'linear-gradient(90deg, #FFD700, #FFA500)', WebkitBackgroundClip: 'text', color: 'transparent' }}>
+              MEDIOTEKA
+            </h1>
+          </div>
           <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-            {user && <span style={{ fontSize: 14, color: '#666' }}>Welcome, <strong style={{ color: '#000', fontWeight: 600 }}>{user.username}</strong> ({user.role})</span>}
-            <button onClick={handleLogout} style={{ background: '#000', color: 'white', border: 'none', padding: '10px 16px', borderRadius: 4, cursor: 'pointer', fontSize: 14, fontWeight: 500, transition: 'all 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'} onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}>
+            {user && <span style={{ fontSize: 12, color: '#999' }}>Welcome, <strong style={{ color: '#FFD700', fontWeight: 700 }}>{user.username}</strong> ({user.role})</span>}
+            <button
+              onClick={handleLogout}
+              style={{ background: '#DC0000', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(220,0,0,0.3)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 6px 20px rgba(220,0,0,0.5)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '0 4px 12px rgba(220,0,0,0.3)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+            >
               Logout
             </button>
           </div>
         </div>
+        {menuOpen && (
+          <div style={{ maxWidth: 1400, margin: '0 auto', padding: '0 24px 16px 24px' }}>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <button
+                onClick={() => { setViewMode('songs'); setMenuOpen(false); }}
+                style={{ background: viewMode === 'songs' ? '#FFD700' : 'transparent', color: viewMode === 'songs' ? '#000' : '#FFD700', border: '2px solid #FFD700', padding: '8px 16px', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}
+              >
+                🎵 Songs
+              </button>
+              <button
+                onClick={() => { setViewMode('playlists'); setMenuOpen(false); }}
+                style={{ background: viewMode === 'playlists' ? '#FFD700' : 'transparent', color: viewMode === 'playlists' ? '#000' : '#FFD700', border: '2px solid #FFD700', padding: '8px 16px', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}
+              >
+                📂 Playlists
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div style={{ maxWidth: 1400, margin: '0 auto', padding: '40px 24px' }}>
 
         {loading ? (
           <div style={{ textAlign: 'center', padding: 60 }}>Loading...</div>
         ) : (
           <>
-            <div style={{ marginBottom: 32, background: '#0f172a', color: '#e2e8f0', border: '2px solid #1e293b', borderRadius: 12, padding: 16, boxShadow: '0 8px 24px rgba(0,0,0,0.2)', position: 'relative', overflow: 'hidden' }}>
+            {viewMode === 'songs' && (
+            <>
+              <div style={{ marginBottom: 32, background: '#0f172a', color: '#e2e8f0', border: '2px solid #1e293b', borderRadius: 12, padding: 16, boxShadow: '0 8px 24px rgba(0,0,0,0.2)', position: 'relative', overflow: 'hidden' }}>
               <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(0deg, rgba(255,255,255,0.03) 1px, transparent 1px)', backgroundSize: '14px 14px', pointerEvents: 'none' }} />
               <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
                 <div style={{ fontFamily: 'monospace', letterSpacing: '0.05em', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1610,7 +1667,11 @@ export default function Home() {
               </div>
             </div>
 
+            </>
+            )}
+
             {/* ==== PLAYLISTS SECTION ==== */}
+            {viewMode === 'playlists' && (
             <div className="playlists-section">
               <div className="playlists-header">
                 <h2>🎵 My Playlists</h2>
@@ -1663,6 +1724,7 @@ export default function Home() {
                 </div>
               )}
             </div>
+            )}
 
             <div style={{ marginTop: 60, borderTop: '2px solid #000', paddingTop: 40 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
