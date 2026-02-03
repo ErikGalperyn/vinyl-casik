@@ -265,6 +265,8 @@ export default function Home() {
     setSearchingSpotify(true);
     try {
       const results = await searchSpotify(spotifySearch);
+      console.log('Spotify search results:', results);
+      console.log('First track preview:', results[0]?.previewUrl);
       setSpotifyResults(results);
       setSpotifyUploads({});
     } catch (err) {
