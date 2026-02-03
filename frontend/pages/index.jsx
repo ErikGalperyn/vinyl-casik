@@ -1637,7 +1637,7 @@ export default function Home() {
                               </div>
                             )}
                             
-                            {!spinningVinyls[v.id] && (
+                            {!spinningVinyls[v.id] && (v.previewUrl || (v.musicUrl && v.musicUrl.includes('spotify'))) && (
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, background: '#0b0b0b', border: '1px solid #FFD54A', padding: '6px 12px', borderRadius: 20, color: '#FFD54A', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                                 <span>♫</span>
                                 <span>Audio Ready</span>
@@ -1824,11 +1824,15 @@ export default function Home() {
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', position: 'relative' }}>
-                      {(v.musicUrl) && (
-                        <div style={{ background: '#0b0b0b', border: '1px solid #FFD54A', padding: '6px 12px', borderRadius: 20, color: '#FFD54A', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase', fontSize: 11, display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span>♫</span>
-                          <span>Audio Ready</span>
-                        </div>
+                      {(v.previewUrl || (v.musicUrl && v.musicUrl.includes('spotify'))) && (
+                        <button
+                          onClick={() => toggleSpin(v.id)}
+                          style={{ background: spinningVinyls[v.id] ? '#FFD54A' : '#0b0b0b', color: spinningVinyls[v.id] ? '#0b0b0b' : '#FFD54A', border: '1px solid #FFD54A', padding: '6px 12px', borderRadius: 20, cursor: 'pointer', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', transition: 'all 0.2s' }}
+                          onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 0 12px rgba(255,213,74,0.4)'; e.currentTarget.style.transform = 'scale(1.05)'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'scale(1)'; }}
+                        >
+                          {spinningVinyls[v.id] ? '⏸ Pause' : '▶ Play'}
+                        </button>
                       )}
                       <button 
                         onClick={() => handleLike(v.id)} 
