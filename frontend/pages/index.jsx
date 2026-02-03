@@ -1117,7 +1117,7 @@ export default function Home() {
       <div style={{ position: 'sticky', top: 0, zIndex: 100, background: 'linear-gradient(135deg, #0a0a0a, #1a1a1a)', borderBottom: '2px solid #FFD700' }}>
         <div style={{ maxWidth: 1400, margin: '0 auto', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <h1 style={{ margin: 0, fontSize: 28, fontWeight: 900, letterSpacing: '0.04em', background: 'linear-gradient(90deg, #FFD700, #FFA500)', WebkitBackgroundClip: 'text', color: 'transparent' }}>
+            <h1 className="logo-animated" style={{ margin: 0, fontSize: 32, fontWeight: 900, letterSpacing: '0.08em', background: 'linear-gradient(90deg, #FFD700 0%, #E00000 25%, #FFD54A 50%, #DC0000 75%, #FFD700 100%)', backgroundSize: '200% auto', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', animation: 'gradient-shift 3s ease infinite', textShadow: '0 0 30px rgba(255,215,0,0.3)', filter: 'drop-shadow(0 2px 8px rgba(255,215,0,0.4))' }}>
               MEDIOTEKA
             </h1>
           </div>
@@ -1155,37 +1155,52 @@ export default function Home() {
 
       <button
         onClick={() => setMenuOpen(!menuOpen)}
+        className="burger-button"
         style={{
           position: 'fixed',
-          left: 20,
-          top: '50%',
-          transform: 'translateY(-50%)',
-          width: 48,
-          height: 48,
-          borderRadius: 10,
-          border: '2px solid #FFD54A',
-          background: menuOpen ? '#FFD54A' : '#0b0b0b',
-          color: menuOpen ? '#0b0b0b' : '#FFD54A',
+          left: 24,
+          top: 24,
+          width: 56,
+          height: 56,
+          borderRadius: 16,
+          border: 'none',
+          background: menuOpen ? 'linear-gradient(135deg, #FFD54A, #F0C000)' : 'linear-gradient(135deg, #1a1a1a, #0f0f0f)',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 101,
-          boxShadow: '0 8px 20px rgba(0,0,0,0.4)'
+          boxShadow: menuOpen ? '0 8px 24px rgba(255,213,74,0.5), inset 0 1px 0 rgba(255,255,255,0.2)' : '0 8px 24px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,213,74,0.1)',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          backdropFilter: 'blur(10px)'
+        }}
+        onMouseEnter={(e) => {
+          if (!menuOpen) {
+            e.currentTarget.style.background = 'linear-gradient(135deg, #2a2a2a, #1a1a1a)';
+            e.currentTarget.style.transform = 'scale(1.05)';
+            e.currentTarget.style.boxShadow = '0 12px 32px rgba(255,213,74,0.3), inset 0 1px 0 rgba(255,213,74,0.2)';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!menuOpen) {
+            e.currentTarget.style.background = 'linear-gradient(135deg, #1a1a1a, #0f0f0f)';
+            e.currentTarget.style.transform = 'scale(1)';
+            e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,213,74,0.1)';
+          }
         }}
         aria-label="Toggle menu"
       >
-        <div style={{ width: 20, height: 20, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 24, height: 24, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {!menuOpen ? (
-            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <div style={{ width: '100%', height: 2.5, background: '#FFD54A', borderRadius: 2, transition: 'all 0.3s ease' }} />
-              <div style={{ width: '70%', height: 2.5, background: '#FFD54A', borderRadius: 2, marginLeft: 'auto', transition: 'all 0.3s ease' }} />
-              <div style={{ width: '100%', height: 2.5, background: '#FFD54A', borderRadius: 2, transition: 'all 0.3s ease' }} />
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <div style={{ width: '100%', height: 3, background: 'linear-gradient(90deg, #FFD54A, #F0C000)', borderRadius: 3, transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 1px 3px rgba(255,213,74,0.5)' }} />
+              <div style={{ width: '75%', height: 3, background: 'linear-gradient(90deg, #FFD54A, #F0C000)', borderRadius: 3, marginLeft: 'auto', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 1px 3px rgba(255,213,74,0.5)' }} />
+              <div style={{ width: '100%', height: 3, background: 'linear-gradient(90deg, #FFD54A, #F0C000)', borderRadius: 3, transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 1px 3px rgba(255,213,74,0.5)' }} />
             </div>
           ) : (
-            <div style={{ position: 'relative', width: 20, height: 20 }}>
-              <div style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 2.5, background: '#FFD54A', borderRadius: 2, transform: 'rotate(45deg)', transition: 'all 0.3s ease' }} />
-              <div style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 2.5, background: '#FFD54A', borderRadius: 2, transform: 'rotate(-45deg)', transition: 'all 0.3s ease' }} />
+            <div style={{ position: 'relative', width: 24, height: 24 }}>
+              <div style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 3, background: '#0b0b0b', borderRadius: 3, transform: 'rotate(45deg)', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 1px 2px rgba(0,0,0,0.3)' }} />
+              <div style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 3, background: '#0b0b0b', borderRadius: 3, transform: 'rotate(-45deg)', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 1px 2px rgba(0,0,0,0.3)' }} />
             </div>
           )}
         </div>
