@@ -227,6 +227,12 @@ app.get('/spotify/search', authMiddleware, async (req, res) => {
       spotifyUrl: track.external_urls.spotify
     }));
 
+    console.log('=== Spotify Search Response ===');
+    console.log('Query:', q);
+    console.log('Total results:', tracks.length);
+    console.log('First track:', JSON.stringify(tracks[0], null, 2));
+    console.log('Tracks with preview:', tracks.filter(t => t.previewUrl).length);
+
     res.json(tracks);
   } catch (error) {
     const msg = error?.message || 'Unknown error';
