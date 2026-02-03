@@ -1140,7 +1140,7 @@ export default function Home() {
                 onClick={() => { setViewMode('songs'); setMenuOpen(false); }}
                 style={{ background: viewMode === 'songs' ? '#FFD700' : 'transparent', color: viewMode === 'songs' ? '#000' : '#FFD700', border: '2px solid #FFD700', padding: '8px 16px', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}
               >
-                🎵 Songs
+                ♫ Songs
               </button>
               <button
                 onClick={() => { setViewMode('playlists'); setMenuOpen(false); }}
@@ -1682,7 +1682,10 @@ export default function Home() {
             {viewMode === 'playlists' && (
             <div className="playlists-section" style={{ background: 'linear-gradient(135deg, #0f0f0f, #151515)', border: '1px solid #222', borderRadius: 16, padding: 24, boxShadow: '0 10px 30px rgba(0,0,0,0.35)' }}>
               <div className="playlists-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <h2 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: '#FFD54A', letterSpacing: '0.02em' }}>🎵 My Playlists</h2>
+                <h2 style={{ margin: 0, fontSize: 28, fontWeight: 900, color: '#FFD54A', letterSpacing: '0.02em', display: 'flex', alignItems: 'center', gap: 12, textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: 32, filter: 'drop-shadow(0 2px 4px rgba(255,213,74,0.4))' }}>♫</span>
+                  My Playlists
+                </h2>
                 <button
                   onClick={openPlaylistForm}
                   className="create-playlist-btn"
@@ -1694,7 +1697,7 @@ export default function Home() {
 
               {playlists.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '60px 20px', color: '#8b8b8b' }}>
-                  <div style={{ fontSize: 48, marginBottom: 16 }}>🎶</div>
+                  <div style={{ fontSize: 56, marginBottom: 16, color: '#FFD54A', filter: 'drop-shadow(0 2px 4px rgba(255,213,74,0.4))' }}>♫</div>
                   <p style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#e6e6e6' }}>No playlists yet</p>
                   <p style={{ margin: '8px 0 0 0', fontSize: 13 }}>Create your first playlist to organize your music!</p>
                 </div>
@@ -1875,7 +1878,7 @@ export default function Home() {
             {!editing && (
               <div style={{ marginBottom: 24, padding: 16, background: '#f8f8f8', borderRadius: 8 }}>
                 <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 20 }}>🎵</span>
+                  <span style={{ fontSize: 20, color: '#1DB954' }}>♫</span>
                   Search Spotify
                 </div>
                 <form onSubmit={handleSpotifySearch} style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
@@ -2418,13 +2421,13 @@ export default function Home() {
                 </p>
               )}
 
-              <div style={{ marginBottom: 16, padding: 12, background: '#f8f9fa', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ fontSize: 28 }}>🎵</div>
+              <div style={{ marginBottom: 16, padding: 12, background: '#0f0f0f', border: '1px solid #2a2a2a', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ fontSize: 28, color: '#FFD54A' }}>♫</div>
                 <div>
-                  <div style={{ fontWeight: 600, color: '#495057' }}>
+                  <div style={{ fontWeight: 600, color: '#e6e6e6' }}>
                     {selectedPlaylist.songs?.length || 0} songs in this playlist
                   </div>
-                  <div style={{ fontSize: 13, color: '#868e96' }}>
+                  <div style={{ fontSize: 13, color: '#9a9a9a' }}>
                     Drag songs to reorder them
                   </div>
                 </div>
@@ -2474,9 +2477,9 @@ export default function Home() {
                   </DragOverlay>
                 </DndContext>
               ) : (
-                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#666' }}>
-                  <div style={{ fontSize: 48, marginBottom: 16 }}>🎶</div>
-                  <p style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>No songs in this playlist yet</p>
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#9a9a9a' }}>
+                  <div style={{ fontSize: 56, marginBottom: 16, color: '#FFD54A', filter: 'drop-shadow(0 2px 4px rgba(255,213,74,0.4))' }}>♪</div>
+                  <p style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#e6e6e6' }}>No songs in this playlist yet</p>
                   <p style={{ margin: '8px 0 0 0', fontSize: 14 }}>Click "Add to Playlist" on any song to add it here!</p>
                 </div>
               )}
