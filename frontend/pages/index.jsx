@@ -1463,10 +1463,10 @@ export default function Home() {
               )}
             </div>
 
-            <div style={{ marginBottom: 60 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
-                <h2 style={{ margin: 0, fontSize: 28, fontWeight: 700 }}>🔥 Top Vinyls</h2>
-                <div style={{ fontSize: 14, color: '#666' }}>Sorted by likes</div>
+            <div style={{ marginBottom: 60, background: 'linear-gradient(135deg, #0f0f0f, #151515)', border: '1px solid #222', borderRadius: 16, padding: '24px 24px 16px 24px', boxShadow: '0 10px 30px rgba(0,0,0,0.35)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                <h2 style={{ margin: 0, fontSize: 26, fontWeight: 800, color: '#FFD54A', letterSpacing: '0.02em' }}>🔥 Top Vinyls</h2>
+                <div style={{ fontSize: 12, color: '#8b8b8b' }}>Sorted by likes</div>
               </div>
 
               <div style={{ position: 'relative' }}>
@@ -1475,18 +1475,18 @@ export default function Home() {
                     <button 
                       onClick={() => setCarouselIndex(Math.max(0, carouselIndex - 4))}
                       disabled={carouselIndex === 0}
-                      style={{ position: 'absolute', left: -50, top: '50%', transform: 'translateY(-50%)', width: 40, height: 40, borderRadius: '50%', background: carouselIndex === 0 ? '#ddd' : '#000', border: 'none', color: 'white', fontSize: 20, cursor: carouselIndex === 0 ? 'default' : 'pointer', transition: 'all 0.2s', zIndex: 10, opacity: carouselIndex === 0 ? 0.3 : 1 }}
-                      onMouseEnter={(e) => { if (carouselIndex !== 0) e.currentTarget.style.background = '#333'; }}
-                      onMouseLeave={(e) => { if (carouselIndex !== 0) e.currentTarget.style.background = '#000'; }}
+                      style={{ position: 'absolute', left: -24, top: '50%', transform: 'translateY(-50%)', width: 38, height: 38, borderRadius: '50%', background: carouselIndex === 0 ? '#1a1a1a' : '#0b0b0b', border: '1px solid #333', color: '#FFD54A', fontSize: 20, cursor: carouselIndex === 0 ? 'default' : 'pointer', transition: 'all 0.2s', zIndex: 10, opacity: carouselIndex === 0 ? 0.4 : 1 }}
+                      onMouseEnter={(e) => { if (carouselIndex !== 0) { e.currentTarget.style.borderColor = '#FFD54A'; e.currentTarget.style.boxShadow = '0 0 12px rgba(255,213,74,0.35)'; } }}
+                      onMouseLeave={(e) => { if (carouselIndex !== 0) { e.currentTarget.style.borderColor = '#333'; e.currentTarget.style.boxShadow = 'none'; } }}
                     >
                       ‹
                     </button>
                     <button 
                       onClick={() => setCarouselIndex(Math.min(topVinyls.length - 4, carouselIndex + 4))}
                       disabled={carouselIndex >= topVinyls.length - 4}
-                      style={{ position: 'absolute', right: -50, top: '50%', transform: 'translateY(-50%)', width: 40, height: 40, borderRadius: '50%', background: carouselIndex >= topVinyls.length - 4 ? '#ddd' : '#000', border: 'none', color: 'white', fontSize: 20, cursor: carouselIndex >= topVinyls.length - 4 ? 'default' : 'pointer', transition: 'all 0.2s', zIndex: 10, opacity: carouselIndex >= topVinyls.length - 4 ? 0.3 : 1 }}
-                      onMouseEnter={(e) => { if (carouselIndex < topVinyls.length - 4) e.currentTarget.style.background = '#333'; }}
-                      onMouseLeave={(e) => { if (carouselIndex < topVinyls.length - 4) e.currentTarget.style.background = '#000'; }}
+                      style={{ position: 'absolute', right: -24, top: '50%', transform: 'translateY(-50%)', width: 38, height: 38, borderRadius: '50%', background: carouselIndex >= topVinyls.length - 4 ? '#1a1a1a' : '#0b0b0b', border: '1px solid #333', color: '#FFD54A', fontSize: 20, cursor: carouselIndex >= topVinyls.length - 4 ? 'default' : 'pointer', transition: 'all 0.2s', zIndex: 10, opacity: carouselIndex >= topVinyls.length - 4 ? 0.4 : 1 }}
+                      onMouseEnter={(e) => { if (carouselIndex < topVinyls.length - 4) { e.currentTarget.style.borderColor = '#FFD54A'; e.currentTarget.style.boxShadow = '0 0 12px rgba(255,213,74,0.35)'; } }}
+                      onMouseLeave={(e) => { if (carouselIndex < topVinyls.length - 4) { e.currentTarget.style.borderColor = '#333'; e.currentTarget.style.boxShadow = 'none'; } }}
                     >
                       ›
                     </button>
@@ -1497,12 +1497,12 @@ export default function Home() {
                   {topVinyls.slice(carouselIndex, carouselIndex + 4).map((v, idx) => {
                     const actualIndex = carouselIndex + idx;
                     return (
-                      <div key={v.id} style={{ textAlign: 'center', position: 'relative', padding: '15px 15px 0 15px' }}>
-                        <div style={{ position: 'absolute', top: 0, right: 0, width: 44, height: 44, background: '#000', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', zIndex: 5 }}>
+                      <div key={v.id} style={{ textAlign: 'center', position: 'relative', padding: '10px 10px 0 10px' }}>
+                        <div style={{ position: 'absolute', top: -6, right: -6, width: 38, height: 38, background: '#0b0b0b', color: '#FFD54A', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, border: '1px solid #333', boxShadow: '0 4px 12px rgba(0,0,0,0.4)', zIndex: 5 }}>
                           {actualIndex + 1}.
                         </div>
 
-                        <div style={{ width: '100%', aspectRatio: '1', background: 'radial-gradient(circle at 35% 35%, #444, #111)', borderRadius: '50%', overflow: 'hidden', position: 'relative', boxShadow: '0 12px 24px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.1)', cursor: 'pointer', transition: 'all 0.3s', marginBottom: 16 }}
+                        <div style={{ width: '100%', aspectRatio: '1', background: 'radial-gradient(circle at 35% 35%, #2a2a2a, #0b0b0b)', borderRadius: '50%', overflow: 'hidden', position: 'relative', boxShadow: '0 14px 28px rgba(0,0,0,0.45), inset 0 2px 6px rgba(255,255,255,0.06)', cursor: 'pointer', transition: 'all 0.3s', marginBottom: 14 }}
                              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
                              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
                           <div 
@@ -1531,10 +1531,10 @@ export default function Home() {
                           </div>
                         </div>
 
-                        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, lineHeight: 1.3, color: '#e6e6e6', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                           {v.title}
                         </div>
-                        <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+                        <div style={{ fontSize: 12, color: '#9a9a9a', marginBottom: 8 }}>
                           {v.artist}
                         </div>
 
@@ -1547,7 +1547,7 @@ export default function Home() {
                           >
                             {v.likes?.includes(user?.id) ? '❤️' : '🤍'}
                           </button>
-                          <span style={{ fontSize: 12, color: '#666', fontWeight: 500 }}>{v.likes?.length || 0}</span>
+                          <span style={{ fontSize: 11, color: '#8b8b8b', fontWeight: 600 }}>{v.likes?.length || 0}</span>
                         </div>
 
                         {v.musicUrl && (
@@ -1672,24 +1672,35 @@ export default function Home() {
 
             {/* ==== PLAYLISTS SECTION ==== */}
             {viewMode === 'playlists' && (
-            <div className="playlists-section">
-              <div className="playlists-header">
-                <h2>🎵 My Playlists</h2>
-                <button onClick={openPlaylistForm} className="create-playlist-btn">
+            <div className="playlists-section" style={{ background: 'linear-gradient(135deg, #0f0f0f, #151515)', border: '1px solid #222', borderRadius: 16, padding: 24, boxShadow: '0 10px 30px rgba(0,0,0,0.35)' }}>
+              <div className="playlists-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                <h2 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: '#FFD54A', letterSpacing: '0.02em' }}>🎵 My Playlists</h2>
+                <button
+                  onClick={openPlaylistForm}
+                  className="create-playlist-btn"
+                  style={{ background: 'linear-gradient(135deg, #FFD54A, #F0C000)', color: '#0b0b0b', border: 'none', padding: '10px 16px', borderRadius: 8, fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', cursor: 'pointer', boxShadow: '0 6px 18px rgba(255,213,74,0.35)' }}
+                >
                   <span>+ Create Playlist</span>
                 </button>
               </div>
 
               {playlists.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '60px 20px', color: '#666' }}>
+                <div style={{ textAlign: 'center', padding: '60px 20px', color: '#8b8b8b' }}>
                   <div style={{ fontSize: 48, marginBottom: 16 }}>🎶</div>
-                  <p style={{ margin: 0, fontSize: 18, fontWeight: 600 }}>No playlists yet</p>
-                  <p style={{ margin: '8px 0 0 0', fontSize: 14 }}>Create your first playlist to organize your music!</p>
+                  <p style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#e6e6e6' }}>No playlists yet</p>
+                  <p style={{ margin: '8px 0 0 0', fontSize: 13 }}>Create your first playlist to organize your music!</p>
                 </div>
               ) : (
                 <div className="playlists-grid">
                   {playlists.map(playlist => (
-                    <div key={playlist.id} className="playlist-card" onClick={() => openPlaylistDetail(playlist)}>
+                    <div
+                      key={playlist.id}
+                      className="playlist-card"
+                      onClick={() => openPlaylistDetail(playlist)}
+                      style={{ background: '#121212', border: '1px solid #2a2a2a', borderRadius: 12, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 8px 18px rgba(0,0,0,0.35)' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#FFD54A'; e.currentTarget.style.boxShadow = '0 10px 24px rgba(255,213,74,0.15)'; e.currentTarget.style.transform = 'translateY(-4px)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.boxShadow = '0 8px 18px rgba(0,0,0,0.35)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                    >
                       {playlist.cover_url ? (
                         <img src={playlist.cover_url} alt={playlist.name} className="playlist-cover" />
                       ) : (
@@ -1699,9 +1710,9 @@ export default function Home() {
                           </svg>
                         </div>
                       )}
-                      <div className="playlist-info">
-                        <h3 className="playlist-name">{playlist.name}</h3>
-                        <div className="playlist-meta">
+                      <div className="playlist-info" style={{ padding: 16 }}>
+                        <h3 className="playlist-name" style={{ margin: '0 0 6px 0', fontSize: 16, fontWeight: 800, color: '#eaeaea' }}>{playlist.name}</h3>
+                        <div className="playlist-meta" style={{ fontSize: 12, color: '#9a9a9a' }}>
                           <span>{playlist.song_count || 0} songs</span>
                         </div>
                       </div>
@@ -1709,12 +1720,14 @@ export default function Home() {
                         <button 
                           className="playlist-action-btn playlist-edit-btn"
                           onClick={() => openEditPlaylist(playlist)}
+                          style={{ background: 'transparent', color: '#FFD54A', border: '1px solid #FFD54A', padding: '6px 10px', borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
                         >
                           Edit
                         </button>
                         <button 
                           className="playlist-action-btn playlist-delete-btn"
                           onClick={() => handleDeletePlaylist(playlist.id)}
+                          style={{ background: 'transparent', color: '#E00000', border: '1px solid #E00000', padding: '6px 10px', borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
                         >
                           Delete
                         </button>
@@ -1726,9 +1739,9 @@ export default function Home() {
             </div>
             )}
 
-            <div style={{ marginTop: 60, borderTop: '2px solid #000', paddingTop: 40 }}>
+            <div style={{ marginTop: 60, borderTop: '1px solid #222', paddingTop: 40 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <h2 style={{ margin: 0, fontSize: 24, fontWeight: 700 }}>Complete Collection</h2>
+                <h2 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: '#FFD54A', letterSpacing: '0.02em' }}>Complete Collection</h2>
               </div>
               
               <div style={{ marginBottom: 24, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -1737,16 +1750,16 @@ export default function Home() {
                   placeholder="Search by title, artist, or year..."
                   value={search}
                   onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                  style={{ flex: 1, minWidth: 250, padding: '10px 16px', border: '1px solid #ddd', borderRadius: 4, fontSize: 14, transition: 'border 0.2s' }}
-                  onFocus={(e) => e.currentTarget.style.borderColor = '#000'}
-                  onBlur={(e) => e.currentTarget.style.borderColor = '#ddd'}
+                  style={{ flex: 1, minWidth: 250, padding: '12px 16px', border: '1px solid #2a2a2a', borderRadius: 8, fontSize: 14, transition: 'border 0.2s', background: '#0f0f0f', color: '#e6e6e6' }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#FFD54A'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = '#2a2a2a'}
                 />
                 <select 
                   value={sortBy}
                   onChange={(e) => { setSortBy(e.target.value); setPage(1); }}
-                  style={{ padding: '10px 16px', border: '1px solid #ddd', borderRadius: 4, fontSize: 14, background: 'white', cursor: 'pointer', transition: 'border 0.2s' }}
-                  onFocus={(e) => e.currentTarget.style.borderColor = '#000'}
-                  onBlur={(e) => e.currentTarget.style.borderColor = '#ddd'}
+                  style={{ padding: '12px 16px', border: '1px solid #2a2a2a', borderRadius: 8, fontSize: 14, background: '#0f0f0f', color: '#FFD54A', cursor: 'pointer', transition: 'border 0.2s' }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#FFD54A'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = '#2a2a2a'}
                 >
                   <option value="title">Sort by Title (A-Z)</option>
                   <option value="artist">Sort by Artist (A-Z)</option>
@@ -1757,7 +1770,7 @@ export default function Home() {
                 {user?.role !== 'reader' && (
                   <button 
                     onClick={openCreate} 
-                    style={{ background: '#ff006e', color: 'white', border: 'none', padding: '10px 16px', borderRadius: 4, cursor: 'pointer', fontSize: 14, fontWeight: 500, transition: 'all 0.2s', whiteSpace: 'nowrap' }}
+                    style={{ background: 'linear-gradient(135deg, #FFD54A, #F0C000)', color: '#0b0b0b', border: 'none', padding: '10px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 800, transition: 'all 0.2s', whiteSpace: 'nowrap', textTransform: 'uppercase', letterSpacing: '0.5px' }}
                     onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
                     onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                   >
@@ -1766,72 +1779,57 @@ export default function Home() {
                 )}
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
                 {filtered.map((v, index) => (
-                  <div key={v.id} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 16, background: 'white', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', transition: 'all 0.2s' }}
-                       onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.15)'}
-                       onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'}>
-                    <div style={{ width: 60, height: 60, borderRadius: '50%', overflow: 'hidden', position: 'relative', boxShadow: '0 4px 12px rgba(0,0,0,0.2)', flexShrink: 0, background: '#222' }}>
-                      {v.coverUrl && <img src={v.coverUrl} alt={v.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                  <div key={v.id} style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16, background: '#121212', borderRadius: 12, border: '1px solid #2a2a2a', boxShadow: '0 8px 18px rgba(0,0,0,0.35)', transition: 'all 0.2s' }}
+                       onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#FFD54A'; e.currentTarget.style.boxShadow = '0 10px 24px rgba(255,213,74,0.15)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
+                       onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.boxShadow = '0 8px 18px rgba(0,0,0,0.35)'; e.currentTarget.style.transform = 'translateY(0)'; }}>
+                    <div style={{ width: '100%', paddingTop: '100%', borderRadius: 10, overflow: 'hidden', position: 'relative', background: '#0b0b0b' }}>
+                      {v.coverUrl && <img src={v.coverUrl} alt={v.title} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
                     </div>
 
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 16, fontWeight: 600, color: '#000', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: '#eaeaea', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {v.title}
                       </div>
-                      <div style={{ fontSize: 14, color: '#666', marginTop: 2 }}>
+                      <div style={{ fontSize: 13, color: '#9a9a9a', marginTop: 4 }}>
                         {v.artist} • {v.year}
                       </div>
-                      <div style={{ fontSize: 12, color: '#999', marginTop: 2 }}>
-                        By: {v.ownerName || 'Unknown'}
+                      <div style={{ fontSize: 11, color: '#6f6f6f', marginTop: 6 }}>
+                        {v.ownerName || 'Unknown'}
                       </div>
-                      {v.note && (
-                        <div style={{ fontSize: 12, color: '#999', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {v.note}
-                        </div>
-                      )}
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        {v.musicUrl && (
-                          <button
-                            onClick={() => toggleSpin(v.id)}
-                            style={{ background: spinningVinyls[v.id] ? '#ff006e' : '#000', color: 'white', border: 'none', padding: '8px 16px', borderRadius: 20, cursor: 'pointer', fontSize: 12, fontWeight: 500, transition: 'all 0.2s', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}
-                            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                          >
-                            {spinningVinyls[v.id] ? '⏸' : '▶'} {spinningVinyls[v.id] ? 'Pause' : 'Play'}
-                          </button>
-                        )}
-                        <button 
-                          onClick={() => handleLike(v.id)} 
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, padding: 4, transition: 'all 0.2s' }}
-                          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.2)'}
-                          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                      {v.musicUrl && (
+                        <button
+                          onClick={() => toggleSpin(v.id)}
+                          style={{ background: spinningVinyls[v.id] ? '#FFD54A' : '#0b0b0b', color: spinningVinyls[v.id] ? '#0b0b0b' : '#FFD54A', border: '1px solid #FFD54A', padding: '6px 12px', borderRadius: 20, cursor: 'pointer', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}
                         >
-                          {v.likes?.includes(user?.id) ? '❤️' : '🤍'}
+                          {spinningVinyls[v.id] ? '⏸ Pause' : '▶ Play'}
                         </button>
-                        <span style={{ fontSize: 14, color: '#666', minWidth: 30 }}>{v.likes?.length || 0}</span>
-                      </div>
+                      )}
+                      <button 
+                        onClick={() => handleLike(v.id)} 
+                        style={{ background: '#0b0b0b', border: '1px solid #2a2a2a', cursor: 'pointer', fontSize: 12, padding: '6px 10px', borderRadius: 20, color: '#eaeaea', display: 'flex', alignItems: 'center', gap: 6 }}
+                      >
+                        {v.likes?.includes(user?.id) ? '❤️' : '🤍'}
+                        <span style={{ fontSize: 11, color: '#9a9a9a' }}>{v.likes?.length || 0}</span>
+                      </button>
                       <button
                         onClick={() => setShowAddToPlaylist(v)}
-                        className="add-to-playlist-btn"
+                        style={{ background: 'transparent', border: '1px solid #2a2a2a', color: '#FFD54A', padding: '6px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
                       >
-                        + Add to Playlist
+                        + Playlist
                       </button>
                     </div>
 
                     {(user?.role === 'admin' || (user?.role === 'user' && v.ownerId === user?.id)) && (
                       <div style={{ display: 'flex', gap: 8 }}>
-                        <button onClick={() => openEdit(v)} style={{ background: '#000', color: 'white', border: 'none', padding: '6px 12px', borderRadius: 4, cursor: 'pointer', fontSize: 12, fontWeight: 500, transition: 'all 0.2s', whiteSpace: 'nowrap' }}
-                                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
-                                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}>
+                        <button onClick={() => openEdit(v)} style={{ background: 'transparent', color: '#FFD54A', border: '1px solid #FFD54A', padding: '6px 10px', borderRadius: 6, cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
                           Edit
                         </button>
-                        <button onClick={() => onDelete(v.id)} style={{ background: '#ff006e', color: 'white', border: 'none', padding: '6px 12px', borderRadius: 4, cursor: 'pointer', fontSize: 12, fontWeight: 500, transition: 'all 0.2s', whiteSpace: 'nowrap' }}
-                                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
-                                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}>
+                        <button onClick={() => onDelete(v.id)} style={{ background: 'transparent', color: '#E00000', border: '1px solid #E00000', padding: '6px 10px', borderRadius: 6, cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
                           Delete
                         </button>
                       </div>
