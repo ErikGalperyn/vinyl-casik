@@ -1097,7 +1097,7 @@ export default function Home() {
       }
     } else {
       const vinyl = vinyls.find(v => String(v.id) === id);
-      if (vinyl?.musicUrl && audioRefsRef.current[id]) {
+      if ((vinyl?.musicUrl || vinyl?.previewUrl) && audioRefsRef.current[id]) {
         audioRefsRef.current[id].play().catch(err => console.log('Audio play error:', err));
         setCurrentlyPlaying(vinyl);
       }
@@ -1165,7 +1165,7 @@ export default function Home() {
                 )}
               </div>
             </button>
-            <h1 className="logo-animated" style={{ margin: 0, fontSize: 32, fontWeight: 900, letterSpacing: '0.08em', background: 'linear-gradient(90deg, #FFD700 0%, #ffffff 25%, #FFD54A 50%, #000000 75%, #FFD700 100%)', backgroundSize: '200% auto', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', animation: 'gradient-shift 3s ease infinite', textShadow: '0 0 30px rgba(255,215,0,0.3)', filter: 'drop-shadow(0 2px 8px rgba(255,215,0,0.4))' }}>
+            <h1 className="logo-animated" style={{ margin: 0, fontSize: 32, fontWeight: 900, letterSpacing: '0.08em', background: 'linear-gradient(90deg, #FFD700 0%, #000000 25%, #FFD54A 50%, #000000 75%, #FFD700 100%)', backgroundSize: '200% auto', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', animation: 'gradient-shift 3s ease infinite', textShadow: '0 0 30px rgba(255,215,0,0.3)', filter: 'drop-shadow(0 2px 8px rgba(255,215,0,0.4))' }}>
               MEDIOTEKA
             </h1>
           </div>
@@ -1568,7 +1568,7 @@ export default function Home() {
                           {v.artist}
                         </div>
 
-                        {v.musicUrl && (
+                        {(v.musicUrl || v.previewUrl) && (
                           <div style={{ background: '#f5f5f5', borderRadius: 8, padding: 12, marginTop: 8 }}>
                             {spinningVinyls[v.id] && (
                               <div style={{ marginBottom: 8 }}>
@@ -1663,11 +1663,11 @@ export default function Home() {
 
                 <div style={{ display: 'none' }}>
                   {vinyls.map(v => (
-                    v.musicUrl && (
+                    (v.musicUrl || v.previewUrl) && (
                       <audio
                         key={v.id}
                         ref={(el) => handleAudioRef(el, v.id)}
-                        src={v.musicUrl}
+                        src={v.musicUrl || v.previewUrl}
                         onTimeUpdate={(e) => {
                           setCurrentTime(prev => ({ ...prev, [v.id]: e.target.currentTime }));
                         }}
@@ -1823,10 +1823,12 @@ export default function Home() {
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', position: 'relative' }}>
-                      {v.musicUrl && (
+                      {(v.musicUrl || v.previewUrl) && (
                         <button
                           onClick={() => toggleSpin(v.id)}
-                          style={{ background: spinningVinyls[v.id] ? '#FFD54A' : '#0b0b0b', color: spinningVinyls[v.id] ? '#0b0b0b' : '#FFD54A', border: '1px solid #FFD54A', padding: '6px 12px', borderRadius: 20, cursor: 'pointer', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}
+                          style={{ background: spinningVinyls[v.id] ? 'linear-gradient(135deg, #FFD54A, #F0C000)' : 'linear-gradient(135deg, #1a1a1a, #0f0f0f)', color: spinningVinyls[v.id] ? '#0b0b0b' : '#FFD54A', border: spinningVinyls[v.id] ? 'none' : '1px solid #FFD54A', padding: '7px 14px', borderRadius: 20, cursor: 'pointer', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', boxShadow: spinningVinyls[v.id] ? '0 4px 12px rgba(255,213,74,0.4)' : '0 2px 8px rgba(0,0,0,0.3)', transition: 'all 0.2s' }}
+                          onMouseEnter={(e) => { if (!spinningVinyls[v.id]) e.currentTarget.style.background = 'linear-gradient(135deg, #2a2a2a, #1a1a1a)'; }}
+                          onMouseLeave={(e) => { if (!spinningVinyls[v.id]) e.currentTarget.style.background = 'linear-gradient(135deg, #1a1a1a, #0f0f0f)'; }}
                         >
                           {spinningVinyls[v.id] ? '⏸ Pause' : '▶ Play'}
                         </button>
@@ -1934,18 +1936,18 @@ export default function Home() {
                             {track.artist} • {track.year}
                           </div>
                           {track.previewUrl && (
-                            <div style={{ fontSize: 11, color: '#1DB954', marginTop: 2 }}>
-                              ✓ 30s preview available
+                            <div style={{ fontSize: 10, color: '#1DB954', marginTop: 4, display: 'inline-block', background: 'rgba(29, 185, 84, 0.1)', padding: '3px 8px', borderRadius: 12, border: '1px solid rgba(29, 185, 84, 0.3)', fontWeight: 600 }}>
+                              ✓ 30s preview
                             </div>
                           )}
                           {!track.previewUrl && (
-                            <div style={{ fontSize: 11, color: '#d17c00', marginTop: 2 }}>
-                              No Spotify preview. Upload your own audio to enable play/add.
+                            <div style={{ fontSize: 10, color: '#d17c00', marginTop: 4, display: 'inline-block', background: 'rgba(209, 124, 0, 0.08)', padding: '3px 8px', borderRadius: 12, border: '1px solid rgba(209, 124, 0, 0.25)', fontWeight: 600 }}>
+                              ⚠ No preview - upload audio
                             </div>
                           )}
                           {spotifyUploads[track.id]?.musicUrl && (
-                            <div style={{ fontSize: 11, color: '#1DB954', marginTop: 2 }}>
-                              ✓ Custom audio uploaded
+                            <div style={{ fontSize: 10, color: '#1DB954', marginTop: 4, marginLeft: 4, display: 'inline-block', background: 'rgba(29, 185, 84, 0.1)', padding: '3px 8px', borderRadius: 12, border: '1px solid rgba(29, 185, 84, 0.3)', fontWeight: 600 }}>
+                              ✓ Custom audio
                             </div>
                           )}
                         </div>
