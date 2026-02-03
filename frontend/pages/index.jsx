@@ -1577,7 +1577,7 @@ export default function Home() {
                                   <span>{formatTime(duration[v.id] || 0)}</span>
                                 </div>
                                 <div 
-                                  style={{ height: 12, background: '#ddd', borderRadius: 6, overflow: 'hidden', cursor: 'pointer', position: 'relative' }}
+                                  style={{ height: 12, background: '#1a1a1a', borderRadius: 6, overflow: 'hidden', cursor: 'pointer', position: 'relative', border: '1px solid #2a2a2a' }}
                                   onClick={(e) => {
                                     if (!audioRefsRef.current[v.id] || !duration[v.id]) return;
                                     const rect = e.currentTarget.getBoundingClientRect();
@@ -1588,7 +1588,7 @@ export default function Home() {
                                 >
                                   <div style={{ 
                                     height: '100%', 
-                                    background: 'linear-gradient(90deg, #ff006e, #ff4081)', 
+                                    background: 'linear-gradient(90deg, #E00000, #FFD54A)', 
                                     width: `${((currentTime[v.id] || 0) / (duration[v.id] || 1)) * 100}%`,
                                     transition: 'width 0.1s linear',
                                     position: 'relative'
@@ -1600,9 +1600,9 @@ export default function Home() {
                                       transform: 'translateY(-50%)',
                                       width: 12,
                                       height: 12,
-                                      background: '#ff006e',
+                                      background: '#FFD54A',
                                       borderRadius: '50%',
-                                      boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                                      boxShadow: '0 2px 4px rgba(255,213,74,0.4)',
                                       cursor: 'grab'
                                     }}></div>
                                   </div>
@@ -1630,17 +1630,17 @@ export default function Home() {
                                     height: 4,
                                     borderRadius: 2,
                                     outline: 'none',
-                                    background: `linear-gradient(to right, #ff006e 0%, #ff006e ${volume * 100}%, #ddd ${volume * 100}%, #ddd 100%)`
+                                    background: `linear-gradient(to right, #E00000 0%, #E00000 ${volume * 100}%, #2a2a2a ${volume * 100}%, #2a2a2a 100%)`
                                   }}
                                 />
                                 <span style={{ fontSize: 10, color: '#666', minWidth: 30 }}>{Math.round(volume * 100)}%</span>
                               </div>
                             )}
                             
-                            {!spinningVinyls[v.id] && (v.previewUrl || (v.musicUrl && v.musicUrl.includes('spotify'))) && (
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, background: '#0b0b0b', border: '1px solid #FFD54A', padding: '6px 12px', borderRadius: 20, color: '#FFD54A', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                            {!spinningVinyls[v.id] && v.musicUrl && (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, background: '#0b0b0b', border: (v.previewUrl || v.musicUrl.includes('spotify')) ? '1px solid #FFD54A' : '1px solid #E00000', padding: '6px 12px', borderRadius: 20, color: (v.previewUrl || v.musicUrl.includes('spotify')) ? '#FFD54A' : '#E00000', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                                 <span>♫</span>
-                                <span>Audio Ready</span>
+                                <span>{(v.previewUrl || v.musicUrl.includes('spotify')) ? 'Demo Track' : 'Uploaded Audio'}</span>
                               </div>
                             )}
                           </div>
