@@ -166,22 +166,53 @@ async function searchItunes(query) {
         term: query,
         media: 'music',
         entity: 'song',
-        limit: 20
+        limit: 50
       }
     });
     
-    return response.data.results.map(result => ({
-      id: result.trackId,
-      title: result.trackName,
-      artist: result.artistName,
-      album: result.collectionName,
-      year: parseInt(result.releaseDate.split('-')[0]),
-      coverUrl: result.artworkUrl100 || result.artworkUrl60,
-      previewUrl: result.previewUrl || null
-    })).filter((track, index, self) => 
-      // Remove duplicates, keep only tracks with preview
-      self.findIndex(t => t.title.toLowerCase() === track.title.toLowerCase()) === index && track.previewUrl
-    );
+    // Map results and remove duplicates
+    const seen = new Set();
+    const tracks = [];
+    
+    // First pass: tracks WITH preview
+    for (const result of response.data.results) {
+      if (result.previewUrl) {
+        const key = `${result.trackName.toLowerCase()}-${result.artistName.toLowerCase()}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          tracks.push({
+            id: result.trackId,
+            title: result.trackName,
+            artist: result.artistName,
+            album: result.collectionName,
+            year: parseInt(result.releaseDate.split('-')[0]),
+            coverUrl: result.artworkUrl100 || result.artworkUrl60,
+            previewUrl: result.previewUrl
+          });
+        }
+      }
+    }
+    
+    // Second pass: tracks WITHOUT preview (fill remaining)
+    for (const result of response.data.results) {
+      if (!result.previewUrl) {
+        const key = `${result.trackName.toLowerCase()}-${result.artistName.toLowerCase()}`;
+        if (!seen.has(key) && tracks.length < 20) {
+          seen.add(key);
+          tracks.push({
+            id: result.trackId,
+            title: result.trackName,
+            artist: result.artistName,
+            album: result.collectionName,
+            year: parseInt(result.releaseDate.split('-')[0]),
+            coverUrl: result.artworkUrl100 || result.artworkUrl60,
+            previewUrl: null
+          });
+        }
+      }
+    }
+    
+    return tracks.slice(0, 20);
   } catch (error) {
     console.error('iTunes search error:', error.message);
     return [];
