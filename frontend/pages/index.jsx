@@ -1843,40 +1843,37 @@ export default function Home() {
                         {v.likes?.includes(user?.id) ? '💛' : '♡'}
                         <span style={{ fontSize: 11, color: '#FFD54A' }}>{v.likes?.length || 0}</span>
                       </button>
-                      <div style={{ position: 'relative' }}>
+                      <div style={{ display: 'flex', gap: 6 }}>
                         <button
-                          onClick={() => setActionMenuId(actionMenuId === v.id ? null : v.id)}
-                          style={{ background: '#0b0b0b', border: '1px solid #2a2a2a', color: '#FFD54A', padding: '6px 10px', borderRadius: 20, fontSize: 12, fontWeight: 800, cursor: 'pointer', letterSpacing: '0.5px' }}
-                          aria-label="Open actions"
+                          onClick={() => setShowAddToPlaylist(v)}
+                          style={{ background: '#0b0b0b', border: '1px solid #FFD54A', color: '#FFD54A', width: 32, height: 32, borderRadius: 6, cursor: 'pointer', fontSize: 16, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = '#FFD54A'; e.currentTarget.style.color = '#0b0b0b'; e.currentTarget.style.boxShadow = '0 0 12px rgba(255,213,74,0.4)'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = '#0b0b0b'; e.currentTarget.style.color = '#FFD54A'; e.currentTarget.style.boxShadow = 'none'; }}
+                          title="Add to Playlist"
                         >
-                          ⋯
+                          +
                         </button>
-
-                        {actionMenuId === v.id && (
-                          <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: '#0b0b0b', border: '1px solid #2a2a2a', borderRadius: 10, padding: 8, minWidth: 170, zIndex: 50, boxShadow: '0 12px 24px rgba(0,0,0,0.5)' }}>
+                        {(user?.role === 'admin' || (user?.role === 'user' && v.ownerId === user?.id)) && (
+                          <>
                             <button
-                              onClick={() => { setShowAddToPlaylist(v); setActionMenuId(null); }}
-                              style={{ width: '100%', background: 'transparent', color: '#FFD54A', border: '1px solid #2a2a2a', padding: '8px 10px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer', textAlign: 'left' }}
+                              onClick={() => openEdit(v)}
+                              style={{ background: '#0b0b0b', border: '1px solid #FFD54A', color: '#FFD54A', width: 32, height: 32, borderRadius: 6, cursor: 'pointer', fontSize: 16, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
+                              onMouseEnter={(e) => { e.currentTarget.style.background = '#FFD54A'; e.currentTarget.style.color = '#0b0b0b'; e.currentTarget.style.boxShadow = '0 0 12px rgba(255,213,74,0.4)'; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.background = '#0b0b0b'; e.currentTarget.style.color = '#FFD54A'; e.currentTarget.style.boxShadow = 'none'; }}
+                              title="Edit"
                             >
-                              + Add to Playlist
+                              ✎
                             </button>
-                            {(user?.role === 'admin' || (user?.role === 'user' && v.ownerId === user?.id)) && (
-                              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                                <button
-                                  onClick={() => { openEdit(v); setActionMenuId(null); }}
-                                  style={{ flex: 1, background: 'transparent', color: '#FFD54A', border: '1px solid #FFD54A', padding: '8px 10px', borderRadius: 8, fontSize: 11, fontWeight: 800, cursor: 'pointer' }}
-                                >
-                                  Edit
-                                </button>
-                                <button
-                                  onClick={() => { onDelete(v.id); setActionMenuId(null); }}
-                                  style={{ flex: 1, background: 'transparent', color: '#E00000', border: '1px solid #E00000', padding: '8px 10px', borderRadius: 8, fontSize: 11, fontWeight: 800, cursor: 'pointer' }}
-                                >
-                                  Delete
-                                </button>
-                              </div>
-                            )}
-                          </div>
+                            <button
+                              onClick={() => onDelete(v.id)}
+                              style={{ background: '#0b0b0b', border: '1px solid #E00000', color: '#E00000', width: 32, height: 32, borderRadius: 6, cursor: 'pointer', fontSize: 16, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
+                              onMouseEnter={(e) => { e.currentTarget.style.background = '#E00000'; e.currentTarget.style.color = '#0b0b0b'; e.currentTarget.style.boxShadow = '0 0 12px rgba(224,0,0,0.4)'; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.background = '#0b0b0b'; e.currentTarget.style.color = '#E00000'; e.currentTarget.style.boxShadow = 'none'; }}
+                              title="Delete"
+                            >
+                              🗑
+                            </button>
+                          </>
                         )}
                       </div>
                     </div>
