@@ -49,33 +49,36 @@ if (USE_POSTGRES) {
         console.log('✓ PostgreSQL schema present');
       }
       
-      // Initialize playlist tables - force recreate with correct schema
+      // Initialize playlist tables only if missing (do NOT drop existing data)
       try {
-        // Aggressively drop and recreate
-        console.log('⏳ Dropping old playlist tables...');
-        try { await pool.query("DROP TABLE IF EXISTS playlist_songs CASCADE"); } catch (e) { console.error('Drop playlist_songs error:', e.message); }
-        try { await pool.query("DROP TABLE IF EXISTS playlists CASCADE"); } catch (e) { console.error('Drop playlists error:', e.message); }
-        
-        console.log('📝 Creating playlist tables...');
-        const playlistSql = fs.readFileSync(path.join(__dirname, 'scripts/playlists-schema.sql'), 'utf8');
-        // Execute as single statement to avoid constraint issues
-        const statements = playlistSql.split(';').filter(s => s.trim());
-        console.log(`🔍 Found ${statements.length} SQL statements to execute`);
-        
-        for (let i = 0; i < statements.length; i++) {
-          const statement = statements[i];
-          try {
-            console.log(`  [${i+1}/${statements.length}] Executing...`);
-            await pool.query(statement);
-            console.log(`  ✓ Statement ${i+1} OK`);
-          } catch (stmtErr) {
-            console.error(`  ✗ Statement ${i+1} error:`, stmtErr.message);
-            if (!stmtErr.message.includes('already exists')) {
-              throw stmtErr;
+        const { rows: playlistRows } = await pool.query("SELECT to_regclass('public.playlists') AS exists");
+        const { rows: playlistSongsRows } = await pool.query("SELECT to_regclass('public.playlist_songs') AS exists");
+        const playlistsMissing = !playlistRows[0] || !playlistRows[0].exists;
+        const playlistSongsMissing = !playlistSongsRows[0] || !playlistSongsRows[0].exists;
+
+        if (playlistsMissing || playlistSongsMissing) {
+          console.log('📝 Creating missing playlist tables...');
+          const playlistSql = fs.readFileSync(path.join(__dirname, 'scripts/playlists-schema.sql'), 'utf8');
+          const statements = playlistSql.split(';').filter(s => s.trim());
+          console.log(`🔍 Found ${statements.length} SQL statements to execute`);
+
+          for (let i = 0; i < statements.length; i++) {
+            const statement = statements[i];
+            try {
+              console.log(`  [${i+1}/${statements.length}] Executing...`);
+              await pool.query(statement);
+              console.log(`  ✓ Statement ${i+1} OK`);
+            } catch (stmtErr) {
+              console.error(`  ✗ Statement ${i+1} error:`, stmtErr.message);
+              if (!stmtErr.message.includes('already exists')) {
+                throw stmtErr;
+              }
             }
           }
+          console.log('✓ Playlist tables initialized');
+        } else {
+          console.log('✓ Playlist tables present');
         }
-        console.log('✓ Playlist tables initialized');
       } catch (playlistErr) {
         console.error('❌ Playlist table initialization error:', playlistErr.message);
         // Continue even if playlist tables fail - core app still works
@@ -308,6 +311,30 @@ if (USE_POSTGRES) {
       FOREIGN KEY (vinylId) REFERENCES vinyls(id) ON DELETE CASCADE,
       FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS playlists (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      description TEXT,
+      cover_url TEXT,
+      owner_id TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS playlist_songs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      playlist_id INTEGER NOT NULL,
+      vinyl_id TEXT NOT NULL,
+      position INTEGER NOT NULL DEFAULT 0,
+      added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(playlist_id, vinyl_id),
+      FOREIGN KEY (playlist_id) REFERENCES playlists(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_playlist_songs_playlist ON playlist_songs(playlist_id);
+    CREATE INDEX IF NOT EXISTS idx_playlist_songs_position ON playlist_songs(playlist_id, position);
+    CREATE INDEX IF NOT EXISTS idx_playlists_owner ON playlists(owner_id);
   `);
 
   function migrateFromJSON() {
