@@ -1576,69 +1576,6 @@ export default function Home() {
                             </div>
                           </div>
                         )}
-
-                        {v.musicUrl && spinningVinyls[v.id] && (
-                          <div style={{ background: '#0f0f0f', border: '1px solid #1f1f1f', borderRadius: 8, padding: 12, marginTop: 8 }}>
-                            {spinningVinyls[v.id] && (
-                              <div style={{ marginBottom: 8 }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#bdbdbd', marginBottom: 4 }}>
-                                  <span>{formatTime(currentTime[v.id] || 0)}</span>
-                                  <span>{formatTime(duration[v.id] || 0)}</span>
-                                </div>
-                                <div 
-                                  style={{ height: 12, background: '#1a1a1a', borderRadius: 6, overflow: 'hidden', position: 'relative', border: '1px solid #2a2a2a' }}
-                                >
-                                  <div style={{ 
-                                    height: '100%', 
-                                    background: 'linear-gradient(90deg, #E00000, #FFD54A)', 
-                                    width: `${((currentTime[v.id] || 0) / (duration[v.id] || 1)) * 100}%`,
-                                    transition: 'width 0.1s linear',
-                                    position: 'relative'
-                                  }}>
-                                    <div style={{
-                                      position: 'absolute',
-                                      right: -6,
-                                      top: '50%',
-                                      transform: 'translateY(-50%)',
-                                      width: 12,
-                                      height: 12,
-                                      background: '#FFD54A',
-                                      borderRadius: '50%',
-                                      boxShadow: '0 2px 4px rgba(255,213,74,0.4)'
-                                    }}></div>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {spinningVinyls[v.id] && (
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <span style={{ fontSize: 14 }}>🔊</span>
-                                <input 
-                                  type="range" 
-                                  min="0" 
-                                  max="100" 
-                                  value={volume * 100}
-                                  onChange={(e) => {
-                                    const newVolume = e.target.value / 100;
-                                    setVolume(newVolume);
-                                    Object.values(audioRefsRef.current).forEach(audio => {
-                                      if (audio) audio.volume = newVolume;
-                                    });
-                                  }}
-                                  style={{ 
-                                    flex: 1, 
-                                    height: 4,
-                                    borderRadius: 2,
-                                    outline: 'none',
-                                    background: `linear-gradient(to right, #E00000 0%, #E00000 ${volume * 100}%, #2a2a2a ${volume * 100}%, #2a2a2a 100%)`
-                                  }}
-                                />
-                                <span style={{ fontSize: 10, color: '#bdbdbd', minWidth: 30 }}>{Math.round(volume * 100)}%</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
                       </div>
                     );
                   })}
