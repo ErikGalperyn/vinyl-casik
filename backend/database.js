@@ -170,12 +170,14 @@ if (USE_POSTGRES) {
             let syncCount = 0;
             
             for (const v of vinyls) {
-              if (v.musicUrl) {
+              if (v.musicUrl && v.musicUrl.trim()) {
                 const music = rewriteMediaUrl(v.musicUrl);
+                console.log(`  Syncing "${v.title}" to ${music}`);
                 const updateRes = await pool.query(
-                  'UPDATE vinyls SET musicUrl = $1 WHERE title = $2',
+                  'UPDATE vinyls SET musicUrl = $1 WHERE title = $2 RETURNING id',
                   [music, v.title]
                 );
+                console.log(`    Rows updated: ${updateRes.rowCount}`);
                 if (updateRes.rowCount > 0) {
                   console.log(`✓ Updated musicUrl for "${v.title}"`);
                   syncCount++;
