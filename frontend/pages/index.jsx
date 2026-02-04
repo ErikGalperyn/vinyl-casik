@@ -1843,37 +1843,49 @@ export default function Home() {
                         {v.likes?.includes(user?.id) ? '💛' : '♡'}
                         <span style={{ fontSize: 11, color: '#FFD54A' }}>{v.likes?.length || 0}</span>
                       </button>
-                      <div style={{ display: 'flex', gap: 6 }}>
+                      <div style={{ position: 'relative' }}>
                         <button
-                          onClick={() => setShowAddToPlaylist(v)}
-                          style={{ background: '#0b0b0b', border: '1px solid #FFD54A', color: '#FFD54A', width: 32, height: 32, borderRadius: 6, cursor: 'pointer', fontSize: 16, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
-                          onMouseEnter={(e) => { e.currentTarget.style.background = '#FFD54A'; e.currentTarget.style.color = '#0b0b0b'; e.currentTarget.style.boxShadow = '0 0 12px rgba(255,213,74,0.4)'; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.background = '#0b0b0b'; e.currentTarget.style.color = '#FFD54A'; e.currentTarget.style.boxShadow = 'none'; }}
-                          title="Add to Playlist"
+                          onClick={() => setActionMenuId(actionMenuId === v.id ? null : v.id)}
+                          style={{ background: '#0b0b0b', border: '1px solid #2a2a2a', color: '#FFD54A', padding: '6px 10px', borderRadius: 20, fontSize: 12, fontWeight: 800, cursor: 'pointer', letterSpacing: '0.5px' }}
+                          aria-label="Open actions"
                         >
-                          +
+                          ⋯
                         </button>
-                        {(user?.role === 'admin' || (user?.role === 'user' && v.ownerId === user?.id)) && (
-                          <>
+
+                        {actionMenuId === v.id && (
+                          <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: '#0b0b0b', border: '1px solid #FFD54A', borderRadius: 8, padding: '6px', display: 'flex', flexDirection: 'column', gap: 4, zIndex: 9999, boxShadow: '0 12px 24px rgba(0,0,0,0.8)' }}>
                             <button
-                              onClick={() => openEdit(v)}
-                              style={{ background: '#0b0b0b', border: '1px solid #FFD54A', color: '#FFD54A', width: 32, height: 32, borderRadius: 6, cursor: 'pointer', fontSize: 16, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
-                              onMouseEnter={(e) => { e.currentTarget.style.background = '#FFD54A'; e.currentTarget.style.color = '#0b0b0b'; e.currentTarget.style.boxShadow = '0 0 12px rgba(255,213,74,0.4)'; }}
-                              onMouseLeave={(e) => { e.currentTarget.style.background = '#0b0b0b'; e.currentTarget.style.color = '#FFD54A'; e.currentTarget.style.boxShadow = 'none'; }}
-                              title="Edit"
+                              onClick={() => { setShowAddToPlaylist(v); setActionMenuId(null); }}
+                              style={{ background: '#0b0b0b', color: '#FFD54A', border: '1px solid #FFD54A', width: 36, height: 36, borderRadius: 6, cursor: 'pointer', fontSize: 16, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
+                              onMouseEnter={(e) => { e.currentTarget.style.background = '#FFD54A'; e.currentTarget.style.color = '#0b0b0b'; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.background = '#0b0b0b'; e.currentTarget.style.color = '#FFD54A'; }}
+                              title="Add to Playlist"
                             >
-                              ✎
+                              +
                             </button>
-                            <button
-                              onClick={() => onDelete(v.id)}
-                              style={{ background: '#0b0b0b', border: '1px solid #E00000', color: '#E00000', width: 32, height: 32, borderRadius: 6, cursor: 'pointer', fontSize: 16, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
-                              onMouseEnter={(e) => { e.currentTarget.style.background = '#E00000'; e.currentTarget.style.color = '#0b0b0b'; e.currentTarget.style.boxShadow = '0 0 12px rgba(224,0,0,0.4)'; }}
-                              onMouseLeave={(e) => { e.currentTarget.style.background = '#0b0b0b'; e.currentTarget.style.color = '#E00000'; e.currentTarget.style.boxShadow = 'none'; }}
-                              title="Delete"
-                            >
-                              🗑
-                            </button>
-                          </>
+                            {(user?.role === 'admin' || (user?.role === 'user' && v.ownerId === user?.id)) && (
+                              <>
+                                <button
+                                  onClick={() => { openEdit(v); setActionMenuId(null); }}
+                                  style={{ background: '#0b0b0b', color: '#FFD54A', border: '1px solid #FFD54A', width: 36, height: 36, borderRadius: 6, cursor: 'pointer', fontSize: 16, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
+                                  onMouseEnter={(e) => { e.currentTarget.style.background = '#FFD54A'; e.currentTarget.style.color = '#0b0b0b'; }}
+                                  onMouseLeave={(e) => { e.currentTarget.style.background = '#0b0b0b'; e.currentTarget.style.color = '#FFD54A'; }}
+                                  title="Edit"
+                                >
+                                  ✎
+                                </button>
+                                <button
+                                  onClick={() => { onDelete(v.id); setActionMenuId(null); }}
+                                  style={{ background: '#0b0b0b', color: '#E00000', border: '1px solid #E00000', width: 36, height: 36, borderRadius: 6, cursor: 'pointer', fontSize: 16, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
+                                  onMouseEnter={(e) => { e.currentTarget.style.background = '#E00000'; e.currentTarget.style.color = '#0b0b0b'; }}
+                                  onMouseLeave={(e) => { e.currentTarget.style.background = '#0b0b0b'; e.currentTarget.style.color = '#E00000'; }}
+                                  title="Delete"
+                                >
+                                  🗑
+                                </button>
+                              </>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>
