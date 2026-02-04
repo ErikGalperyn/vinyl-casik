@@ -1622,69 +1622,128 @@ export default function Home() {
 
             {/* ==== PLAYLISTS SECTION ==== */}
             {viewMode === 'playlists' && (
-            <div className="playlists-section" style={{ background: 'linear-gradient(135deg, #0f0f0f, #151515)', border: '1px solid #222', borderRadius: 16, padding: 24, boxShadow: '0 10px 30px rgba(0,0,0,0.35)' }}>
-              <div className="playlists-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <h2 style={{ margin: 0, fontSize: 28, fontWeight: 900, color: '#FFD54A', letterSpacing: '0.02em', display: 'flex', alignItems: 'center', gap: 12, textTransform: 'uppercase' }}>
-                  <span style={{ fontSize: 32, filter: 'drop-shadow(0 2px 4px rgba(255,213,74,0.4))' }}>♫</span>
+            <div style={{ background: 'linear-gradient(180deg, #0b0b0b 0%, #151515 100%)', border: '1px solid #FFD54A', borderRadius: 16, padding: 32, boxShadow: '0 12px 40px rgba(255,213,74,0.15)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
+                <h2 style={{ margin: 0, fontSize: 32, fontWeight: 900, background: 'linear-gradient(135deg, #FFD54A, #FFD700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '0.02em', display: 'flex', alignItems: 'center', gap: 14, textTransform: 'uppercase', filter: 'drop-shadow(0 2px 8px rgba(255,213,74,0.3))' }}>
+                  <span style={{ fontSize: 36 }}>♫</span>
                   My Playlists
                 </h2>
                 <button
                   onClick={openPlaylistForm}
-                  className="create-playlist-btn"
-                  style={{ background: 'linear-gradient(135deg, #FFD54A, #F0C000)', color: '#0b0b0b', border: 'none', padding: '10px 16px', borderRadius: 8, fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', cursor: 'pointer', boxShadow: '0 6px 18px rgba(255,213,74,0.35)' }}
+                  style={{ background: 'linear-gradient(135deg, #FFD54A, #F0C000)', color: '#0b0b0b', border: 'none', padding: '12px 24px', borderRadius: 10, fontSize: 13, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.8px', cursor: 'pointer', boxShadow: '0 8px 20px rgba(255,213,74,0.4)', transition: 'all 0.3s' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px) scale(1.05)'; e.currentTarget.style.boxShadow = '0 12px 28px rgba(255,213,74,0.5)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0) scale(1)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(255,213,74,0.4)'; }}
                 >
-                  <span>+ Create Playlist</span>
+                  + Create Playlist
                 </button>
               </div>
 
               {playlists.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '60px 20px', color: '#8b8b8b' }}>
-                  <div style={{ fontSize: 56, marginBottom: 16, color: '#FFD54A', filter: 'drop-shadow(0 2px 4px rgba(255,213,74,0.4))' }}>♫</div>
-                  <p style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#e6e6e6' }}>No playlists yet</p>
-                  <p style={{ margin: '8px 0 0 0', fontSize: 13 }}>Create your first playlist to organize your music!</p>
+                <div style={{ textAlign: 'center', padding: '80px 20px', background: 'rgba(11,11,11,0.5)', borderRadius: 12, border: '1px solid #2a2a2a' }}>
+                  <div style={{ fontSize: 64, marginBottom: 20, color: '#FFD54A', filter: 'drop-shadow(0 4px 12px rgba(255,213,74,0.5))' }}>♫</div>
+                  <p style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#FFD54A' }}>No playlists yet</p>
+                  <p style={{ margin: '12px 0 0 0', fontSize: 14, color: '#9a9a9a' }}>Create your first playlist to organize your music collection!</p>
                 </div>
               ) : (
-                <div className="playlists-grid">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                   {playlists.map(playlist => (
-                    <div
-                      key={playlist.id}
-                      className="playlist-card"
-                      onClick={() => openPlaylistDetail(playlist)}
-                      style={{ background: 'linear-gradient(135deg, #0b0b0b, #121212)', border: '2px solid #2a2a2a', borderRadius: 16, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.3s ease', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#FFD54A'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(255,213,74,0.25)'; e.currentTarget.style.transform = 'translateY(-6px) scale(1.02)'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.boxShadow = '0 10px 25px rgba(0,0,0,0.5)'; e.currentTarget.style.transform = 'translateY(0) scale(1)'; }}
-                    >
-                      {playlist.cover_url ? (
-                        <img src={playlist.cover_url} alt={playlist.name} className="playlist-cover" />
-                      ) : (
-                        <div className="playlist-cover-placeholder">
-                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                          </svg>
+                    <div key={playlist.id} style={{ background: '#121212', border: '2px solid #2a2a2a', borderRadius: 12, overflow: 'hidden', transition: 'all 0.3s' }}>
+                      {/* Playlist Header */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 20, padding: 20, background: 'linear-gradient(135deg, #0b0b0b, #1a1a1a)', cursor: 'pointer', transition: 'all 0.3s' }}
+                        onClick={() => setSelectedPlaylist(selectedPlaylist?.id === playlist.id ? null : playlist)}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #1a1a1a, #0b0b0b)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #0b0b0b, #1a1a1a)'; }}
+                      >
+                        {playlist.cover_url ? (
+                          <img src={playlist.cover_url} alt={playlist.name} style={{ width: 100, height: 100, borderRadius: 10, objectFit: 'cover', boxShadow: '0 4px 16px rgba(0,0,0,0.5)', border: '2px solid #FFD54A' }} />
+                        ) : (
+                          <div style={{ width: 100, height: 100, borderRadius: 10, background: 'linear-gradient(135deg, #FFD54A, #F0C000)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, color: '#0b0b0b', boxShadow: '0 4px 16px rgba(255,213,74,0.4)' }}>♫</div>
+                        )}
+                        <div style={{ flex: 1 }}>
+                          <h3 style={{ margin: '0 0 8px 0', fontSize: 22, fontWeight: 900, color: '#FFD54A', letterSpacing: '0.5px' }}>{playlist.name}</h3>
+                          {playlist.description && (
+                            <p style={{ margin: '0 0 8px 0', fontSize: 13, color: '#9a9a9a', lineHeight: 1.5 }}>{playlist.description}</p>
+                          )}
+                          <div style={{ fontSize: 13, color: '#FFD54A', fontWeight: 700 }}>
+                            <span style={{ background: 'rgba(255,213,74,0.1)', padding: '4px 10px', borderRadius: 6, border: '1px solid rgba(255,213,74,0.3)' }}>{playlist.song_count || 0} songs</span>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 8 }} onClick={(e) => e.stopPropagation()}>
+                          <button 
+                            onClick={() => openEditPlaylist(playlist)}
+                            style={{ background: 'rgba(11,11,11,0.8)', color: '#FFD54A', border: '1.5px solid #FFD54A', padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s', textTransform: 'uppercase', letterSpacing: '0.5px' }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = '#FFD54A'; e.currentTarget.style.color = '#0b0b0b'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(11,11,11,0.8)'; e.currentTarget.style.color = '#FFD54A'; }}
+                          >
+                            ✎ Edit
+                          </button>
+                          <button 
+                            onClick={() => handleDeletePlaylist(playlist.id)}
+                            style={{ background: 'rgba(11,11,11,0.8)', color: '#E00000', border: '1.5px solid #E00000', padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s', textTransform: 'uppercase', letterSpacing: '0.5px' }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = '#E00000'; e.currentTarget.style.color = '#0b0b0b'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(11,11,11,0.8)'; e.currentTarget.style.color = '#E00000'; }}
+                          >
+                            🗑 Delete
+                          </button>
+                        </div>
+                        <div style={{ fontSize: 20, color: '#FFD54A', transition: 'all 0.3s', transform: selectedPlaylist?.id === playlist.id ? 'rotate(180deg)' : 'rotate(0deg)' }}>▼</div>
+                      </div>
+
+                      {/* Expanded Songs List */}
+                      {selectedPlaylist?.id === playlist.id && (
+                        <div style={{ padding: 20, background: '#0b0b0b', borderTop: '1px solid #2a2a2a', maxHeight: 600, overflowY: 'auto' }}>
+                          {selectedPlaylist.songs && selectedPlaylist.songs.length > 0 ? (
+                            <DndContext
+                              sensors={sensors}
+                              collisionDetection={closestCenter}
+                              onDragStart={(event) => setActiveId(event.active.id)}
+                              onDragEnd={handleDragEnd}
+                            >
+                              <SortableContext
+                                items={selectedPlaylist.songs.map(s => s.id)}
+                                strategy={verticalListSortingStrategy}
+                              >
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                  {selectedPlaylist.songs.map((song, idx) => (
+                                    <SortableItem
+                                      key={song.id}
+                                      id={song.id}
+                                      song={song}
+                                      onRemove={handleRemoveFromPlaylist}
+                                      playlistId={selectedPlaylist.id}
+                                    />
+                                  ))}
+                                </div>
+                              </SortableContext>
+                              <DragOverlay>
+                                {(() => {
+                                  const song = selectedPlaylist.songs.find((s) => s.id === activeId);
+                                  if (!song) return null;
+                                  return (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 14, background: 'linear-gradient(135deg, #FFD54A, #F0C000)', borderRadius: 10, boxShadow: '0 15px 40px rgba(255,213,74,0.5)' }}>
+                                      {song.coverUrl ? (
+                                        <img src={song.coverUrl} alt={song.title} style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 8, border: '2px solid #0b0b0b' }} />
+                                      ) : (
+                                        <div style={{ width: 60, height: 60, borderRadius: 8, background: '#0b0b0b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>♫</div>
+                                      )}
+                                      <div>
+                                        <div style={{ fontWeight: 900, color: '#0b0b0b', fontSize: 15 }}>{song.title}</div>
+                                        <div style={{ fontSize: 13, color: 'rgba(11,11,11,0.7)' }}>{song.artist} • {song.year}</div>
+                                      </div>
+                                    </div>
+                                  );
+                                })()}
+                              </DragOverlay>
+                            </DndContext>
+                          ) : (
+                            <div style={{ textAlign: 'center', padding: '60px 20px', color: '#9a9a9a' }}>
+                              <div style={{ fontSize: 48, marginBottom: 16, color: '#FFD54A', opacity: 0.5 }}>♪</div>
+                              <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#e6e6e6' }}>No songs in this playlist yet</p>
+                              <p style={{ margin: '8px 0 0 0', fontSize: 13 }}>Click "Add to Playlist" on any song to add it here!</p>
+                            </div>
+                          )}
                         </div>
                       )}
-                      <div className="playlist-info" style={{ padding: 16 }}>
-                        <h3 className="playlist-name" style={{ margin: '0 0 6px 0', fontSize: 16, fontWeight: 800, color: '#eaeaea' }}>{playlist.name}</h3>
-                        <div className="playlist-meta" style={{ fontSize: 12, color: '#9a9a9a' }}>
-                          <span>{playlist.song_count || 0} songs</span>
-                        </div>
-                      </div>
-                      <div className="playlist-actions" onClick={(e) => e.stopPropagation()}>
-                        <button 
-                          className="playlist-action-btn playlist-edit-btn"
-                          onClick={() => openEditPlaylist(playlist)}
-                          style={{ background: 'transparent', color: '#FFD54A', border: '1px solid #FFD54A', padding: '6px 10px', borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
-                        >
-                          Edit
-                        </button>
-                        <button 
-                          className="playlist-action-btn playlist-delete-btn"
-                          onClick={() => handleDeletePlaylist(playlist.id)}
-                          style={{ background: 'transparent', color: '#E00000', border: '1px solid #E00000', padding: '6px 10px', borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
-                        >
-                          Delete
-                        </button>
-                      </div>
                     </div>
                   ))}
                 </div>
@@ -2227,60 +2286,83 @@ export default function Home() {
 
         {/* Playlist Form Modal */}
         {showPlaylistForm && (
-          <div className="modal-overlay" onClick={() => setShowPlaylistForm(false)}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header">
-                <h3>{editingPlaylist ? 'Edit Playlist' : 'Create Playlist'}</h3>
-                <button className="modal-close" onClick={() => setShowPlaylistForm(false)}>×</button>
+          <div className="modal-overlay" onClick={() => setShowPlaylistForm(false)} style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)' }}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ background: 'linear-gradient(180deg, #0b0b0b 0%, #1a1a1a 100%)', border: '2px solid #FFD54A', borderRadius: 16, maxWidth: 550, boxShadow: '0 20px 60px rgba(255,213,74,0.3)' }}>
+              <div style={{ borderBottom: '1px solid #2a2a2a', padding: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: 0, fontSize: 24, fontWeight: 900, background: 'linear-gradient(135deg, #FFD54A, #FFD700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                  {editingPlaylist ? '✎ Edit Playlist' : '+ Create Playlist'}
+                </h3>
+                <button onClick={() => setShowPlaylistForm(false)} style={{ background: 'transparent', border: 'none', color: '#FFD54A', fontSize: 32, cursor: 'pointer', padding: 0, width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, transition: 'all 0.2s' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,213,74,0.1)'; e.currentTarget.style.transform = 'rotate(90deg)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.transform = 'rotate(0deg)'; }}
+                >×</button>
               </div>
-              <form onSubmit={handlePlaylistSubmit}>
-                <div className="form-group">
-                  <label>Playlist Name*</label>
+              <form onSubmit={handlePlaylistSubmit} style={{ padding: 24 }}>
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 800, color: '#FFD54A', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Playlist Name*</label>
                   <input
                     type="text"
                     value={playlistForm.name}
                     onChange={(e) => setPlaylistForm({ ...playlistForm, name: e.target.value })}
                     placeholder="My Awesome Playlist"
                     required
+                    style={{ width: '100%', padding: '12px 16px', background: '#0f0f0f', border: '1.5px solid #2a2a2a', borderRadius: 8, fontSize: 15, color: '#e6e6e6', transition: 'all 0.2s', boxSizing: 'border-box' }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = '#FFD54A'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255,213,74,0.1)'; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.boxShadow = 'none'; }}
                   />
                 </div>
-                <div className="form-group">
-                  <label>Description</label>
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 800, color: '#FFD54A', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Description</label>
                   <textarea
                     value={playlistForm.description}
                     onChange={(e) => setPlaylistForm({ ...playlistForm, description: e.target.value })}
                     placeholder="Tell us about this playlist..."
+                    rows={3}
+                    style={{ width: '100%', padding: '12px 16px', background: '#0f0f0f', border: '1.5px solid #2a2a2a', borderRadius: 8, fontSize: 14, color: '#e6e6e6', resize: 'vertical', transition: 'all 0.2s', boxSizing: 'border-box', fontFamily: 'inherit' }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = '#FFD54A'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255,213,74,0.1)'; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.boxShadow = 'none'; }}
                   />
                 </div>
-                <div className="form-group">
-                  <label>Cover Image</label>
+                <div style={{ marginBottom: 24 }}>
+                  <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 800, color: '#FFD54A', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Cover Image</label>
                   <div 
-                    className="cover-upload-zone"
                     onDrop={handlePlaylistCoverDrop}
                     onDragOver={(e) => e.preventDefault()}
                     style={{
-                      border: '2px dashed #ccc',
-                      borderRadius: '8px',
-                      padding: '20px',
+                      border: '2px dashed #FFD54A',
+                      borderRadius: 12,
+                      padding: 32,
                       textAlign: 'center',
                       cursor: 'pointer',
-                      marginBottom: '10px',
-                      background: playlistForm.coverUrl ? `url(${playlistForm.coverUrl}) center/cover` : '#f9f9f9'
+                      marginBottom: 12,
+                      background: playlistForm.coverUrl ? `linear-gradient(rgba(11,11,11,0.5), rgba(11,11,11,0.5)), url(${playlistForm.coverUrl}) center/cover` : 'linear-gradient(135deg, rgba(255,213,74,0.05), rgba(224,0,0,0.05))',
+                      transition: 'all 0.3s',
+                      minHeight: 120,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
                     }}
                     onClick={() => document.getElementById('playlist-cover-file-input').click()}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#FFD700'; e.currentTarget.style.background = playlistForm.coverUrl ? `linear-gradient(rgba(11,11,11,0.3), rgba(11,11,11,0.3)), url(${playlistForm.coverUrl}) center/cover` : 'linear-gradient(135deg, rgba(255,213,74,0.1), rgba(224,0,0,0.1))'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#FFD54A'; e.currentTarget.style.background = playlistForm.coverUrl ? `linear-gradient(rgba(11,11,11,0.5), rgba(11,11,11,0.5)), url(${playlistForm.coverUrl}) center/cover` : 'linear-gradient(135deg, rgba(255,213,74,0.05), rgba(224,0,0,0.05))'; }}
                   >
                     {uploadingPlaylistCover ? (
-                      <p>Uploading...</p>
+                      <div style={{ color: '#FFD54A', fontWeight: 700 }}>
+                        <div style={{ fontSize: 32, marginBottom: 8 }}>⟳</div>
+                        <div>Uploading...</div>
+                      </div>
                     ) : playlistForm.coverUrl ? (
-                      <div style={{ background: 'rgba(0,0,0,0.7)', color: 'white', padding: '10px', borderRadius: '4px' }}>
-                        <p>✓ Cover uploaded</p>
-                        <small>Click or drag to replace</small>
+                      <div style={{ background: 'rgba(11,11,11,0.85)', color: '#FFD54A', padding: 16, borderRadius: 8, backdropFilter: 'blur(10px)' }}>
+                        <div style={{ fontSize: 28, marginBottom: 8 }}>✓</div>
+                        <div style={{ fontWeight: 700, marginBottom: 4 }}>Cover uploaded</div>
+                        <small style={{ color: '#9a9a9a' }}>Click or drag to replace</small>
                       </div>
                     ) : (
-                      <>
-                        <p>📁 Drop image here or click to browse</p>
-                        <small style={{ color: '#666' }}>PNG, JPG, WEBP up to 5MB</small>
-                      </>
+                      <div>
+                        <div style={{ fontSize: 40, marginBottom: 12, color: '#FFD54A' }}>📁</div>
+                        <div style={{ fontWeight: 700, color: '#FFD54A', marginBottom: 6 }}>Drop image here or click to browse</div>
+                        <small style={{ color: '#9a9a9a' }}>PNG, JPG, WEBP up to 5MB</small>
+                      </div>
                     )}
                   </div>
                   <input
@@ -2294,15 +2376,23 @@ export default function Home() {
                     type="url"
                     value={playlistForm.coverUrl}
                     onChange={(e) => setPlaylistForm({ ...playlistForm, coverUrl: e.target.value })}
-                    placeholder="Or paste URL..."
-                    style={{ marginTop: '10px' }}
+                    placeholder="Or paste image URL..."
+                    style={{ width: '100%', padding: '10px 14px', background: '#0f0f0f', border: '1.5px solid #2a2a2a', borderRadius: 8, fontSize: 13, color: '#9a9a9a', transition: 'all 0.2s', boxSizing: 'border-box' }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = '#FFD54A'; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = '#2a2a2a'; }}
                   />
                 </div>
-                <div className="modal-actions">
-                  <button type="button" className="modal-btn modal-btn-secondary" onClick={() => setShowPlaylistForm(false)}>
+                <div style={{ display: 'flex', gap: 12, paddingTop: 20, borderTop: '1px solid #2a2a2a' }}>
+                  <button type="button" onClick={() => setShowPlaylistForm(false)} style={{ flex: 1, background: 'transparent', border: '2px solid #2a2a2a', color: '#9a9a9a', padding: '12px', borderRadius: 8, fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', cursor: 'pointer', transition: 'all 0.2s' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#E00000'; e.currentTarget.style.color = '#E00000'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.color = '#9a9a9a'; }}
+                  >
                     Cancel
                   </button>
-                  <button type="submit" className="modal-btn modal-btn-primary">
+                  <button type="submit" style={{ flex: 1, background: 'linear-gradient(135deg, #FFD54A, #F0C000)', border: 'none', color: '#0b0b0b', padding: '12px', borderRadius: 8, fontSize: 13, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5px', cursor: 'pointer', boxShadow: '0 6px 18px rgba(255,213,74,0.4)', transition: 'all 0.2s' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(255,213,74,0.5)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 6px 18px rgba(255,213,74,0.4)'; }}
+                  >
                     {editingPlaylist ? 'Save Changes' : 'Create Playlist'}
                   </button>
                 </div>
@@ -2363,86 +2453,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* Playlist Detail Modal with Drag & Drop */}
-        {selectedPlaylist && (
-          <div className="modal-overlay" onClick={() => setSelectedPlaylist(null)}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ minWidth: 600, maxWidth: '90vw' }}>
-              <div className="modal-header">
-                <h3>{selectedPlaylist.name}</h3>
-                <button className="modal-close" onClick={() => setSelectedPlaylist(null)}>×</button>
-              </div>
-              
-              {selectedPlaylist.description && (
-                <p style={{ margin: '0 0 20px 0', color: '#666', lineHeight: 1.6 }}>
-                  {selectedPlaylist.description}
-                </p>
-              )}
 
-              <div style={{ marginBottom: 16, padding: 12, background: '#0f0f0f', border: '1px solid #2a2a2a', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ fontSize: 28, color: '#FFD54A' }}>♫</div>
-                <div>
-                  <div style={{ fontWeight: 600, color: '#e6e6e6' }}>
-                    {selectedPlaylist.songs?.length || 0} songs in this playlist
-                  </div>
-                  <div style={{ fontSize: 13, color: '#9a9a9a' }}>
-                    Drag songs to reorder them
-                  </div>
-                </div>
-              </div>
-
-              {selectedPlaylist.songs && selectedPlaylist.songs.length > 0 ? (
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragStart={(event) => setActiveId(event.active.id)}
-                  onDragEnd={handleDragEnd}
-                >
-                  <SortableContext
-                    items={selectedPlaylist.songs.map(s => s.id)}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    <ul className="playlist-songs-list">
-                      {selectedPlaylist.songs.map(song => (
-                        <SortableItem
-                          key={song.id}
-                          id={song.id}
-                          song={song}
-                          onRemove={handleRemoveFromPlaylist}
-                          playlistId={selectedPlaylist.id}
-                        />
-                      ))}
-                    </ul>
-                  </SortableContext>
-                  <DragOverlay>
-                    {(() => {
-                      const song = selectedPlaylist.songs.find((s) => s.id === activeId);
-                      if (!song) return null;
-                      return (
-                        <div className="drag-overlay" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 12, background: 'white', borderRadius: 10, boxShadow: '0 15px 40px rgba(0,0,0,0.18)' }}>
-                          {song.coverUrl ? (
-                            <img src={song.coverUrl} alt={song.title} style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 8 }} />
-                          ) : (
-                            <div style={{ width: 50, height: 50, borderRadius: 8, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }} />
-                          )}
-                          <div>
-                            <div style={{ fontWeight: 700 }}>{song.title}</div>
-                            <div style={{ fontSize: 12, color: '#666' }}>{song.artist} • {song.year}</div>
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </DragOverlay>
-                </DndContext>
-              ) : (
-                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#9a9a9a' }}>
-                  <div style={{ fontSize: 56, marginBottom: 16, color: '#FFD54A', filter: 'drop-shadow(0 2px 4px rgba(255,213,74,0.4))' }}>♪</div>
-                  <p style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#e6e6e6' }}>No songs in this playlist yet</p>
-                  <p style={{ margin: '8px 0 0 0', fontSize: 14 }}>Click "Add to Playlist" on any song to add it here!</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
