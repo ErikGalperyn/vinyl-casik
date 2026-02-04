@@ -1826,7 +1826,7 @@ export default function Home() {
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', position: 'relative' }}>
-                      {(v.previewUrl || (v.musicUrl && v.musicUrl.includes('spotify'))) && (
+                      {(v.previewUrl || v.musicUrl) && (
                         <button
                           onClick={() => toggleSpin(v.id)}
                           style={{ background: spinningVinyls[v.id] ? '#FFD54A' : '#0b0b0b', color: spinningVinyls[v.id] ? '#0b0b0b' : '#FFD54A', border: '1px solid #FFD54A', padding: '6px 12px', borderRadius: 20, cursor: 'pointer', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', transition: 'all 0.2s' }}
