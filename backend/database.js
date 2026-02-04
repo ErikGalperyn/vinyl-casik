@@ -161,6 +161,33 @@ if (USE_POSTGRES) {
           console.error('Cover restore error:', coverErr.message);
         }
         
+        // Sync musicUrl from local JSON for tracks that have it locally
+        try {
+          console.log('🔄 Syncing musicUrl from local JSON...');
+          if (fs.existsSync(vinylsJsonPath)) {
+            const vData = JSON.parse(fs.readFileSync(vinylsJsonPath, 'utf-8'));
+            const vinyls = vData.vinyls || [];
+            let syncCount = 0;
+            
+            for (const v of vinyls) {
+              if (v.musicUrl) {
+                const music = rewriteMediaUrl(v.musicUrl);
+                const updateRes = await pool.query(
+                  'UPDATE vinyls SET musicUrl = $1 WHERE title = $2',
+                  [music, v.title]
+                );
+                if (updateRes.rowCount > 0) {
+                  console.log(`✓ Updated musicUrl for "${v.title}"`);
+                  syncCount++;
+                }
+              }
+            }
+            if (syncCount > 0) console.log(`✓ Synced ${syncCount} vinyls with musicUrl`);
+          }
+        } catch (syncErr) {
+          console.error('Sync error:', syncErr.message);
+        }
+        
         // Auto-fix all localhost musicUrl to railway production URL
         try {
           console.log('🔄 Fixing localhost musicUrl to production URLs...');
