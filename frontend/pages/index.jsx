@@ -1568,7 +1568,7 @@ export default function Home() {
                           {v.artist}
                         </div>
 
-                        {!spinningVinyls[v.id] && (v.previewUrl || v.musicUrl) && (
+                        {(v.previewUrl || v.musicUrl) && (
                           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, background: '#0b0b0b', border: '1px solid #FFD54A', padding: '6px 12px', borderRadius: 20, color: '#FFD54A', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                               <span>♫</span>
