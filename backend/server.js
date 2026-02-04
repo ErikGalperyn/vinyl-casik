@@ -283,6 +283,23 @@ app.post('/auth/login', async (req, res) => {
   res.json({ token, user: { id: user.id, username: user.username, role: user.role } });
 });
 
+// Debug endpoint to check URLs
+app.get('/debug-vinyls', async (req, res) => {
+  try {
+    const vinyls = await Vinyl.getAll();
+    const enriched = await enrichVinylsWithOwners(vinyls);
+    res.json(enriched.map(v => ({
+      id: v.id,
+      title: v.title,
+      artist: v.artist,
+      musicUrl: v.musicUrl,
+      previewUrl: v.previewUrl
+    })));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/vinyls', authMiddleware, async (req, res) => {
   const vinyls = await Vinyl.getAll();
   const enriched = await enrichVinylsWithOwners(vinyls);
