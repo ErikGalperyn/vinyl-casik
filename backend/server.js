@@ -22,21 +22,29 @@ const SECRET = 'medioteka-secret-key-2025';
 
 // iTunes API - no authentication required! 🎵
 
+// Fix localhost URLs to production URLs
+function fixMediaUrls(url) {
+  if (!url) return url;
+  if (typeof url !== 'string') return url;
+  return url.replace('http://localhost:4001', 'https://vinyl-casik-production.up.railway.app');
+}
+
 // Normalize DB keys (PostgreSQL returns lowercase column names)
 function normalizeVinyl(v) {
-  return {
+  const normalized = {
     id: v.id,
     title: v.title,
     artist: v.artist,
     year: v.year,
-    coverUrl: v.coverUrl || v.coverurl || null,
-    musicUrl: v.musicUrl || v.musicurl || null,
+    coverUrl: fixMediaUrls(v.coverUrl || v.coverurl || null),
+    musicUrl: fixMediaUrls(v.musicUrl || v.musicurl || null),
     note: v.note || '',
     ownerId: v.ownerId || v.ownerid,
     likes: Array.isArray(v.likes) ? v.likes : (v.likes || []),
     created_at: v.created_at,
     updated_at: v.updated_at,
   };
+  return normalized;
 }
 
 async function enrichVinylWithOwner(vinyl) {
