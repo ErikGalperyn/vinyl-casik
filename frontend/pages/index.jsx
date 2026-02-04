@@ -1586,14 +1586,7 @@ export default function Home() {
                                   <span>{formatTime(duration[v.id] || 0)}</span>
                                 </div>
                                 <div 
-                                  style={{ height: 12, background: '#1a1a1a', borderRadius: 6, overflow: 'hidden', cursor: 'pointer', position: 'relative', border: '1px solid #2a2a2a' }}
-                                  onClick={(e) => {
-                                    if (!audioRefsRef.current[v.id] || !duration[v.id]) return;
-                                    const rect = e.currentTarget.getBoundingClientRect();
-                                    const percent = (e.clientX - rect.left) / rect.width;
-                                    const newTime = percent * duration[v.id];
-                                    audioRefsRef.current[v.id].currentTime = newTime;
-                                  }}
+                                  style={{ height: 12, background: '#1a1a1a', borderRadius: 6, overflow: 'hidden', position: 'relative', border: '1px solid #2a2a2a' }}
                                 >
                                   <div style={{ 
                                     height: '100%', 
@@ -1611,8 +1604,7 @@ export default function Home() {
                                       height: 12,
                                       background: '#FFD54A',
                                       borderRadius: '50%',
-                                      boxShadow: '0 2px 4px rgba(255,213,74,0.4)',
-                                      cursor: 'grab'
+                                      boxShadow: '0 2px 4px rgba(255,213,74,0.4)'
                                     }}></div>
                                   </div>
                                 </div>
