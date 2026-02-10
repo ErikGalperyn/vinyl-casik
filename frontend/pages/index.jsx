@@ -311,21 +311,62 @@ export default function Home() {
     setLyricsLoading(true);
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4001';
-      const response = await fetch(`${backendUrl}/lyrics?title=${encodeURIComponent(title)}&artist=${encodeURIComponent(artist)}`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
+      const token = localStorage.getItem('token');
       
-      if (!response.ok) {
+      console.log(`[LYRICS_FETCH] Fetching: "${title}" by "${artist}"`);
+      
+      if (!token) {
+        console.warn('[LYRICS_FETCH] ❌ No auth token found in localStorage');
         setLyrics(null);
         setLyricsLines([]);
+        setLyricsLoading(false);
+        return;
+      }
+      
+      console.log(`[LYRICS_FETCH] ✓ Token found: ${token.substring(0, 10)}...`);
+
+      const url = `${backendUrl}/lyrics?title=${encodeURIComponent(title)}&artist=${encodeURIComponent(artist)}`;
+      console.log(`[LYRICS_FETCH] URL: ${url}`);
+      
+      const response = await Promise.race([
+        fetch(url, {
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Genius API timeout (10s)')), 10000)
+        )
+      ]);
+      
+      console.log(`[LYRICS_FETCH] Response: ${response.status} ${response.statusText}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.warn(`[LYRICS_FETCH] ❌ HTTP ${response.status}:`, errorData);
+        setLyrics(null);
+        setLyricsLines([]);
+        setLyricsLoading(false);
         return;
       }
 
       const data = await response.json();
+      console.log(`[LYRICS_FETCH] ✓ Received: ${data.lines?.length || 0} lines, ${data.lyrics?.length || 0} chars`);
+      
+      if (!data.lyrics) {
+        console.log('[LYRICS_FETCH] ⚠️ No lyrics in response');
+        setLyrics(null);
+        setLyricsLines([]);
+        setLyricsLoading(false);
+        return;
+      }
+      
       setLyrics(data.lyrics);
       setLyricsLines(data.lines || []);
+      console.log('[LYRICS_FETCH] ✓ State updated successfully');
     } catch (err) {
-      console.error('Failed to fetch lyrics:', err);
+      console.error('[LYRICS_FETCH] ❌ Error:', err.message);
       setLyrics(null);
       setLyricsLines([]);
     } finally {

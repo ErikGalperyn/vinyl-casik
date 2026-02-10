@@ -493,36 +493,61 @@ async function fetchLyricsFromGenius(title, artist) {
     });
 
     if (!searchResponse.data.response.hits.length) {
+      console.log(`No Genius results for: ${searchQuery}`);
       return null;
     }
 
     const songUrl = searchResponse.data.response.hits[0].result.url;
+    console.log(`Found Genius song: ${songUrl}`);
     
     // Fetch the song page HTML to extract lyrics
-    const pageResponse = await axios.get(songUrl, { timeout: 10000 });
+    const pageResponse = await axios.get(songUrl, { 
+      timeout: 10000,
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+    });
     const html = pageResponse.data;
     
-    // Simple regex to extract lyrics from Genius HTML
-    // This is a basic extraction - may need refinement
-    const lyricsMatch = html.match(/<div[^>]*data-lyrics-container[^>]*>([\s\S]*?)<\/div>/);
+    // Try multiple selectors for lyrics
+    let lyricsMatch = html.match(/["']lyrics["']:\{"body":{"children":\[({[\s\S]*?})\]}/);
     
     if (!lyricsMatch) {
+      // Fallback: try data-lyrics-container div
+      lyricsMatch = html.match(/<div[^>]*data-lyrics-container[^>]*>([\s\S]*?)<\/div>/);
+    }
+    
+    if (!lyricsMatch) {
+      // Another fallback: look for Genius HTML structure
+      lyricsMatch = html.match(/<div[^>]*class="[^"]*Lyrics[^"]*"[^>]*>([\s\S]*?)<\/div>/);
+    }
+    
+    if (!lyricsMatch) {
+      console.log(`Could not extract lyrics from: ${songUrl}`);
       return null;
     }
 
     // Clean HTML tags and decode entities
     let lyrics = lyricsMatch[1]
       .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<span[^>]*>/g, '')
+      .replace(/<\/span>/g, '')
       .replace(/<[^>]+>/g, '')
       .replace(/&quot;/g, '"')
       .replace(/&amp;/g, '&')
       .replace(/&lt;/g, '<')
       .replace(/&gt;/g, '>')
+      .replace(/&apos;/g, "'")
+      .replace(/\n\s*\n/g, '\n') // Remove double newlines
       .trim();
 
+    if (!lyrics || lyrics.length < 50) {
+      console.log(`Lyrics too short for: ${title}`);
+      return null;
+    }
+
+    console.log(`Successfully extracted ${lyrics.length} chars of lyrics`);
     return lyrics;
   } catch (err) {
-    console.error('Genius API error:', err.message);
+    console.error('Genius API error for', title, artist, ':', err.message);
     return null;
   }
 }
@@ -532,13 +557,17 @@ app.get('/lyrics', authMiddleware, async (req, res) => {
   try {
     const { title, artist } = req.query;
     
+    console.log(`[LYRICS] Request: title="${title}", artist="${artist}"`);
+    
     if (!title || !artist) {
+      console.log('[LYRICS] Missing title or artist');
       return res.status(400).json({ message: 'Title and artist required' });
     }
 
     const lyrics = await fetchLyricsFromGenius(title, artist);
     
     if (!lyrics) {
+      console.log(`[LYRICS] Not found for: ${title} - ${artist}`);
       return res.status(404).json({ message: 'Lyrics not found', lyrics: null });
     }
 
@@ -550,9 +579,10 @@ app.get('/lyrics', authMiddleware, async (req, res) => {
       }))
       .filter(line => line.text.length > 0);
 
+    console.log(`[LYRICS] Success: ${lyrics.length} chars, ${lines.length} lines for: ${title}`);
     res.json({ lyrics, lines, source: 'genius' });
   } catch (err) {
-    console.error('Lyrics endpoint error:', err);
+    console.error('[LYRICS] Endpoint error:', err.message);
     res.status(500).json({ message: err.message });
   }
 });
