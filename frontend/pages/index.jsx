@@ -86,6 +86,9 @@ export default function Home() {
   const [lyricsRawLines, setLyricsRawLines] = useState([]);
   const [lyricsLines, setLyricsLines] = useState([]);
   const [lyricsLoading, setLyricsLoading] = useState(false);
+  const [currentLyricIndex, setCurrentLyricIndex] = useState(-1);
+  const lyricsContainerRef = useRef(null);
+  const activeLyricRef = useRef(null);
   const itemsPerPage = 12;
   const [coverGradient, setCoverGradient] = useState('linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)');
   const [spotifySearch, setSpotifySearch] = useState('');
@@ -357,8 +360,50 @@ export default function Home() {
       startTime: Math.floor(idx * step)
     }));
 
+    console.log('[Lyrics] Recalculated timing:', { trackDuration, lineCount: lyricsRawLines.length, step });
     setLyricsLines(computed);
   }, [duration, lyricsRawLines, currentlyPlaying?.id]);
+
+  // Update current lyric index and auto-scroll
+  useEffect(() => {
+    if (!currentlyPlaying?.id || !lyricsLines.length) return;
+
+    const now = currentTime[currentlyPlaying.id] || 0;
+    const nowMs = now * 1000;
+
+    // Find current line (last line that has started)
+    let activeIdx = -1;
+    for (let i = lyricsLines.length - 1; i >= 0; i--) {
+      if (nowMs >= lyricsLines[i].startTime) {
+        activeIdx = i;
+        break;
+      }
+    }
+
+    if (activeIdx !== currentLyricIndex) {
+      console.log('[Lyrics] Active line changed:', { activeIdx, now, nowMs, line: lyricsLines[activeIdx]?.text });
+      setCurrentLyricIndex(activeIdx);
+      
+      // Auto-scroll to active line after a short delay
+      setTimeout(() => {
+        if (activeIdx >= 0 && activeLyricRef.current && lyricsContainerRef.current) {
+          activeLyricRef.current.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+          });
+        }
+      }, 100);
+    }
+  }, [currentTime, currentlyPlaying?.id, lyricsLines, currentLyricIndex]);
+
+  // Scroll to top when lyrics load
+  useEffect(() => {
+    if (lyricsContainerRef.current && lyricsLines.length > 0) {
+      setTimeout(() => {
+        lyricsContainerRef.current.scrollTop = 0;
+      }, 50);
+    }
+  }, [lyricsLines]);
 
   function openCreate() {
     setEditing(null);
@@ -2320,135 +2365,174 @@ export default function Home() {
         )}
 
         {fullscreenPlayer && currentlyPlaying && (
-          <div style={{ position: 'fixed', inset: 0, background: 'linear-gradient(135deg, #0b0b0b 0%, #1a1a1a 50%, #0b0b0b 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: 20, overflow: 'hidden' }}>
-            {/* Decorative background elements */}
-            <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', top: '-50%', right: '-10%', width: 500, height: 500, background: 'radial-gradient(circle, rgba(255,213,74,0.08) 0%, transparent 70%)', borderRadius: '50%', animation: 'pulse 4s ease-in-out infinite' }}></div>
-              <div style={{ position: 'absolute', bottom: '-20%', left: '-15%', width: 600, height: 600, background: 'radial-gradient(circle, rgba(224,0,0,0.06) 0%, transparent 70%)', borderRadius: '50%', animation: 'pulse 5s ease-in-out infinite 1s' }}></div>
+          <div style={{ position: 'fixed', inset: 0, background: 'radial-gradient(ellipse at top, #1a1a1a 0%, #0b0b0b 60%, #000000 100%)', display: 'flex', flexDirection: 'column', zIndex: 2000, overflow: 'hidden' }}>
+            {/* Animated Background Gradients */}
+            <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+              <div style={{ position: 'absolute', top: '-20%', left: '50%', transform: 'translateX(-50%)', width: 800, height: 800, background: 'radial-gradient(circle, rgba(255,213,74,0.12) 0%, transparent 70%)', borderRadius: '50%', animation: 'pulse 6s ease-in-out infinite' }}></div>
+              <div style={{ position: 'absolute', bottom: '-30%', right: '10%', width: 600, height: 600, background: 'radial-gradient(circle, rgba(224,0,0,0.08) 0%, transparent 70%)', borderRadius: '50%', animation: 'pulse 8s ease-in-out infinite 2s' }}></div>
+              <div style={{ position: 'absolute', top: '20%', left: '-10%', width: 500, height: 500, background: 'radial-gradient(circle, rgba(255,215,0,0.06) 0%, transparent 70%)', borderRadius: '50%', animation: 'pulse 7s ease-in-out infinite 1s' }}></div>
             </div>
 
-            {/* Close button */}
+            {/* Close Button */}
             <button
               onClick={() => setFullscreenPlayer(false)}
-              style={{ position: 'absolute', top: 24, right: 24, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', border: '1px solid #FFD54A', color: '#FFD54A', fontSize: 24, width: 48, height: 48, borderRadius: 12, cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, zIndex: 10 }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = '#FFD54A'; e.currentTarget.style.color = '#0b0b0b'; e.currentTarget.style.transform = 'scale(1.1)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.6)'; e.currentTarget.style.color = '#FFD54A'; e.currentTarget.style.transform = 'scale(1)'; }}
+              style={{ position: 'absolute', top: 32, right: 32, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(12px)', border: '2px solid #FFD54A', color: '#FFD54A', fontSize: 28, width: 56, height: 56, borderRadius: 14, cursor: 'pointer', transition: 'all 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, zIndex: 100, boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = '#FFD54A'; e.currentTarget.style.color = '#0b0b0b'; e.currentTarget.style.transform = 'rotate(90deg) scale(1.05)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.7)'; e.currentTarget.style.color = '#FFD54A'; e.currentTarget.style.transform = 'rotate(0deg) scale(1)'; }}
             >
               ✕
             </button>
 
-            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: 60, width: '100%', maxWidth: 1200, position: 'relative', zIndex: 5, justifyContent: 'center', padding: '40px 0' }}>
-              {/* LEFT SIDE - Vinyl & Controls */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 40, flex: '0 0 auto' }}>
-                {/* Vinyl with Enhanced Shadow and Glow */}
-                <div style={{ position: 'relative' }}>
-                  <div style={{ position: 'absolute', inset: -30, background: 'radial-gradient(ellipse at center, rgba(255,213,74,0.2) 0%, transparent 70%)', borderRadius: '50%', filter: 'blur(20px)', animation: spinningVinyls[currentlyPlaying.id] ? 'float 4s ease-in-out infinite' : 'none' }}></div>
-                  <div className={spinningVinyls[currentlyPlaying.id] ? 'vinyl-fullscreen-playing' : ''} style={{ width: 420, height: 420, background: 'linear-gradient(135deg, #1a1a1a 0%, #0b0b0b 50%, #1a1a1a 100%)', borderRadius: '50%', overflow: 'hidden', position: 'relative', boxShadow: '0 40px 100px rgba(255,213,74,0.25), 0 0 60px rgba(255,213,74,0.15), inset -8px -8px 20px rgba(0,0,0,0.8), inset 8px 8px 20px rgba(255,255,255,0.05)', cursor: 'pointer', transition: 'all 0.3s' }}>
-                    <div 
-                      id={`vinyl-fullscreen-${currentlyPlaying.id}`}
-                      className={spinningVinyls[currentlyPlaying.id] ? 'vinyl-spinning' : 'vinyl-paused'}
-                      style={{ 
-                        width: '100%', 
-                        height: '100%',
-                        '--start-angle': `${vinylRotations[currentlyPlaying.id] || 0}deg`
-                      }}>
-                      {currentlyPlaying.coverUrl && <img src={currentlyPlaying.coverUrl} alt={currentlyPlaying.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
-                    </div>
-                    
-                    {/* Vinyl rings */}
-                    <div style={{ position: 'absolute', inset: '8%', border: '3px solid rgba(255,213,74,0.3)', borderRadius: '50%', pointerEvents: 'none' }}></div>
-                    <div style={{ position: 'absolute', inset: '15%', border: '1px solid rgba(255,213,74,0.15)', borderRadius: '50%', pointerEvents: 'none' }}></div>
-                    
-                    {/* Center spindle with gold gradient */}
-                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 24, height: 24, background: 'radial-gradient(circle at 30% 30%, #FFD700, #FFD54A, #D4AF37)', borderRadius: '50%', boxShadow: '0 8px 20px rgba(255,213,74,0.6), inset -2px -2px 6px rgba(0,0,0,0.4), inset 2px 2px 4px rgba(255,255,255,0.3)' }}></div>
+            {/* Header - Track Info */}
+            <div style={{ position: 'relative', zIndex: 10, padding: '32px 60px', textAlign: 'center', borderBottom: '1px solid rgba(255,213,74,0.1)' }}>
+              <h1 style={{ margin: 0, background: 'linear-gradient(135deg, #FFD54A 0%, #FFD700 50%, #FFD54A 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontSize: 48, fontWeight: 900, marginBottom: 12, letterSpacing: '0.02em', filter: 'drop-shadow(0 4px 16px rgba(255,213,74,0.4))' }}>
+                {currentlyPlaying.title}
+              </h1>
+              <p style={{ margin: 0, color: '#e6e6e6', fontSize: 24, fontWeight: 600, letterSpacing: '0.5px' }}>
+                {currentlyPlaying.artist}
+              </p>
+              {currentlyPlaying.year && (
+                <p style={{ margin: '8px 0 0 0', color: '#9a9a9a', fontSize: 14, letterSpacing: '1px', fontWeight: 500 }}>
+                  {currentlyPlaying.year}
+                </p>
+              )}
+            </div>
+
+            {/* Main Content - Lyrics */}
+            <div 
+              ref={lyricsContainerRef}
+              style={{ flex: 1, position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', padding: '40px 20px', overflowY: 'auto', overflowX: 'hidden' }}>
+              <div style={{ width: '100%', maxWidth: 900, padding: '0 40px' }}>
+                {lyricsLoading ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, minHeight: 300 }}>
+                    <div style={{ width: 60, height: 60, border: '4px solid rgba(255,213,74,0.2)', borderTop: '4px solid #FFD54A', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                    <span style={{ color: '#9a9a9a', fontSize: 16, fontWeight: 500 }}>Loading lyrics...</span>
+                  </div>
+                ) : lyrics ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                    {lyricsLines.map((line, idx) => {
+                      const highlight = idx === currentLyricIndex;
+                      const isPast = idx < currentLyricIndex;
+                      
+                      return (
+                        <p
+                          key={idx}
+                          ref={highlight ? activeLyricRef : null}
+                          style={{
+                            margin: 0,
+                            padding: '16px 24px',
+                            color: highlight ? '#FFD54A' : isPast ? '#e6e6e6' : '#5a5a5a',
+                            fontSize: highlight ? 32 : isPast ? 24 : 20,
+                            fontWeight: highlight ? 800 : isPast ? 600 : 500,
+                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                            borderLeft: highlight ? '5px solid #FFD54A' : 'none',
+                            paddingLeft: highlight ? 24 : 24,
+                            lineHeight: 1.7,
+                            textAlign: 'center',
+                            textShadow: highlight ? '0 0 20px rgba(255,213,74,0.5), 0 2px 12px rgba(255,213,74,0.3)' : 'none',
+                            transform: highlight ? 'translateX(8px) scale(1.02)' : 'translateX(0) scale(1)',
+                            borderRadius: 12,
+                            background: highlight ? 'linear-gradient(90deg, rgba(255,213,74,0.1) 0%, transparent 100%)' : 'transparent'
+                          }}
+                        >
+                          {line.text}
+                        </p>
+                      );
+                    })}
+                    {/* Spacer for scroll */}
+                    <div style={{ height: 200 }}></div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 300, gap: 16 }}>
+                    <span style={{ fontSize: 48 }}>🎵</span>
+                    <span style={{ color: '#6f6f6f', fontSize: 18, fontWeight: 500 }}>Lyrics not available for this track</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Footer - Controls */}
+            <div style={{ position: 'relative', zIndex: 10, padding: '24px 60px 32px', borderTop: '1px solid rgba(255,213,74,0.1)', background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 100%)' }}>
+              {/* Progress Bar */}
+              <div style={{ marginBottom: 24 }}>
+                <div
+                  style={{ 
+                    height: 8, 
+                    background: 'linear-gradient(90deg, rgba(255,213,74,0.1) 0%, rgba(255,213,74,0.05) 100%)', 
+                    borderRadius: 8, 
+                    overflow: 'hidden', 
+                    cursor: 'pointer', 
+                    position: 'relative', 
+                    border: '1px solid rgba(255,213,74,0.2)',
+                    boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.3)'
+                  }}
+                  onClick={(e) => {
+                    if (!audioRefsRef.current[currentlyPlaying.id] || !duration[currentlyPlaying.id]) return;
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const percent = (e.clientX - rect.left) / rect.width;
+                    const newTime = percent * duration[currentlyPlaying.id];
+                    audioRefsRef.current[currentlyPlaying.id].currentTime = newTime;
+                  }}
+                >
+                  <div style={{
+                    height: '100%',
+                    background: 'linear-gradient(90deg, #FFD54A 0%, #FFD700 50%, #E00000 100%)',
+                    width: `${((currentTime[currentlyPlaying.id] || 0) / (duration[currentlyPlaying.id] || 1)) * 100}%`,
+                    transition: 'width 0.1s linear',
+                    boxShadow: '0 0 20px rgba(255,213,74,0.7), inset 0 1px 4px rgba(255,255,255,0.4)',
+                    position: 'relative'
+                  }}>
+                    <div style={{ position: 'absolute', right: -6, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, background: '#FFD54A', borderRadius: '50%', boxShadow: '0 0 16px rgba(255,213,74,1), 0 0 32px rgba(255,213,74,0.5)', border: '2px solid #0b0b0b' }}></div>
                   </div>
                 </div>
-
-                {/* Track Info */}
-                <div style={{ textAlign: 'center', width: '100%' }}>
-                  <h2 style={{ margin: 0, background: 'linear-gradient(135deg, #FFD54A 0%, #FFD700 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontSize: 32, fontWeight: 900, marginBottom: 12, letterSpacing: '0.02em', filter: 'drop-shadow(0 2px 8px rgba(255,213,74,0.3))' }}>{currentlyPlaying.title}</h2>
-                  <p style={{ margin: 0, color: '#e6e6e6', fontSize: 18, marginBottom: 6, fontWeight: 700 }}>{currentlyPlaying.artist}</p>
-                  <p style={{ margin: 0, color: '#9a9a9a', fontSize: 13, letterSpacing: '0.5px' }}>{currentlyPlaying.year}</p>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#9a9a9a', fontSize: 13, marginTop: 12, fontWeight: 600, letterSpacing: '0.5px' }}>
+                  <span>{formatTime(currentTime[currentlyPlaying.id] || 0)}</span>
+                  <span>{formatTime(duration[currentlyPlaying.id] || 0)}</span>
                 </div>
+              </div>
 
-                {/* Progress Bar Section */}
-                <div style={{ width: '100%', maxWidth: 420 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#9a9a9a', fontSize: 12, marginBottom: 16, fontWeight: 600, letterSpacing: '0.5px' }}>
-                    <span>{formatTime(currentTime[currentlyPlaying.id] || 0)}</span>
-                    <span>{formatTime(duration[currentlyPlaying.id] || 0)}</span>
-                  </div>
-                  
-                  {/* Enhanced Progress Bar */}
-                  <div
-                    style={{ 
-                      height: 6, 
-                      background: 'linear-gradient(90deg, rgba(255,213,74,0.1) 0%, rgba(255,213,74,0.05) 100%)', 
-                      borderRadius: 6, 
-                      overflow: 'hidden', 
-                      cursor: 'pointer', 
-                      position: 'relative', 
-                      border: '1px solid rgba(255,213,74,0.2)',
-                      marginBottom: 40
-                    }}
-                    onClick={(e) => {
-                      if (!audioRefsRef.current[currentlyPlaying.id] || !duration[currentlyPlaying.id]) return;
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const percent = (e.clientX - rect.left) / rect.width;
-                      const newTime = percent * duration[currentlyPlaying.id];
-                      audioRefsRef.current[currentlyPlaying.id].currentTime = newTime;
-                    }}
-                  >
-                    <div style={{
-                      height: '100%',
-                      background: 'linear-gradient(90deg, #FFD54A 0%, #FFD700 50%, #E00000 100%)',
-                      width: `${((currentTime[currentlyPlaying.id] || 0) / (duration[currentlyPlaying.id] || 1)) * 100}%`,
-                      transition: 'width 0.1s linear',
-                      boxShadow: '0 0 16px rgba(255,213,74,0.6), inset 0 1px 3px rgba(255,255,255,0.3)',
-                      position: 'relative'
-                    }}>
-                      <div style={{ position: 'absolute', right: -4, top: '50%', transform: 'translateY(-50%)', width: 12, height: 12, background: '#FFD54A', borderRadius: '50%', boxShadow: '0 0 12px rgba(255,213,74,0.8), 0 0 24px rgba(255,213,74,0.4)', animation: 'pulse 2s ease-in-out infinite' }}></div>
-                    </div>
-                  </div>
-                </div>
+              {/* Play/Pause and Volume Controls */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 40 }}>
+                {/* Spacer */}
+                <div style={{ flex: 1 }}></div>
 
-                {/* Controls */}
-                <div style={{ display: 'flex', gap: 40, alignItems: 'center', width: '100%', justifyContent: 'center' }}>
-                  {/* Play/Pause Button */}
-                  <button
-                    onClick={() => toggleSpin(currentlyPlaying.id)}
-                    style={{ 
-                      background: 'linear-gradient(135deg, #FFD54A 0%, #FFD700 100%)', 
-                      color: '#0b0b0b', 
-                      border: 'none', 
-                      width: 72, 
-                      height: 72, 
-                      borderRadius: 18, 
-                      cursor: 'pointer', 
-                      fontSize: 32, 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center', 
-                      transition: 'all 0.3s', 
-                      boxShadow: '0 12px 40px rgba(255,213,74,0.5), 0 0 30px rgba(255,213,74,0.3)',
-                      fontWeight: 900,
-                      position: 'relative',
-                      overflow: 'hidden'
-                    }}
-                    onMouseEnter={(e) => { 
-                      e.currentTarget.style.transform = 'scale(1.12) translateY(-2px)'; 
-                      e.currentTarget.style.boxShadow = '0 16px 50px rgba(255,213,74,0.7), 0 0 40px rgba(255,213,74,0.4)'; 
-                    }}
-                    onMouseLeave={(e) => { 
-                      e.currentTarget.style.transform = 'scale(1) translateY(0)'; 
-                      e.currentTarget.style.boxShadow = '0 12px 40px rgba(255,213,74,0.5), 0 0 30px rgba(255,213,74,0.3)'; 
-                    }}
-                  >
-                    {spinningVinyls[currentlyPlaying.id] ? '⏸' : '▶'}
-                  </button>
+                {/* Play/Pause Button (Center) */}
+                <button
+                  onClick={() => toggleSpin(currentlyPlaying.id)}
+                  style={{ 
+                    background: 'linear-gradient(135deg, #FFD54A 0%, #FFD700 100%)', 
+                    color: '#0b0b0b', 
+                    border: 'none', 
+                    width: 80, 
+                    height: 80, 
+                    borderRadius: 20, 
+                    cursor: 'pointer', 
+                    fontSize: 36, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', 
+                    boxShadow: '0 16px 48px rgba(255,213,74,0.6), 0 0 40px rgba(255,213,74,0.4)',
+                    fontWeight: 900,
+                    flexShrink: 0
+                  }}
+                  onMouseEnter={(e) => { 
+                    e.currentTarget.style.transform = 'scale(1.15) translateY(-4px)'; 
+                    e.currentTarget.style.boxShadow = '0 20px 60px rgba(255,213,74,0.8), 0 0 50px rgba(255,213,74,0.5)'; 
+                  }}
+                  onMouseLeave={(e) => { 
+                    e.currentTarget.style.transform = 'scale(1) translateY(0)'; 
+                    e.currentTarget.style.boxShadow = '0 16px 48px rgba(255,213,74,0.6), 0 0 40px rgba(255,213,74,0.4)'; 
+                  }}
+                >
+                  {spinningVinyls[currentlyPlaying.id] ? '⏸' : '▶'}
+                </button>
 
-                  {/* Volume Control */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', padding: '10px 20px', borderRadius: 14, border: '1px solid rgba(255,213,74,0.2)' }}>
-                    <span style={{ fontSize: 16, color: '#FFD54A' }}>🔊</span>
+                {/* Volume Control (Right) */}
+                <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 16, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(12px)', padding: '12px 24px', borderRadius: 16, border: '1px solid rgba(255,213,74,0.2)' }}>
+                    <span style={{ fontSize: 20, color: '#FFD54A' }}>🔊</span>
                     <input
                       type="range"
                       min="0"
@@ -2462,62 +2546,19 @@ export default function Home() {
                         });
                       }}
                       style={{
-                        width: 180,
-                        height: 5,
-                        borderRadius: 3,
+                        width: 200,
+                        height: 6,
+                        borderRadius: 4,
                         outline: 'none',
                         cursor: 'pointer',
                         WebkitAppearance: 'none',
                         background: `linear-gradient(to right, #FFD54A 0%, #FFD54A ${volume * 100}%, rgba(255,213,74,0.15) ${volume * 100}%, rgba(255,213,74,0.15) 100%)`,
-                        boxShadow: '0 0 8px rgba(255,213,74,0.3)'
+                        boxShadow: '0 0 12px rgba(255,213,74,0.4)'
                       }}
                     />
-                    <span style={{ fontSize: 12, color: '#FFD54A', minWidth: 32, fontWeight: 800, textAlign: 'right', letterSpacing: '0.5px' }}>{Math.round(volume * 100)}</span>
+                    <span style={{ fontSize: 14, color: '#FFD54A', minWidth: 38, fontWeight: 800, textAlign: 'right', letterSpacing: '0.5px' }}>{Math.round(volume * 100)}</span>
                   </div>
                 </div>
-              </div>
-
-              {/* RIGHT SIDE - Lyrics */}
-              <div style={{ flex: '1 1 auto', height: 550, background: 'linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 100%)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,213,74,0.15)', borderRadius: 20, padding: 32, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-                {lyricsLoading ? (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#9a9a9a', fontSize: 14 }}>
-                    <span>Loading lyrics...</span>
-                  </div>
-                ) : lyrics ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {lyricsLines.map((line, idx) => {
-                      const now = currentTime[currentlyPlaying.id] || 0;
-                      const isActive = now >= (line.startTime / 1000);
-                      const nextLine = lyricsLines[idx + 1];
-                      const isNextLine = !nextLine || now < (nextLine.startTime / 1000);
-                      const highlight = isActive && isNextLine;
-                      
-                      return (
-                        <p
-                          key={idx}
-                          style={{
-                            margin: 0,
-                            padding: '8px 12px',
-                            color: highlight ? '#FFD54A' : isActive ? '#e6e6e6' : '#6f6f6f',
-                            fontSize: highlight ? 17 : isActive ? 15 : 13,
-                            fontWeight: highlight ? 700 : isActive ? 600 : 500,
-                            transition: 'all 0.15s ease',
-                            borderLeft: highlight ? '3px solid #FFD54A' : 'none',
-                            paddingLeft: highlight ? 12 : 12,
-                            lineHeight: 1.6,
-                            textShadow: highlight ? '0 0 8px rgba(255,213,74,0.4)' : 'none'
-                          }}
-                        >
-                          {line.text}
-                        </p>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#6f6f6f', fontSize: 14, textAlign: 'center' }}>
-                    <span>Lyrics not available for this track</span>
-                  </div>
-                )}
               </div>
             </div>
           </div>
