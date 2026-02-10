@@ -686,13 +686,48 @@ app.get('/lyrics', async (req, res) => {
       return res.status(404).json({ message: 'Lyrics not found', lyrics: null });
     }
 
-    // Parse lyrics into lines for sync
-    const lines = lyrics.split('\n')
-      .map((line, idx) => ({
-        text: line.trim(),
-        startTime: idx * 4000 // Estimate 4 seconds per line for MVP
-      }))
-      .filter(line => line.text.length > 0);
+    // Clean up lyrics: decode HTML entities, fix encoding, normalize whitespace
+    lyrics = he.decode(lyrics); // Decode HTML entities like &quot; &#39; etc
+    lyrics = lyrics
+      .replace(/\r\n/g, '\n') // Normalize line breaks
+      .replace(/\r/g, '\n')
+      .replace(/[\u2018\u2019]/g, "'") // Replace smart quotes
+      .replace(/[\u201C\u201D]/g, '"')
+      .replace(/\u2026/g, '...') // Replace ellipsis
+      .replace(/\u2013/g, '-') // Replace en-dash
+      .replace(/\u2014/g, '--') // Replace em-dash
+      .trim();
+
+    // Parse lyrics into lines for sync with adaptive timing
+    const rawLines = lyrics.split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+    
+    let currentTime = 0;
+    const lines = rawLines.map((text, idx) => {
+      // Adaptive timing based on line length
+      // Short lines (chorus/repeat): 2-3 seconds
+      // Medium lines: 3-4 seconds  
+      // Long lines: 4-5 seconds
+      const charCount = text.length;
+      let duration;
+      if (charCount < 20) {
+        duration = 2500; // Short line
+      } else if (charCount < 40) {
+        duration = 3500; // Medium line
+      } else if (charCount < 60) {
+        duration = 4500; // Long line
+      } else {
+        duration = 5500; // Very long line
+      }
+      
+      const line = {
+        text: text,
+        startTime: currentTime
+      };
+      currentTime += duration;
+      return line;
+    });
 
     res.json({ lyrics, lines, source });
   } catch (err) {
