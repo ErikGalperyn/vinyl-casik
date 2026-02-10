@@ -9,6 +9,8 @@ const path = require('path');
 const fs = require('fs');
 const sharp = require('sharp');
 const axios = require('axios');
+const cheerio = require('cheerio');
+const he = require('he');
 const User = require('./models/users.sql');
 const Vinyl = require('./models/vinyl.sql');
 const Playlist = require('./models/playlist.sql');
@@ -476,6 +478,109 @@ app.put('/playlists/:id/reorder', authMiddleware, async (req, res) => {
 // Genius API integration for lyrics
 const GENIUS_API_KEY = process.env.GENIUS_API_KEY;
 
+function normalizeForMatch(value) {
+  return (value || '')
+    .toLowerCase()
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/\[[^\]]*\]/g, ' ')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function pickBestGeniusHit(hits, title, artist) {
+  const titleN = normalizeForMatch(title);
+  const artistN = normalizeForMatch(artist);
+
+  let best = hits[0];
+  let bestScore = -Infinity;
+
+  for (const hit of hits.slice(0, 10)) {
+    const r = hit.result;
+    const hitTitleN = normalizeForMatch(r.title);
+    const hitFullTitleN = normalizeForMatch(r.full_title);
+    const hitArtistN = normalizeForMatch(r.primary_artist?.name);
+
+    let score = 0;
+
+    if (hitArtistN === artistN) score += 30;
+    if (hitArtistN.includes(artistN) || artistN.includes(hitArtistN)) score += 18;
+
+    if (hitTitleN === titleN) score += 30;
+    if (hitTitleN.includes(titleN) || titleN.includes(hitTitleN)) score += 18;
+    if (hitFullTitleN.includes(titleN)) score += 8;
+
+    if (r.lyrics_state === 'complete') score += 5;
+
+    if (score > bestScore) {
+      bestScore = score;
+      best = hit;
+    }
+  }
+
+  return best;
+}
+
+function extractLyricsFromGeniusHtml(html) {
+  const $ = cheerio.load(html);
+
+  const all = $('div[data-lyrics-container]');
+  if (!all.length) return null;
+
+  // Genius may have nested containers; keep only top-level to avoid duplicates.
+  const topLevel = all.filter((_, el) => $(el).parents('div[data-lyrics-container]').length === 0);
+  const containers = topLevel.length ? topLevel : all;
+
+  const parts = [];
+  containers.each((_, el) => {
+    const $el = $(el);
+
+    // Preserve line breaks
+    $el.find('br').replaceWith('\n');
+
+    // Ensure paragraphs separate lines
+    $el.find('p').each((_, p) => {
+      $(p).append('\n');
+    });
+
+    const text = $el.text();
+    if (text && text.trim()) parts.push(text);
+  });
+
+  if (!parts.length) return null;
+
+  let lyrics = parts.join('\n');
+  lyrics = he.decode(lyrics);
+  lyrics = lyrics.replace(/\r/g, '');
+  // Normalize whitespace/newlines
+  lyrics = lyrics
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
+  return lyrics;
+}
+
+// Fetch lyrics from Lyrics.ovh API (free, no auth needed)
+async function fetchLyricsFromLyricsOvh(title, artist) {
+  try {
+    console.log(`[Lyrics] Trying Lyrics.ovh for: "${artist}" - "${title}"`);
+    
+    const response = await axios.get('https://api.lyrics.ovh/v1/' + encodeURIComponent(artist) + '/' + encodeURIComponent(title), {
+      timeout: 5000
+    });
+
+    if (response.data && response.data.lyrics) {
+      const lyrics = response.data.lyrics.trim();
+      console.log(`[Lyrics.ovh] Found ${lyrics.length} chars`);
+      return lyrics;
+    }
+    return null;
+  } catch (err) {
+    console.log(`[Lyrics.ovh] Failed: ${err.message}`);
+    return null;
+  }
+}
+
 // Helper function to fetch lyrics from Genius API
 async function fetchLyricsFromGenius(title, artist) {
   if (!GENIUS_API_KEY) {
@@ -486,6 +591,8 @@ async function fetchLyricsFromGenius(title, artist) {
   try {
     // Search for song on Genius
     const searchQuery = `${title} ${artist}`.trim();
+    console.log(`[Lyrics] Searching Genius for: "${searchQuery}"`);
+    
     const searchResponse = await axios.get('https://api.genius.com/search', {
       params: { q: searchQuery },
       headers: { 'Authorization': `Bearer ${GENIUS_API_KEY}` },
@@ -493,54 +600,70 @@ async function fetchLyricsFromGenius(title, artist) {
     });
 
     if (!searchResponse.data.response.hits.length) {
+      console.log('[Lyrics] No results found in Genius');
       return null;
     }
 
-    const songUrl = searchResponse.data.response.hits[0].result.url;
+    const hits = searchResponse.data.response.hits || [];
+    console.log(`[Lyrics] Found ${hits.length} results:`);
+    hits.slice(0, 5).forEach((hit, idx) => {
+      console.log(`  ${idx + 1}. "${hit.result.full_title}" by ${hit.result.primary_artist.name}`);
+    });
+
+    const bestMatch = pickBestGeniusHit(hits, title, artist);
+
+    const songUrl = bestMatch.result.url;
+    console.log(`[Lyrics] Using: ${bestMatch.result.full_title} at ${songUrl}`);
     
     // Fetch the song page HTML to extract lyrics
     const pageResponse = await axios.get(songUrl, { timeout: 10000 });
     const html = pageResponse.data;
-    
-    // Extract all lyrics containers from Genius HTML
-    const lyricBlocks = Array.from(
-      html.matchAll(/<div[^>]*data-lyrics-container[^>]*>([\s\S]*?)<\/div>/g)
-    ).map(match => match[1]);
 
-    if (!lyricBlocks.length) {
+    const extracted = extractLyricsFromGeniusHtml(html);
+    if (!extracted) {
+      console.log('[Lyrics] No lyrics extracted from HTML');
       return null;
     }
 
-    // Clean HTML tags and decode entities
-    let lyrics = lyricBlocks.join('\n')
-      .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<[^>]+>/g, '')
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
-      .replace(/&amp;/g, '&')
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
-      .replace(/&#(\d+);/g, (_, num) => String.fromCharCode(parseInt(num, 10)))
-      .trim();
+    let lyrics = extracted.trim();
 
-    // Remove non-lyric metadata lines
+    // Remove non-lyric metadata lines (Contributors, Embed, etc)
     const cleaned = lyrics
       .split('\n')
       .map(line => line.trim())
       .filter(line => line.length > 0)
-      .filter(line => !/contributors/i.test(line));
+      .filter(line => {
+        const lower = line.toLowerCase();
+        // Remove metadata
+        if (lower.includes('contributor') || 
+            lower.includes('embed') || 
+            lower.includes('see ') || 
+            lower.includes('genius') ||
+            /^\d+\s*contributor/i.test(line) ||
+            /^you might also like/i.test(line)) {
+          return false;
+        }
+        // Remove section headers like [Verse 1], [Chorus], etc
+        if (/^\[.*\]$/.test(line)) {
+          return false;
+        }
+        return true;
+      });
 
-    return cleaned.join('\n');
+    // Keep all lines including repeating choruses - they're part of the song!
+    const result = cleaned.join('\n');
+    console.log(`[Lyrics] Final result: ${cleaned.length} lines (${result.length} chars)`);
+    console.log(`[Lyrics] First 5 lines:`, cleaned.slice(0, 5));
+    console.log(`[Lyrics] Last 3 lines:`, cleaned.slice(-3));
+    return result;
   } catch (err) {
     console.error('Genius API error:', err.message);
     return null;
   }
 }
 
-// Get lyrics endpoint
-app.get('/lyrics', authMiddleware, async (req, res) => {
+// Get lyrics endpoint (public)
+app.get('/lyrics', async (req, res) => {
   try {
     const { title, artist } = req.query;
     
@@ -548,7 +671,16 @@ app.get('/lyrics', authMiddleware, async (req, res) => {
       return res.status(400).json({ message: 'Title and artist required' });
     }
 
-    const lyrics = await fetchLyricsFromGenius(title, artist);
+    // Try Lyrics.ovh first (more reliable)
+    let lyrics = await fetchLyricsFromLyricsOvh(title, artist);
+    let source = 'lyrics.ovh';
+    
+    // Fallback to Genius if not found
+    if (!lyrics) {
+      console.log('[Lyrics] Falling back to Genius API...');
+      lyrics = await fetchLyricsFromGenius(title, artist);
+      source = 'genius';
+    }
     
     if (!lyrics) {
       return res.status(404).json({ message: 'Lyrics not found', lyrics: null });
@@ -562,7 +694,7 @@ app.get('/lyrics', authMiddleware, async (req, res) => {
       }))
       .filter(line => line.text.length > 0);
 
-    res.json({ lyrics, lines, source: 'genius' });
+    res.json({ lyrics, lines, source });
   } catch (err) {
     console.error('Lyrics endpoint error:', err);
     res.status(500).json({ message: err.message });
