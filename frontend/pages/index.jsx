@@ -1218,7 +1218,22 @@ export default function Home() {
                 )}
               </div>
             </button>
-            <h1 className="logo-animated" style={{ margin: 0, fontSize: 32, fontWeight: 900, letterSpacing: '0.08em', color: '#ffffff', textShadow: '0 2px 16px rgba(255,255,255,0.5), 0 0 20px rgba(255,215,74,0.3)', filter: 'drop-shadow(0 2px 8px rgba(255,255,255,0.2))', transition: 'all 0.3s ease' }}>
+            <h1 className="logo-animated" style={{ 
+              margin: 0, 
+              fontSize: 28, 
+              fontWeight: 950,
+              letterSpacing: '0.15em',
+              background: 'linear-gradient(135deg, #ffffff 0%, #FFD54A 50%, #FFD700 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              textTransform: 'uppercase',
+              filter: 'drop-shadow(0 2px 4px rgba(255,213,74,0.2))',
+              transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              position: 'relative',
+              cursor: 'default',
+              fontFamily: "'Segoe UI', 'Roboto', sans-serif"
+            }}>
               MEDIOTEKA
             </h1>
           </div>
