@@ -701,7 +701,14 @@ app.get('/lyrics', async (req, res) => {
     // Parse lyrics into lines for sync with adaptive timing
     const rawLines = lyrics.split('\n')
       .map(line => line.trim())
-      .filter(line => line.length > 0);
+      .filter(line => {
+        // Remove empty lines and placeholder lines like (?), [?], etc
+        if (line.length === 0) return false;
+        if (/^\(?\?\)?$/.test(line)) return false; // Remove (?) or ?
+        if (/^You might also like$/i.test(line)) return false; // Remove Genius metadata
+        if (/^\d+\s*Embed$/i.test(line)) return false;
+        return true;
+      });
     
     let currentTime = 0;
     const lines = rawLines.map((text, idx) => {
