@@ -473,6 +473,90 @@ app.put('/playlists/:id/reorder', authMiddleware, async (req, res) => {
   }
 });
 
+// Genius API integration for lyrics
+const GENIUS_API_KEY = process.env.GENIUS_API_KEY;
+
+// Helper function to fetch lyrics from Genius API
+async function fetchLyricsFromGenius(title, artist) {
+  if (!GENIUS_API_KEY) {
+    console.log('GENIUS_API_KEY not configured');
+    return null;
+  }
+
+  try {
+    // Search for song on Genius
+    const searchQuery = `${title} ${artist}`.trim();
+    const searchResponse = await axios.get('https://api.genius.com/search', {
+      params: { q: searchQuery },
+      headers: { 'Authorization': `Bearer ${GENIUS_API_KEY}` },
+      timeout: 8000
+    });
+
+    if (!searchResponse.data.response.hits.length) {
+      return null;
+    }
+
+    const songUrl = searchResponse.data.response.hits[0].result.url;
+    
+    // Fetch the song page HTML to extract lyrics
+    const pageResponse = await axios.get(songUrl, { timeout: 10000 });
+    const html = pageResponse.data;
+    
+    // Simple regex to extract lyrics from Genius HTML
+    // This is a basic extraction - may need refinement
+    const lyricsMatch = html.match(/<div[^>]*data-lyrics-container[^>]*>([\s\S]*?)<\/div>/);
+    
+    if (!lyricsMatch) {
+      return null;
+    }
+
+    // Clean HTML tags and decode entities
+    let lyrics = lyricsMatch[1]
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&quot;/g, '"')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .trim();
+
+    return lyrics;
+  } catch (err) {
+    console.error('Genius API error:', err.message);
+    return null;
+  }
+}
+
+// Get lyrics endpoint
+app.get('/lyrics', authMiddleware, async (req, res) => {
+  try {
+    const { title, artist } = req.query;
+    
+    if (!title || !artist) {
+      return res.status(400).json({ message: 'Title and artist required' });
+    }
+
+    const lyrics = await fetchLyricsFromGenius(title, artist);
+    
+    if (!lyrics) {
+      return res.status(404).json({ message: 'Lyrics not found', lyrics: null });
+    }
+
+    // Parse lyrics into lines for sync
+    const lines = lyrics.split('\n')
+      .map((line, idx) => ({
+        text: line.trim(),
+        startTime: idx * 4000 // Estimate 4 seconds per line for MVP
+      }))
+      .filter(line => line.text.length > 0);
+
+    res.json({ lyrics, lines, source: 'genius' });
+  } catch (err) {
+    console.error('Lyrics endpoint error:', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Health check endpoint
 app.get('/', (req, res) => {
   res.json({ status: 'ok', message: 'Medioteka backend is running' });
