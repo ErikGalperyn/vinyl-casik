@@ -678,68 +678,96 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .playlist-song-item {
-  background: #f8f9fa;
-  border-radius: 12px;
-  padding: 16px;
+  background: #151515;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  padding: 14px;
   margin-bottom: 12px;
   display: flex;
   align-items: center;
-  gap: 16px;
-  transition: all 0.2s;
+  gap: 14px;
+  transition: all 0.3s;
   cursor: grab;
 }
 
 .playlist-song-item:active {
   cursor: grabbing;
+  opacity: 0.8;
 }
 
 .playlist-song-item:hover {
-  background: #e9ecef;
+  background: #1a1a1a;
+  border-color: #FFD54A;
   transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(255, 213, 74, 0.15);
 }
 
 .playlist-song-drag-handle {
-  color: #adb5bd;
-  font-size: 20px;
+  color: #FFD54A;
+  font-size: 18px;
   cursor: grab;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.playlist-song-drag-handle:hover {
+  opacity: 1;
 }
 
 .playlist-song-cover {
-  width: 50px;
-  height: 50px;
+  width: 54px;
+  height: 54px;
   border-radius: 8px;
   object-fit: cover;
+  border: 1px solid #2a2a2a;
+  flex-shrink: 0;
 }
 
 .playlist-song-info {
   flex: 1;
+  min-width: 0;
 }
 
 .playlist-song-title {
-  font-weight: 600;
+  font-weight: 700;
   margin: 0 0 4px 0;
+  color: #e6e6e6;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .playlist-song-artist {
-  font-size: 13px;
-  color: #666;
+  font-size: 12px;
+  color: #999;
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .playlist-song-remove {
-  background: #fee;
-  color: #dc3545;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
+  background: rgba(224, 0, 0, 0.15);
+  color: #E00000;
+  border: 1px solid rgba(224, 0, 0, 0.3);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .playlist-song-remove:hover {
-  background: #fdd;
+  background: #E00000;
+  color: #fff;
+  border-color: #E00000;
+  transform: scale(1.05);
 }
 
 /* Drag and Drop States */

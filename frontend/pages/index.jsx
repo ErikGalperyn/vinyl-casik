@@ -40,7 +40,7 @@ function SortableItem({ id, song, onRemove, playlistId }) {
       {song.coverUrl ? (
         <img src={song.coverUrl} alt={song.title} className="playlist-song-cover" />
       ) : (
-        <div className="playlist-song-cover" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }} />
+        <div className="playlist-song-cover" style={{ background: 'linear-gradient(135deg, #E00000 0%, #FFD54A 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, color: '#0b0b0b', fontWeight: 700 }}>♪</div>
       )}
       <div className="playlist-song-info">
         <p className="playlist-song-title">{song.title}</p>
