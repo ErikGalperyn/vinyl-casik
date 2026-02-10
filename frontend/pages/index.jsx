@@ -201,6 +201,27 @@ export default function Home() {
     };
   }, [fullscreenPlayer]);
 
+  // Handle tab visibility - resume audio when tab becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // Tab became visible - resume all currently spinning audio
+        Object.keys(spinningVinyls).forEach(vinylId => {
+          if (spinningVinyls[vinylId] && audioRefsRef.current[vinylId]) {
+            const audio = audioRefsRef.current[vinylId];
+            // Only play if browser paused it due to tab being hidden
+            if (audio.paused) {
+              audio.play().catch(err => console.log('Auto-resume error:', err));
+            }
+          }
+        });
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [spinningVinyls]);
+
   const handleAudioRef = useCallback((el, vinylId) => {
     if (el) {
       audioRefsRef.current[vinylId] = el;
