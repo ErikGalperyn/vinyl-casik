@@ -1232,7 +1232,7 @@ export default function Home() {
               transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
               position: 'relative',
               cursor: 'default',
-              fontFamily: "'Segoe UI', 'Roboto', sans-serif"
+              fontFamily: "'Archivo Black', 'Poppins', sans-serif"
             }}>
               MEDIOTEKA
             </h1>
