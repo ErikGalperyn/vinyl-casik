@@ -201,15 +201,15 @@ export default function Home() {
     };
   }, [fullscreenPlayer]);
 
-  // Handle tab visibility - resume audio when tab becomes visible
+  // Handle tab visibility and browser audio pause - resume audio when needed
   useEffect(() => {
+    // Handle visibility change
     const handleVisibilityChange = () => {
       if (!document.hidden) {
         // Tab became visible - resume all currently spinning audio
         Object.keys(spinningVinyls).forEach(vinylId => {
           if (spinningVinyls[vinylId] && audioRefsRef.current[vinylId]) {
             const audio = audioRefsRef.current[vinylId];
-            // Only play if browser paused it due to tab being hidden
             if (audio.paused) {
               audio.play().catch(err => console.log('Auto-resume error:', err));
             }
@@ -218,8 +218,40 @@ export default function Home() {
       }
     };
 
+    // Also check periodically if audio got paused unexpectedly
+    const checkInterval = setInterval(() => {
+      Object.keys(spinningVinyls).forEach(vinylId => {
+        if (spinningVinyls[vinylId] && audioRefsRef.current[vinylId]) {
+          const audio = audioRefsRef.current[vinylId];
+          // If vinyl should be spinning but audio is paused, resume it
+          if (audio.paused) {
+            audio.play().catch(err => console.log('Auto-resume on interval:', err));
+          }
+        }
+      });
+    }, 1000); // Check every second
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    // Also resume on any user interaction
+    const handleUserInteraction = () => {
+      Object.keys(spinningVinyls).forEach(vinylId => {
+        if (spinningVinyls[vinylId] && audioRefsRef.current[vinylId]) {
+          const audio = audioRefsRef.current[vinylId];
+          if (audio.paused) {
+            audio.play().catch(err => console.log('Auto-resume on interaction:', err));
+          }
+        }
+      });
+    };
+    document.addEventListener('click', handleUserInteraction);
+    document.addEventListener('keydown', handleUserInteraction);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener('click', handleUserInteraction);
+      document.removeEventListener('keydown', handleUserInteraction);
+      clearInterval(checkInterval);
+    };
   }, [spinningVinyls]);
 
   const handleAudioRef = useCallback((el, vinylId) => {
