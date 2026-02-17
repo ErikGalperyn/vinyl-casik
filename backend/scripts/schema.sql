@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS vinyls (
   year INTEGER NOT NULL CHECK (year >= 1900 AND year <= EXTRACT(YEAR FROM CURRENT_DATE) + 1),
   coverUrl TEXT CHECK (coverUrl IS NULL OR coverUrl ~ '^https?://'),
   musicUrl TEXT CHECK (musicUrl IS NULL OR musicUrl ~ '^https?://'),
+  lyricsLrc TEXT,
   note TEXT DEFAULT '',
   genre vinyl_genre DEFAULT 'other',
   ownerId UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,

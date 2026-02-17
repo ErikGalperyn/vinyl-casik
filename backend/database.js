@@ -83,6 +83,15 @@ if (USE_POSTGRES) {
         console.error('❌ Playlist table initialization error:', playlistErr.message);
         // Continue even if playlist tables fail - core app still works
       }
+
+      // Lightweight migrations: ensure new columns exist
+      try {
+        await pool.query('ALTER TABLE vinyls ADD COLUMN IF NOT EXISTS lyricsLrc TEXT');
+        console.log('✓ Migration: vinyls.lyricsLrc present');
+      } catch (mErr) {
+        console.error('Migration warning (lyricsLrc):', mErr.message);
+      }
+
       // Seed data from JSON files (idempotent):
       // - Always upsert users from users.json
       // - Insert vinyls/likes only if vinyls table is empty
@@ -299,6 +308,7 @@ if (USE_POSTGRES) {
       year INTEGER NOT NULL,
       coverUrl TEXT,
       musicUrl TEXT,
+      lyricsLrc TEXT,
       note TEXT,
       ownerId TEXT NOT NULL,
       FOREIGN KEY (ownerId) REFERENCES users(id)
@@ -336,6 +346,14 @@ if (USE_POSTGRES) {
     CREATE INDEX IF NOT EXISTS idx_playlist_songs_position ON playlist_songs(playlist_id, position);
     CREATE INDEX IF NOT EXISTS idx_playlists_owner ON playlists(owner_id);
   `);
+
+  // Lightweight migration for older SQLite DBs
+  try {
+    sqlite.exec('ALTER TABLE vinyls ADD COLUMN lyricsLrc TEXT');
+    console.log('✓ Migration: vinyls.lyricsLrc added (SQLite)');
+  } catch (e) {
+    // Ignore "duplicate column" errors
+  }
 
   function migrateFromJSON() {
     const usersJsonPath = path.join(__dirname, 'users.json');

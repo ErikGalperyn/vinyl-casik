@@ -9,8 +9,6 @@ const path = require('path');
 const fs = require('fs');
 const sharp = require('sharp');
 const axios = require('axios');
-const cheerio = require('cheerio');
-const he = require('he');
 const User = require('./models/users.sql');
 const Vinyl = require('./models/vinyl.sql');
 const Playlist = require('./models/playlist.sql');
@@ -40,6 +38,7 @@ function normalizeVinyl(v) {
     year: v.year,
     coverUrl: fixMediaUrls(v.coverUrl || v.coverurl || null),
     musicUrl: fixMediaUrls(v.musicUrl || v.musicurl || null),
+    lyricsLrc: v.lyricsLrc || v.lyricslrc || null,
     note: v.note || '',
     ownerId: v.ownerId || v.ownerid,
     likes: Array.isArray(v.likes) ? v.likes : (v.likes || []),
@@ -316,10 +315,10 @@ app.get('/vinyls/:id', authMiddleware, async (req, res) => {
 });
 
 app.post('/vinyls', authMiddleware, roleMiddleware(['admin', 'user']), async (req, res) => {
-  const { title, artist, year, coverUrl, musicUrl, note } = req.body;
-  console.log('Creating vinyl with:', { title, artist, year, coverUrl, musicUrl, note });
+  const { title, artist, year, coverUrl, musicUrl, lyricsLrc, note } = req.body;
+  console.log('Creating vinyl with:', { title, artist, year, coverUrl, musicUrl, hasLyricsLrc: Boolean(lyricsLrc), note });
   if (!title || !artist) return res.status(400).json({ message: 'Missing fields' });
-  const vinyl = await Vinyl.create({ title, artist, year, coverUrl, musicUrl: musicUrl || '', note: note || '', ownerId: req.user.id });
+  const vinyl = await Vinyl.create({ title, artist, year, coverUrl, musicUrl: musicUrl || '', lyricsLrc: lyricsLrc || null, note: note || '', ownerId: req.user.id });
   console.log('Created vinyl:', vinyl);
   const enriched = await enrichVinylWithOwner(vinyl);
   res.status(201).json(enriched);
@@ -444,9 +443,9 @@ app.post('/playlists/:id/songs', authMiddleware, async (req, res) => {
     const { vinylId } = req.body;
     if (!vinylId) return res.status(400).json({ message: 'vinylId is required' });
     await Playlist.addSong(req.params.id, vinylId, req.user.id);
-    res.status(201).json({ message: 'Song added to playlist' });
+    res.status(201).json({ success: true });
   } catch (err) {
-    console.error('Add song error:', err);
+    console.error('Add song to playlist error:', err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -457,288 +456,23 @@ app.delete('/playlists/:id/songs/:vinylId', authMiddleware, async (req, res) => 
     await Playlist.removeSong(req.params.id, req.params.vinylId, req.user.id);
     res.status(204).end();
   } catch (err) {
-    console.error('Remove song error:', err);
+    console.error('Remove song from playlist error:', err);
     res.status(500).json({ message: err.message });
   }
 });
 
-// Reorder songs in playlist
+// Reorder playlist songs
 app.put('/playlists/:id/reorder', authMiddleware, async (req, res) => {
   try {
     const { songOrder } = req.body;
-    if (!Array.isArray(songOrder)) return res.status(400).json({ message: 'songOrder must be an array' });
+    if (!Array.isArray(songOrder)) {
+      return res.status(400).json({ message: 'songOrder array is required' });
+    }
     await Playlist.reorderSongs(req.params.id, req.user.id, songOrder);
-    res.json({ message: 'Playlist reordered' });
+    const updated = await Playlist.getById(req.params.id, req.user.id);
+    res.json(updated);
   } catch (err) {
-    console.error('Reorder error:', err);
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// Genius API integration for lyrics
-const GENIUS_API_KEY = process.env.GENIUS_API_KEY;
-
-function normalizeForMatch(value) {
-  return (value || '')
-    .toLowerCase()
-    .replace(/\([^)]*\)/g, ' ')
-    .replace(/\[[^\]]*\]/g, ' ')
-    .replace(/[^a-z0-9\s]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function pickBestGeniusHit(hits, title, artist) {
-  const titleN = normalizeForMatch(title);
-  const artistN = normalizeForMatch(artist);
-
-  let best = hits[0];
-  let bestScore = -Infinity;
-
-  for (const hit of hits.slice(0, 10)) {
-    const r = hit.result;
-    const hitTitleN = normalizeForMatch(r.title);
-    const hitFullTitleN = normalizeForMatch(r.full_title);
-    const hitArtistN = normalizeForMatch(r.primary_artist?.name);
-
-    let score = 0;
-
-    if (hitArtistN === artistN) score += 30;
-    if (hitArtistN.includes(artistN) || artistN.includes(hitArtistN)) score += 18;
-
-    if (hitTitleN === titleN) score += 30;
-    if (hitTitleN.includes(titleN) || titleN.includes(hitTitleN)) score += 18;
-    if (hitFullTitleN.includes(titleN)) score += 8;
-
-    if (r.lyrics_state === 'complete') score += 5;
-
-    if (score > bestScore) {
-      bestScore = score;
-      best = hit;
-    }
-  }
-
-  return best;
-}
-
-function extractLyricsFromGeniusHtml(html) {
-  const $ = cheerio.load(html);
-
-  const all = $('div[data-lyrics-container]');
-  if (!all.length) return null;
-
-  // Genius may have nested containers; keep only top-level to avoid duplicates.
-  const topLevel = all.filter((_, el) => $(el).parents('div[data-lyrics-container]').length === 0);
-  const containers = topLevel.length ? topLevel : all;
-
-  const parts = [];
-  containers.each((_, el) => {
-    const $el = $(el);
-
-    // Preserve line breaks
-    $el.find('br').replaceWith('\n');
-
-    // Ensure paragraphs separate lines
-    $el.find('p').each((_, p) => {
-      $(p).append('\n');
-    });
-
-    const text = $el.text();
-    if (text && text.trim()) parts.push(text);
-  });
-
-  if (!parts.length) return null;
-
-  let lyrics = parts.join('\n');
-  lyrics = he.decode(lyrics);
-  lyrics = lyrics.replace(/\r/g, '');
-  // Normalize whitespace/newlines
-  lyrics = lyrics
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-
-  return lyrics;
-}
-
-// Fetch lyrics from Lyrics.ovh API (free, no auth needed)
-async function fetchLyricsFromLyricsOvh(title, artist) {
-  try {
-    console.log(`[Lyrics] Trying Lyrics.ovh for: "${artist}" - "${title}"`);
-    
-    const response = await axios.get('https://api.lyrics.ovh/v1/' + encodeURIComponent(artist) + '/' + encodeURIComponent(title), {
-      timeout: 5000
-    });
-
-    if (response.data && response.data.lyrics) {
-      const lyrics = response.data.lyrics.trim();
-      console.log(`[Lyrics.ovh] Found ${lyrics.length} chars`);
-      return lyrics;
-    }
-    return null;
-  } catch (err) {
-    console.log(`[Lyrics.ovh] Failed: ${err.message}`);
-    return null;
-  }
-}
-
-// Helper function to fetch lyrics from Genius API
-async function fetchLyricsFromGenius(title, artist) {
-  if (!GENIUS_API_KEY) {
-    console.log('GENIUS_API_KEY not configured');
-    return null;
-  }
-
-  try {
-    // Search for song on Genius
-    const searchQuery = `${title} ${artist}`.trim();
-    console.log(`[Lyrics] Searching Genius for: "${searchQuery}"`);
-    
-    const searchResponse = await axios.get('https://api.genius.com/search', {
-      params: { q: searchQuery },
-      headers: { 'Authorization': `Bearer ${GENIUS_API_KEY}` },
-      timeout: 8000
-    });
-
-    if (!searchResponse.data.response.hits.length) {
-      console.log('[Lyrics] No results found in Genius');
-      return null;
-    }
-
-    const hits = searchResponse.data.response.hits || [];
-    console.log(`[Lyrics] Found ${hits.length} results:`);
-    hits.slice(0, 5).forEach((hit, idx) => {
-      console.log(`  ${idx + 1}. "${hit.result.full_title}" by ${hit.result.primary_artist.name}`);
-    });
-
-    const bestMatch = pickBestGeniusHit(hits, title, artist);
-
-    const songUrl = bestMatch.result.url;
-    console.log(`[Lyrics] Using: ${bestMatch.result.full_title} at ${songUrl}`);
-    
-    // Fetch the song page HTML to extract lyrics
-    const pageResponse = await axios.get(songUrl, { timeout: 10000 });
-    const html = pageResponse.data;
-
-    const extracted = extractLyricsFromGeniusHtml(html);
-    if (!extracted) {
-      console.log('[Lyrics] No lyrics extracted from HTML');
-      return null;
-    }
-
-    let lyrics = extracted.trim();
-
-    // Remove non-lyric metadata lines (Contributors, Embed, etc)
-    const cleaned = lyrics
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0)
-      .filter(line => {
-        const lower = line.toLowerCase();
-        // Remove metadata
-        if (lower.includes('contributor') || 
-            lower.includes('embed') || 
-            lower.includes('see ') || 
-            lower.includes('genius') ||
-            /^\d+\s*contributor/i.test(line) ||
-            /^you might also like/i.test(line)) {
-          return false;
-        }
-        // Remove section headers like [Verse 1], [Chorus], etc
-        if (/^\[.*\]$/.test(line)) {
-          return false;
-        }
-        return true;
-      });
-
-    // Keep all lines including repeating choruses - they're part of the song!
-    const result = cleaned.join('\n');
-    console.log(`[Lyrics] Final result: ${cleaned.length} lines (${result.length} chars)`);
-    console.log(`[Lyrics] First 5 lines:`, cleaned.slice(0, 5));
-    console.log(`[Lyrics] Last 3 lines:`, cleaned.slice(-3));
-    return result;
-  } catch (err) {
-    console.error('Genius API error:', err.message);
-    return null;
-  }
-}
-
-// Get lyrics endpoint (public)
-app.get('/lyrics', async (req, res) => {
-  try {
-    const { title, artist } = req.query;
-    
-    if (!title || !artist) {
-      return res.status(400).json({ message: 'Title and artist required' });
-    }
-
-    // Try Lyrics.ovh first (more reliable)
-    let lyrics = await fetchLyricsFromLyricsOvh(title, artist);
-    let source = 'lyrics.ovh';
-    
-    // Fallback to Genius if not found
-    if (!lyrics) {
-      console.log('[Lyrics] Falling back to Genius API...');
-      lyrics = await fetchLyricsFromGenius(title, artist);
-      source = 'genius';
-    }
-    
-    if (!lyrics) {
-      return res.status(404).json({ message: 'Lyrics not found', lyrics: null });
-    }
-
-    // Clean up lyrics: decode HTML entities, fix encoding, normalize whitespace
-    lyrics = he.decode(lyrics); // Decode HTML entities like &quot; &#39; etc
-    lyrics = lyrics
-      .replace(/\r\n/g, '\n') // Normalize line breaks
-      .replace(/\r/g, '\n')
-      .replace(/[\u2018\u2019]/g, "'") // Replace smart quotes
-      .replace(/[\u201C\u201D]/g, '"')
-      .replace(/\u2026/g, '...') // Replace ellipsis
-      .replace(/\u2013/g, '-') // Replace en-dash
-      .replace(/\u2014/g, '--') // Replace em-dash
-      .trim();
-
-    // Parse lyrics into lines for sync with adaptive timing
-    const rawLines = lyrics.split('\n')
-      .map(line => line.trim())
-      .filter(line => {
-        // Remove empty lines and placeholder lines like (?), [?], etc
-        if (line.length === 0) return false;
-        if (/^\(?\?\)?$/.test(line)) return false; // Remove (?) or ?
-        if (/^You might also like$/i.test(line)) return false; // Remove Genius metadata
-        if (/^\d+\s*Embed$/i.test(line)) return false;
-        return true;
-      });
-    
-    let currentTime = 0;
-    const lines = rawLines.map((text, idx) => {
-      // Adaptive timing based on line length
-      // Short lines (chorus/repeat): 2-3 seconds
-      // Medium lines: 3-4 seconds  
-      // Long lines: 4-5 seconds
-      const charCount = text.length;
-      let duration;
-      if (charCount < 20) {
-        duration = 2500; // Short line
-      } else if (charCount < 40) {
-        duration = 3500; // Medium line
-      } else if (charCount < 60) {
-        duration = 4500; // Long line
-      } else {
-        duration = 5500; // Very long line
-      }
-      
-      const line = {
-        text: text,
-        startTime: currentTime
-      };
-      currentTime += duration;
-      return line;
-    });
-
-    res.json({ lyrics, lines, source });
-  } catch (err) {
-    console.error('Lyrics endpoint error:', err);
+    console.error('Reorder playlist error:', err);
     res.status(500).json({ message: err.message });
   }
 });

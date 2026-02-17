@@ -8,7 +8,7 @@ import { CSS } from '@dnd-kit/utilities';
 function Modal({ children, onClose }) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-      <div style={{ background: 'white', padding: 32, minWidth: 320, borderRadius: 8, maxWidth: 500, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+      <div style={{ background: 'var(--g-surface)', color: 'var(--c-text)', border: '1px solid var(--c-border)', padding: 32, minWidth: 320, borderRadius: 12, maxWidth: 520, width: '90%', boxShadow: '0 20px 60px rgb(0 0 0 / 0.45)' }}>
         {children}
       </div>
     </div>
@@ -40,7 +40,7 @@ function SortableItem({ id, song, onRemove, playlistId }) {
       {song.coverUrl ? (
         <img src={song.coverUrl} alt={song.title} className="playlist-song-cover" />
       ) : (
-        <div className="playlist-song-cover" style={{ background: 'linear-gradient(135deg, #E00000 0%, #FFD54A 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, color: '#0b0b0b', fontWeight: 700 }}>♪</div>
+        <div className="playlist-song-cover" style={{ background: 'var(--g-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, color: 'var(--c-ink)', fontWeight: 900 }}>♪</div>
       )}
       <div className="playlist-song-info">
         <p className="playlist-song-title">{song.title}</p>
@@ -62,7 +62,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({ title: '', artist: '', year: new Date().getFullYear(), coverUrl: '', musicUrl: '', note: '' });
+  const [form, setForm] = useState({ title: '', artist: '', year: new Date().getFullYear(), coverUrl: '', musicUrl: '', lyricsLrc: '', note: '' });
   const [user, setUser] = useState(null);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -74,23 +74,27 @@ export default function Home() {
   const [vinylRotations, setVinylRotations] = useState({});
   const [playingAudio, setPlayingAudio] = useState(null);
   const audioRefsRef = useRef({});
-  const [volume, setVolume] = useState(0.7);
   const [currentTime, setCurrentTime] = useState({});
   const [duration, setDuration] = useState({});
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [theme, setTheme] = useState('ferrari-black');
   const [viewMode, setViewMode] = useState('songs');
   const [actionMenuId, setActionMenuId] = useState(null);
   const [fullscreenPlayer, setFullscreenPlayer] = useState(false);
   const [lyrics, setLyrics] = useState(null);
-  const [lyricsRawLines, setLyricsRawLines] = useState([]);
   const [lyricsLines, setLyricsLines] = useState([]);
-  const [lyricsLoading, setLyricsLoading] = useState(false);
   const [currentLyricIndex, setCurrentLyricIndex] = useState(-1);
   const lyricsContainerRef = useRef(null);
   const activeLyricRef = useRef(null);
+
+  // Draggable mini player
+  const miniPlayerRef = useRef(null);
+  const miniDragRef = useRef({ active: false, pointerId: null, startX: 0, startY: 0, originX: 20, originY: 20 });
+  const [miniPlayerPos, setMiniPlayerPos] = useState({ x: 20, y: 20 });
+
   const itemsPerPage = 12;
-  const [coverGradient, setCoverGradient] = useState('linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)');
+  const [coverGradient, setCoverGradient] = useState('var(--g-surface-2)');
   const [spotifySearch, setSpotifySearch] = useState('');
   const [spotifyResults, setSpotifyResults] = useState([]);
   const [searchingSpotify, setSearchingSpotify] = useState(false);
@@ -147,6 +151,27 @@ export default function Home() {
     })
   );
 
+  useEffect(() => {
+    try {
+      const savedTheme = localStorage.getItem('theme') || 'ferrari-black';
+      setTheme(savedTheme);
+      document.documentElement.dataset.theme = savedTheme;
+    } catch {
+      // no-op
+    }
+  }, []);
+
+  const handleThemeChange = (e) => {
+    const nextTheme = e.target.value;
+    setTheme(nextTheme);
+    try {
+      localStorage.setItem('theme', nextTheme);
+    } catch {
+      // no-op
+    }
+    document.documentElement.dataset.theme = nextTheme;
+  };
+
   const extractColorsFromImage = useCallback(async (imageUrl) => {
     try {
       const img = new Image();
@@ -187,7 +212,7 @@ export default function Home() {
       img.src = imageUrl;
     } catch (e) {
       console.error('Error extracting colors:', e);
-      setCoverGradient('linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)');
+      setCoverGradient('var(--g-surface-2)');
     }
   }, []);
 
@@ -264,9 +289,63 @@ export default function Home() {
   const handleAudioRef = useCallback((el, vinylId) => {
     if (el) {
       audioRefsRef.current[vinylId] = el;
-      el.volume = volume;
+      el.volume = 1;
     }
-  }, [volume]);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    // Start near bottom-left by default
+    const initialY = Math.max(20, window.innerHeight - 20 - 260);
+    setMiniPlayerPos({ x: 20, y: initialY });
+  }, []);
+
+  function clampMiniPos(nextX, nextY) {
+    if (typeof window === 'undefined') return { x: nextX, y: nextY };
+    const rect = miniPlayerRef.current?.getBoundingClientRect();
+    const w = rect?.width || 340;
+    const h = rect?.height || 240;
+    const maxX = Math.max(0, window.innerWidth - w);
+    const maxY = Math.max(0, window.innerHeight - h);
+    return {
+      x: Math.min(Math.max(0, nextX), maxX),
+      y: Math.min(Math.max(0, nextY), maxY),
+    };
+  }
+
+  function startMiniDrag(e) {
+    // Only primary button / primary touch
+    if (typeof e.button === 'number' && e.button !== 0) return;
+    miniDragRef.current = {
+      active: true,
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      originX: miniPlayerPos.x,
+      originY: miniPlayerPos.y,
+    };
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {}
+  }
+
+  function moveMiniDrag(e) {
+    const drag = miniDragRef.current;
+    if (!drag.active || drag.pointerId !== e.pointerId) return;
+    const dx = e.clientX - drag.startX;
+    const dy = e.clientY - drag.startY;
+    const next = clampMiniPos(drag.originX + dx, drag.originY + dy);
+    setMiniPlayerPos(next);
+  }
+
+  function endMiniDrag(e) {
+    const drag = miniDragRef.current;
+    if (!drag.active || drag.pointerId !== e.pointerId) return;
+    miniDragRef.current = { ...drag, active: false, pointerId: null };
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {}
+  }
 
   async function load() {
     setLoading(true);
@@ -301,68 +380,136 @@ export default function Home() {
     }
   }, [router.isReady]);
 
+  // If the vinyl list refreshes (e.g. after saving uploaded LRC), keep currentlyPlaying updated
+  // so fullscreen lyrics reflect the latest `lyricsLrc` without requiring a page refresh.
+  useEffect(() => {
+    if (!currentlyPlaying?.id) return;
+    const refreshed = vinyls.find(v => v.id === currentlyPlaying.id);
+    if (refreshed) {
+      setCurrentlyPlaying(refreshed);
+    }
+  }, [vinyls]);
+
+  function isPreviewTrack(vinyl) {
+    const musicUrl = (vinyl?.musicUrl || '').toLowerCase();
+    const previewUrl = (vinyl?.previewUrl || '').toLowerCase();
+    const url = musicUrl || previewUrl;
+    return url.includes('audio-ssl.itunes.apple.com') || url.includes('itunes.apple.com');
+  }
+
+  function DemoBadge({ size = 56, label = 'DEMO' }) {
+    return (
+      <div
+        title="Demo / preview track"
+        aria-label="Demo / preview track"
+        style={{
+          width: size,
+          height: size,
+          borderRadius: '50%',
+          background: 'rgba(0,0,0,0.55)',
+          backdropFilter: 'blur(10px)',
+          border: '2px solid rgb(var(--rgb-accent) / 0.45)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 10px 26px rgba(0,0,0,0.45), inset 0 1px 0 rgb(var(--rgb-accent) / 0.12)',
+        }}
+      >
+        <span
+          style={{
+            color: 'var(--c-accent)',
+            fontWeight: 900,
+            letterSpacing: '0.14em',
+            fontSize: Math.max(10, Math.round(size * 0.22)),
+            fontFamily: "'Archivo Black', 'Poppins', sans-serif",
+            transform: 'translateX(1px)'
+          }}
+        >
+          {label}
+        </span>
+      </div>
+    );
+  }
+
+  function parseLrc(lrcText) {
+    const lines = String(lrcText || '').replace(/\r/g, '').split('\n');
+
+    let globalOffsetMs = 0;
+    for (const line of lines) {
+      const offsetMatch = line.match(/\[offset:([+-]?\d+)\]/i);
+      if (offsetMatch) {
+        globalOffsetMs = parseInt(offsetMatch[1], 10) || 0;
+        break;
+      }
+    }
+
+    const timed = [];
+    const tsRe = /\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]/g;
+    const metaRe = /^\[(ar|ti|al|by|length|re|ve|offset):/i;
+
+    for (const rawLine of lines) {
+      const line = rawLine.trimEnd();
+      if (!line) continue;
+      if (metaRe.test(line)) continue;
+
+      const timestamps = [];
+      let match;
+      while ((match = tsRe.exec(line)) !== null) {
+        const mm = parseInt(match[1], 10);
+        const ss = parseInt(match[2], 10);
+        const frac = match[3];
+        if (Number.isNaN(mm) || Number.isNaN(ss)) continue;
+
+        let ms = 0;
+        if (typeof frac === 'string' && frac.length) {
+          if (frac.length === 1) ms = parseInt(frac, 10) * 100;
+          else if (frac.length === 2) ms = parseInt(frac, 10) * 10;
+          else ms = parseInt(frac.slice(0, 3), 10);
+        }
+
+        const startTime = Math.max(0, (mm * 60 + ss) * 1000 + ms + globalOffsetMs);
+        timestamps.push(startTime);
+      }
+
+      if (!timestamps.length) continue;
+
+      const text = line.replace(tsRe, '').trim();
+      if (!text) continue;
+
+      for (const startTime of timestamps) {
+        timed.push({ text, startTime });
+      }
+    }
+
+    timed.sort((a, b) => a.startTime - b.startTime);
+    return timed;
+  }
+
   // Load lyrics when fullscreen player opens
   useEffect(() => {
     if (fullscreenPlayer && currentlyPlaying) {
-      fetchLyrics(currentlyPlaying.title, currentlyPlaying.artist);
-    } else {
-      setLyrics(null);
-      setLyricsLines([]);
-    }
-  }, [fullscreenPlayer, currentlyPlaying?.id]);
-
-  async function fetchLyrics(title, artist) {
-    setLyricsLoading(true);
-    try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4001';
-      const response = await fetch(`${backendUrl}/lyrics?title=${encodeURIComponent(title)}&artist=${encodeURIComponent(artist)}`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
-      
-      if (!response.ok) {
+      if (isPreviewTrack(currentlyPlaying)) {
         setLyrics(null);
         setLyricsLines([]);
+        setCurrentLyricIndex(-1);
         return;
       }
 
-      const data = await response.json();
-      setLyrics(data.lyrics);
-
-      const rawLines = (data.lines || [])
-        .map(line => (line.text || '').trim())
-        .filter(line => line.length > 0);
-
-      setLyricsRawLines(rawLines);
-      setLyricsLines((data.lines || []).filter(line => line.text && line.text.trim().length > 0));
-    } catch (err) {
-      console.error('Failed to fetch lyrics:', err);
+      const lrcText = currentlyPlaying.lyricsLrc;
+      if (typeof lrcText === 'string' && lrcText.trim().length > 0) {
+        setLyrics(lrcText);
+        setLyricsLines(parseLrc(lrcText));
+      } else {
+        setLyrics(null);
+        setLyricsLines([]);
+        setCurrentLyricIndex(-1);
+      }
+    } else {
       setLyrics(null);
-      setLyricsRawLines([]);
       setLyricsLines([]);
-    } finally {
-      setLyricsLoading(false);
+      setCurrentLyricIndex(-1);
     }
-  }
-
-  // Recalculate lyric timing based on track duration to reduce drift
-  useEffect(() => {
-    if (!currentlyPlaying?.id) return;
-    if (!lyricsRawLines.length) return;
-
-    const trackDuration = duration[currentlyPlaying.id];
-    if (!trackDuration || trackDuration <= 0) return;
-
-    const totalMs = trackDuration * 1000;
-    const step = totalMs / lyricsRawLines.length;
-
-    const computed = lyricsRawLines.map((text, idx) => ({
-      text,
-      startTime: Math.floor(idx * step)
-    }));
-
-    console.log('[Lyrics] Recalculated timing:', { trackDuration, lineCount: lyricsRawLines.length, step });
-    setLyricsLines(computed);
-  }, [duration, lyricsRawLines, currentlyPlaying?.id]);
+  }, [fullscreenPlayer, currentlyPlaying?.id]);
 
   // Update current lyric index and auto-scroll
   useEffect(() => {
@@ -405,9 +552,23 @@ export default function Home() {
     }
   }, [lyricsLines]);
 
+  async function handleLyricsUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      setForm(prev => ({ ...prev, lyricsLrc: text }));
+    } catch (err) {
+      alert('Failed to read lyrics file: ' + (err.message || String(err)));
+    } finally {
+      e.target.value = '';
+    }
+  }
+
   function openCreate() {
     setEditing(null);
-    setForm({ title: '', artist: '', year: new Date().getFullYear(), coverUrl: '', musicUrl: '', note: '' });
+    setForm({ title: '', artist: '', year: new Date().getFullYear(), coverUrl: '', musicUrl: '', lyricsLrc: '', note: '' });
     setSpotifySearch('');
     setSpotifyResults([]);
     setSpotifyUploads({});
@@ -418,7 +579,7 @@ export default function Home() {
 
   function openEdit(v) {
     setEditing(v);
-    setForm({ title: v.title, artist: v.artist, year: v.year, coverUrl: v.coverUrl, musicUrl: v.musicUrl || '', note: v.note });
+    setForm({ title: v.title, artist: v.artist, year: v.year, coverUrl: v.coverUrl, musicUrl: v.musicUrl || '', lyricsLrc: v.lyricsLrc || '', note: v.note });
     setSpotifySearch('');
     setSpotifyResults([]);
     setSpotifyUploads({});
@@ -451,6 +612,7 @@ export default function Home() {
       year: track.year,
       coverUrl: track.coverUrl,
       musicUrl: uploaded || track.previewUrl || '',
+      lyricsLrc: '',
       note: form.note
     });
     setSpotifyResults([]);
@@ -471,6 +633,7 @@ export default function Home() {
         year: track.year,
         coverUrl: track.coverUrl,
         musicUrl,
+        lyricsLrc: '',
         note: `Added from Spotify`
       });
       setSpotifyResults([]);
@@ -960,22 +1123,10 @@ export default function Home() {
     
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('cover', file);
-      
-      const response = await fetch('http://localhost:4001/upload-cover', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${getToken()}`
-        },
-        body: formData
-      });
-      
-      if (!response.ok) throw new Error('Upload failed');
-      const data = await response.json();
+      const data = await uploadCover(file);
       setForm(prev => ({ ...prev, coverUrl: data.url }));
     } catch (err) {
-      alert('Failed to upload cover: ' + err.message);
+      alert('Failed to upload cover: ' + (err.response?.data?.message || err.message || String(err)));
     } finally {
       setUploading(false);
     }
@@ -987,19 +1138,7 @@ export default function Home() {
     
     setUploadingMusic(true);
     try {
-      const formData = new FormData();
-      formData.append('music', file);
-      
-      const response = await fetch('http://localhost:4001/upload-music', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${getToken()}`
-        },
-        body: formData
-      });
-      
-      if (!response.ok) throw new Error('Upload failed');
-      const data = await response.json();
+      const data = await uploadMusic(file);
       console.log('Music uploaded, URL:', data.url);
       setForm(prev => {
         const updated = { ...prev, musicUrl: data.url };
@@ -1007,7 +1146,7 @@ export default function Home() {
         return updated;
       });
     } catch (err) {
-      alert('Failed to upload music: ' + err.message);
+      alert('Failed to upload music: ' + (err.response?.data?.message || err.message || String(err)));
     } finally {
       setUploadingMusic(false);
     }
@@ -1038,7 +1177,7 @@ export default function Home() {
         previewAudioRef.current.pause();
       }
       const audio = new Audio(track.previewUrl);
-      audio.volume = 0.7;
+      audio.volume = 1;
       audio.onended = () => setPlayingPreview(null);
       audio.play();
       previewAudioRef.current = audio;
@@ -1262,6 +1401,7 @@ export default function Home() {
     } else {
       const vinyl = vinyls.find(v => String(v.id) === id);
       if (vinyl?.musicUrl && audioRefsRef.current[id]) {
+        audioRefsRef.current[id].volume = 1;
         audioRefsRef.current[id].play().catch(err => console.log('Audio play error:', err));
         setCurrentlyPlaying(vinyl);
       }
@@ -1277,10 +1417,10 @@ export default function Home() {
   const paginatedVinyls = filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0a' }}>
-      <div style={{ position: 'sticky', top: 0, zIndex: 100, background: 'linear-gradient(135deg, #0a0a0a, #1a1a1a)', borderBottom: '2px solid #FFD700' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--c-bg)' }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 100, background: 'var(--c-header-bg)', borderBottom: '2px solid var(--c-header-border)' }}>
         <div style={{ maxWidth: 1400, margin: '0 auto', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
             <button
               onClick={() => setMenuOpen(!menuOpen)}
               className="burger-button"
@@ -1289,27 +1429,27 @@ export default function Home() {
                 height: 48,
                 borderRadius: 12,
                 border: 'none',
-                background: menuOpen ? 'linear-gradient(135deg, #FFD54A, #F0C000)' : 'linear-gradient(135deg, #1a1a1a, #0f0f0f)',
+                background: menuOpen ? 'var(--g-accent)' : 'var(--g-surface)',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: menuOpen ? '0 6px 20px rgba(255,213,74,0.4), inset 0 1px 0 rgba(255,255,255,0.2)' : '0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,213,74,0.1)',
+                boxShadow: menuOpen ? '0 6px 20px rgb(var(--rgb-accent) / 0.4), inset 0 1px 0 rgb(255 255 255 / 0.2)' : '0 6px 20px rgb(0 0 0 / 0.5), inset 0 1px 0 rgb(var(--rgb-accent) / 0.1)',
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 backdropFilter: 'blur(10px)'
               }}
               onMouseEnter={(e) => {
                 if (!menuOpen) {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, #2a2a2a, #1a1a1a)';
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03))';
                   e.currentTarget.style.transform = 'scale(1.05)';
-                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(255,213,74,0.3), inset 0 1px 0 rgba(255,213,74,0.2)';
+                  e.currentTarget.style.boxShadow = '0 8px 24px rgb(var(--rgb-accent) / 0.3), inset 0 1px 0 rgb(var(--rgb-accent) / 0.2)';
                 }
               }}
               onMouseLeave={(e) => {
                 if (!menuOpen) {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, #1a1a1a, #0f0f0f)';
+                  e.currentTarget.style.background = 'var(--g-surface)';
                   e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,213,74,0.1)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgb(0 0 0 / 0.5), inset 0 1px 0 rgb(var(--rgb-accent) / 0.1)';
                 }
               }}
               aria-label="Toggle menu"
@@ -1317,44 +1457,68 @@ export default function Home() {
               <div style={{ width: 22, height: 22, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {!menuOpen ? (
                   <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 4.5 }}>
-                    <div style={{ width: '100%', height: 2.5, background: 'linear-gradient(90deg, #FFD54A, #F0C000)', borderRadius: 3, transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 1px 2px rgba(255,213,74,0.4)' }} />
-                    <div style={{ width: '75%', height: 2.5, background: 'linear-gradient(90deg, #FFD54A, #F0C000)', borderRadius: 3, marginLeft: 'auto', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 1px 2px rgba(255,213,74,0.4)' }} />
-                    <div style={{ width: '100%', height: 2.5, background: 'linear-gradient(90deg, #FFD54A, #F0C000)', borderRadius: 3, transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 1px 2px rgba(255,213,74,0.4)' }} />
+                    <div style={{ width: '100%', height: 2.5, background: 'var(--g-accent-h)', borderRadius: 3, transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 1px 2px rgb(var(--rgb-accent) / 0.4)' }} />
+                    <div style={{ width: '75%', height: 2.5, background: 'var(--g-accent-h)', borderRadius: 3, marginLeft: 'auto', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 1px 2px rgb(var(--rgb-accent) / 0.4)' }} />
+                    <div style={{ width: '100%', height: 2.5, background: 'var(--g-accent-h)', borderRadius: 3, transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 1px 2px rgb(var(--rgb-accent) / 0.4)' }} />
                   </div>
                 ) : (
                   <div style={{ position: 'relative', width: 22, height: 22 }}>
-                    <div style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 2.5, background: '#0b0b0b', borderRadius: 3, transform: 'rotate(45deg)', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 1px 2px rgba(0,0,0,0.3)' }} />
-                    <div style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 2.5, background: '#0b0b0b', borderRadius: 3, transform: 'rotate(-45deg)', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 1px 2px rgba(0,0,0,0.3)' }} />
+                    <div style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 2.5, background: 'var(--c-ink)', borderRadius: 3, transform: 'rotate(45deg)', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 1px 2px rgba(0,0,0,0.3)' }} />
+                    <div style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 2.5, background: 'var(--c-ink)', borderRadius: 3, transform: 'rotate(-45deg)', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 1px 2px rgba(0,0,0,0.3)' }} />
                   </div>
                 )}
               </div>
             </button>
-            <h1 className="logo-animated" style={{ 
-              margin: 0, 
-              fontSize: 28, 
-              fontWeight: 950,
-              letterSpacing: '0.15em',
-              background: 'linear-gradient(135deg, #ffffff 0%, #FFD54A 50%, #FFD700 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
+            <h1 className="logo-animated" style={{
+              margin: 0,
+              fontSize: 56,
+              fontWeight: 400,
+              letterSpacing: '0.065em',
+              paddingLeft: 2,
+              color: 'var(--c-ink)',
+              WebkitTextStroke: '1.5px var(--c-accent)',
               textTransform: 'uppercase',
-              filter: 'drop-shadow(0 2px 4px rgba(255,213,74,0.2))',
+              filter: 'drop-shadow(0 10px 26px rgba(0,0,0,0.55))',
               transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
               position: 'relative',
               cursor: 'default',
-              fontFamily: "'Archivo Black', 'Poppins', sans-serif"
+              fontFamily: "'Plaster', 'Poppins', system-ui, -apple-system, sans-serif",
+              lineHeight: 0.9,
+              textShadow: '0 0 10px rgb(var(--rgb-accent) / 0.16)'
             }}>
-              MEDIOTEKA
+              MT
             </h1>
           </div>
           <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-            {user && <span style={{ fontSize: 12, color: '#999' }}>Welcome, <strong style={{ color: '#FFD700', fontWeight: 700 }}>{user.username}</strong> ({user.role})</span>}
+            <select
+              value={theme}
+              onChange={handleThemeChange}
+              aria-label="Theme"
+              style={{
+                height: 36,
+                borderRadius: 10,
+                border: '1px solid var(--c-border)',
+                padding: '0 12px',
+                background: 'rgba(0,0,0,0.25)',
+                color: 'var(--c-text)',
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+                outline: 'none',
+                backdropFilter: 'blur(10px)'
+              }}
+            >
+              <option value="ferrari-black">Ferrari Black</option>
+              <option value="barcelona-home">Barcelona Home</option>
+            </select>
+
+            {user && <span style={{ fontSize: 12, color: 'var(--c-muted)' }}>Welcome, <strong style={{ color: 'var(--c-accent)', fontWeight: 700 }}>{user.username}</strong> ({user.role})</span>}
             <button
               onClick={handleLogout}
-              style={{ background: '#DC0000', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(220,0,0,0.3)' }}
-              onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 6px 20px rgba(220,0,0,0.5)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '0 4px 12px rgba(220,0,0,0.3)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+              style={{ background: 'var(--c-danger)', color: 'var(--c-text)', border: 'none', padding: '8px 16px', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', transition: 'all 0.2s', boxShadow: '0 4px 12px rgb(var(--rgb-danger) / 0.30)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 6px 20px rgb(var(--rgb-danger) / 0.50)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '0 4px 12px rgb(var(--rgb-danger) / 0.30)'; e.currentTarget.style.transform = 'translateY(0)'; }}
             >
               Logout
             </button>
@@ -1365,13 +1529,13 @@ export default function Home() {
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               <button
                 onClick={() => { setViewMode('songs'); setMenuOpen(false); }}
-                style={{ background: viewMode === 'songs' ? '#FFD700' : 'transparent', color: viewMode === 'songs' ? '#000' : '#FFD700', border: '2px solid #FFD700', padding: '8px 16px', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}
+                style={{ background: viewMode === 'songs' ? 'var(--c-accent)' : 'transparent', color: viewMode === 'songs' ? 'var(--c-ink)' : 'var(--c-accent)', border: '2px solid var(--c-accent)', padding: '8px 16px', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}
               >
                 ♫ Songs
               </button>
               <button
                 onClick={() => { setViewMode('playlists'); setMenuOpen(false); }}
-                style={{ background: viewMode === 'playlists' ? '#FFD700' : 'transparent', color: viewMode === 'playlists' ? '#000' : '#FFD700', border: '2px solid #FFD700', padding: '8px 16px', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}
+                style={{ background: viewMode === 'playlists' ? 'var(--c-accent)' : 'transparent', color: viewMode === 'playlists' ? 'var(--c-ink)' : 'var(--c-accent)', border: '2px solid var(--c-accent)', padding: '8px 16px', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}
               >
                 📂 Playlists
               </button>
@@ -1388,12 +1552,12 @@ export default function Home() {
           <>
             {viewMode === 'songs' && (
             <>
-              <div style={{ marginBottom: 32, background: 'linear-gradient(135deg, #0b0b0b, #151515)', color: '#FFD54A', border: '2px solid #2a2a2a', borderRadius: 12, padding: 16, boxShadow: '0 8px 24px rgba(0,0,0,0.35)', position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(90deg, rgba(255,213,74,0.03) 1px, transparent 1px), linear-gradient(0deg, rgba(255,213,74,0.03) 1px, transparent 1px)', backgroundSize: '14px 14px', pointerEvents: 'none' }} />
+              <div style={{ marginBottom: 32, background: 'var(--g-surface-2)', color: 'var(--c-text)', border: '2px solid var(--c-border)', borderRadius: 12, padding: 16, boxShadow: '0 8px 24px rgb(0 0 0 / 0.35)', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(90deg, rgb(var(--rgb-accent) / 0.05) 1px, transparent 1px), linear-gradient(0deg, rgb(var(--rgb-accent) / 0.05) 1px, transparent 1px)', backgroundSize: '14px 14px', pointerEvents: 'none' }} />
               <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
                 <div style={{ fontFamily: 'monospace', letterSpacing: '0.05em', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ padding: '4px 8px', background: '#0b0b0b', border: '1px solid #FFD54A', borderRadius: 6, color: '#FFD54A', fontWeight: 700 }}>8-bit</span>
-                  <span style={{ color: '#e6e6e6' }}>Arcade</span>
+                  <span style={{ padding: '4px 8px', background: 'rgba(0,0,0,0.25)', border: '1px solid var(--c-accent)', borderRadius: 6, color: 'var(--c-accent)', fontWeight: 800, textTransform: 'uppercase' }}>8-bit</span>
+                  <span style={{ color: 'var(--c-text)' }}>Arcade</span>
                 </div>
                 
                 {/* Simple game tabs */}
@@ -1401,9 +1565,9 @@ export default function Home() {
                   <button
                     onClick={() => setCurrentGame('blackjack')}
                     style={{ 
-                      background: currentGame === 'blackjack' ? '#FFD54A' : '#1a1a1a', 
-                      color: currentGame === 'blackjack' ? '#0b0b0b' : '#9a9a9a', 
-                      border: '1px solid ' + (currentGame === 'blackjack' ? '#FFD54A' : '#2a2a2a'), 
+                      background: currentGame === 'blackjack' ? 'var(--c-accent)' : 'rgba(0,0,0,0.25)', 
+                      color: currentGame === 'blackjack' ? 'var(--c-ink)' : 'var(--c-muted)', 
+                      border: '1px solid ' + (currentGame === 'blackjack' ? 'var(--c-accent)' : 'var(--c-border)'), 
                       padding: '8px 14px', 
                       borderRadius: 8, 
                       cursor: 'pointer', 
@@ -1411,7 +1575,7 @@ export default function Home() {
                       fontWeight: 700, 
                       textTransform: 'uppercase',
                       transition: 'all 0.2s',
-                      boxShadow: currentGame === 'blackjack' ? '0 4px 0 rgba(255,213,74,0.3)' : 'none'
+                      boxShadow: currentGame === 'blackjack' ? '0 4px 0 rgb(var(--rgb-accent) / 0.30)' : 'none'
                     }}
                   >
                     🃏 21
@@ -1419,9 +1583,9 @@ export default function Home() {
                   <button
                     onClick={() => setCurrentGame('poker')}
                     style={{ 
-                      background: currentGame === 'poker' ? '#FFD54A' : '#1a1a1a', 
-                      color: currentGame === 'poker' ? '#0b0b0b' : '#9a9a9a', 
-                      border: '1px solid ' + (currentGame === 'poker' ? '#FFD54A' : '#2a2a2a'), 
+                      background: currentGame === 'poker' ? 'var(--c-accent)' : 'rgba(0,0,0,0.25)', 
+                      color: currentGame === 'poker' ? 'var(--c-ink)' : 'var(--c-muted)', 
+                      border: '1px solid ' + (currentGame === 'poker' ? 'var(--c-accent)' : 'var(--c-border)'), 
                       padding: '8px 14px', 
                       borderRadius: 8, 
                       cursor: 'pointer', 
@@ -1429,7 +1593,7 @@ export default function Home() {
                       fontWeight: 700, 
                       textTransform: 'uppercase',
                       transition: 'all 0.2s',
-                      boxShadow: currentGame === 'poker' ? '0 4px 0 rgba(255,213,74,0.3)' : 'none'
+                      boxShadow: currentGame === 'poker' ? '0 4px 0 rgb(var(--rgb-accent) / 0.30)' : 'none'
                     }}
                   >
                     ♣️ Poker
@@ -1439,7 +1603,7 @@ export default function Home() {
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button
                     onClick={() => setShowArcade(true)}
-                    style={{ background: '#FFD54A', color: '#0b0b0b', border: '1px solid #FFD54A', padding: '8px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 rgba(255,213,74,0.3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                    style={{ background: 'var(--c-accent)', color: 'var(--c-ink)', border: '1px solid var(--c-accent)', padding: '8px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 800, boxShadow: '0 4px 0 rgb(var(--rgb-accent) / 0.30)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
                     onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
                     onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                   >
@@ -1448,7 +1612,7 @@ export default function Home() {
                   {showArcade && (
                     <button
                       onClick={() => setShowArcade(false)}
-                      style={{ background: '#E00000', color: '#fff', border: '1px solid #DC0000', padding: '8px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 rgba(224,0,0,0.3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                      style={{ background: 'var(--c-danger)', color: 'var(--c-text)', border: '1px solid var(--c-danger)', padding: '8px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 800, boxShadow: '0 4px 0 rgb(var(--rgb-danger) / 0.30)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
                       onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
                       onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                     >
@@ -1459,14 +1623,14 @@ export default function Home() {
               </div>
 
               {showArcade && currentGame === 'blackjack' && (
-                <div style={{ position: 'relative', marginTop: 12, border: '2px solid #2a2a2a', borderRadius: 10, background: '#0b0b0b', padding: 14, fontFamily: 'monospace' }}>
+                <div style={{ position: 'relative', marginTop: 12, border: '2px solid var(--c-border)', borderRadius: 10, background: 'rgba(0,0,0,0.20)', padding: 14, fontFamily: 'monospace' }}>
                   {/* Mode selector */}
                   <div style={{ marginBottom: 12, display: 'flex', gap: 8, justifyContent: 'center' }}>
                     {['easy', 'normal', 'hard'].map(mode => (
                       <button
                         key={mode}
                         onClick={() => { if (blackjack.status === 'idle' || blackjack.status === 'finished') setGameMode(mode); }}
-                        style={{ background: gameMode === mode ? '#FFD54A' : '#1a1a1a', color: gameMode === mode ? '#0b0b0b' : '#9a9a9a', border: '1px solid ' + (gameMode === mode ? '#FFD54A' : '#2a2a2a'), padding: '6px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', transition: 'all 0.2s' }}
+                        style={{ background: gameMode === mode ? 'var(--c-accent)' : 'rgba(0,0,0,0.25)', color: gameMode === mode ? 'var(--c-ink)' : 'var(--c-muted)', border: '1px solid ' + (gameMode === mode ? 'var(--c-accent)' : 'var(--c-border)'), padding: '6px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', transition: 'all 0.2s' }}
                       >
                         {mode === 'easy' ? '🎮 Easy' : mode === 'normal' ? '⚖️ Normal' : '💪 Hard'}
                       </button>
@@ -1475,16 +1639,16 @@ export default function Home() {
 
                   {/* Balance & Stats */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 12, marginBottom: 12, fontSize: 12 }}>
-                    <div style={{ background: '#0f0f0f', padding: '8px', borderRadius: 6, border: '1px solid #2a2a2a', color: '#e6e6e6' }}>
-                      💰 Balance: <span style={{ color: '#FFD54A', fontWeight: 700 }}>{blackjack.balance}</span>
+                    <div style={{ background: 'rgba(0,0,0,0.22)', padding: '8px', borderRadius: 6, border: '1px solid var(--c-border)', color: 'var(--c-text)' }}>
+                      💰 Balance: <span style={{ color: 'var(--c-accent)', fontWeight: 800 }}>{blackjack.balance}</span>
                     </div>
-                    <div style={{ background: '#0f0f0f', padding: '8px', borderRadius: 6, border: '1px solid #2a2a2a', color: '#e6e6e6' }}>
-                      💵 Bet: <span style={{ color: '#E00000', fontWeight: 700 }}>{blackjack.bet}</span>
+                    <div style={{ background: 'rgba(0,0,0,0.22)', padding: '8px', borderRadius: 6, border: '1px solid var(--c-border)', color: 'var(--c-text)' }}>
+                      💵 Bet: <span style={{ color: 'var(--c-danger)', fontWeight: 800 }}>{blackjack.bet}</span>
                     </div>
-                    <div style={{ background: '#0f0f0f', padding: '8px', borderRadius: 6, border: '1px solid #2a2a2a', color: '#e6e6e6' }}>
-                      🏆 Wins: <span style={{ color: '#FFD54A', fontWeight: 700 }}>{blackjack.stats.wins}</span>
+                    <div style={{ background: 'rgba(0,0,0,0.22)', padding: '8px', borderRadius: 6, border: '1px solid var(--c-border)', color: 'var(--c-text)' }}>
+                      🏆 Wins: <span style={{ color: 'var(--c-accent)', fontWeight: 800 }}>{blackjack.stats.wins}</span>
                     </div>
-                    <div style={{ background: '#0f0f0f', padding: '8px', borderRadius: 6, border: '1px solid #2a2a2a', color: '#e6e6e6' }}>
+                    <div style={{ background: 'rgba(0,0,0,0.22)', padding: '8px', borderRadius: 6, border: '1px solid var(--c-border)', color: 'var(--c-text)' }}>
                       📊 +{blackjack.stats.totalEarnings}
                     </div>
                   </div>
@@ -1493,7 +1657,7 @@ export default function Home() {
                   {(blackjack.status === 'idle' || blackjack.status === 'finished') && (
                     <div style={{ marginBottom: 12 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                        <label style={{ color: '#9a9a9a', fontSize: 12, fontWeight: 700 }}>Bet amount:</label>
+                        <label style={{ color: 'var(--c-muted)', fontSize: 12, fontWeight: 800 }}>Bet amount:</label>
                         <input 
                           type="range" 
                           min="10" 
@@ -1506,7 +1670,7 @@ export default function Home() {
                           type="number" 
                           value={blackjack.bet}
                           onChange={(e) => setBlackjack(prev => ({ ...prev, bet: Math.max(10, Math.min(prev.balance, Number(e.target.value))) }))}
-                          style={{ width: 70, padding: '4px 8px', background: '#0f0f0f', color: '#e6e6e6', border: '1px solid #2a2a2a', borderRadius: 4, fontSize: 12 }}
+                          style={{ width: 70, padding: '4px 8px', background: 'rgba(0,0,0,0.22)', color: 'var(--c-text)', border: '1px solid var(--c-border)', borderRadius: 6, fontSize: 12, fontWeight: 800 }}
                         />
                       </div>
 
@@ -1517,14 +1681,14 @@ export default function Home() {
                             key={amount}
                             onClick={() => setBlackjack(prev => ({ ...prev, bet: Math.min(amount, prev.balance) }))}
                             style={{ 
-                              background: blackjack.bet === amount ? '#FFD54A' : '#1a1a1a', 
-                              color: blackjack.bet === amount ? '#0b0b0b' : '#9a9a9a', 
-                              border: '1px solid ' + (blackjack.bet === amount ? '#FFD54A' : '#2a2a2a'), 
+                              background: blackjack.bet === amount ? 'var(--c-accent)' : 'rgba(0,0,0,0.25)', 
+                              color: blackjack.bet === amount ? 'var(--c-ink)' : 'var(--c-muted)', 
+                              border: '1px solid ' + (blackjack.bet === amount ? 'var(--c-accent)' : 'var(--c-border)'), 
                               padding: '6px 10px', 
                               borderRadius: 6, 
                               cursor: 'pointer', 
                               fontSize: 11, 
-                              fontWeight: 700, 
+                              fontWeight: 800, 
                               textTransform: 'uppercase', 
                               letterSpacing: '0.05em',
                               opacity: amount > blackjack.balance ? 0.5 : 1,
@@ -1538,18 +1702,18 @@ export default function Home() {
                         <button
                           onClick={() => setBlackjack(prev => ({ ...prev, bet: prev.balance }))}
                           style={{ 
-                            background: blackjack.bet === blackjack.balance ? '#E00000' : '#2a0000', 
-                            color: blackjack.bet === blackjack.balance ? '#fff' : '#9a5a5a', 
-                            border: '1px solid ' + (blackjack.bet === blackjack.balance ? '#DC0000' : '#4a1a1a'), 
+                            background: blackjack.bet === blackjack.balance ? 'var(--c-danger)' : 'rgb(var(--rgb-danger) / 0.18)', 
+                            color: blackjack.bet === blackjack.balance ? 'var(--c-text)' : 'rgb(var(--rgb-danger) / 0.70)', 
+                            border: '1px solid ' + (blackjack.bet === blackjack.balance ? 'var(--c-danger)' : 'rgb(var(--rgb-danger) / 0.35)'), 
                             padding: '6px 10px', 
                             borderRadius: 6, 
                             cursor: 'pointer', 
                             fontSize: 11, 
-                            fontWeight: 700, 
+                            fontWeight: 800, 
                             textTransform: 'uppercase', 
                             letterSpacing: '0.05em',
                             transition: 'all 0.2s',
-                            boxShadow: blackjack.bet === blackjack.balance ? '0 0 12px rgba(224,0,0,0.5)' : 'none'
+                            boxShadow: blackjack.bet === blackjack.balance ? '0 0 12px rgb(var(--rgb-danger) / 0.50)' : 'none'
                           }}
                         >
                           🔥 ALL IN
@@ -1557,10 +1721,10 @@ export default function Home() {
                       </div>
 
                       {/* Bet info */}
-                      <div style={{ fontSize: 11, color: '#e6e6e6', padding: '6px 8px', background: '#0f0f0f', borderRadius: 6, border: '1px solid #2a2a2a', display: 'flex', justifyContent: 'space-between' }}>
-                        <span>Win: <strong style={{ color: '#FFD54A' }}>+{blackjack.bet}</strong></span>
-                        <span>Blackjack: <strong style={{ color: '#FFD700' }}>+{blackjack.bet * 2}</strong></span>
-                        <span>Lose: <strong style={{ color: '#E00000' }}>-{blackjack.bet}</strong></span>
+                      <div style={{ fontSize: 11, color: 'var(--c-text)', padding: '6px 8px', background: 'rgba(0,0,0,0.22)', borderRadius: 6, border: '1px solid var(--c-border)', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Win: <strong style={{ color: 'var(--c-accent)' }}>+{blackjack.bet}</strong></span>
+                        <span>Blackjack: <strong style={{ color: 'var(--c-accent2)' }}>+{blackjack.bet * 2}</strong></span>
+                        <span>Lose: <strong style={{ color: 'var(--c-danger)' }}>-{blackjack.bet}</strong></span>
                       </div>
                     </div>
                   )}
@@ -1568,46 +1732,46 @@ export default function Home() {
                   {/* Game cards */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
                     <div>
-                      <div style={{ fontSize: 12, color: '#9a9a9a', marginBottom: 6 }}>Dealer</div>
+                      <div style={{ fontSize: 12, color: 'var(--c-muted)', marginBottom: 6 }}>Dealer</div>
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                         {blackjack.dealer.map((card, idx) => {
                           const hidden = blackjack.status === 'player' && idx === 1;
                           return (
-                            <div key={`dealer-${idx}`} style={{ width: 52, height: 72, background: hidden ? '#0f0f0f' : '#fff', color: '#0b0b0b', border: '2px solid #2a2a2a', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, boxShadow: '0 4px 0 rgba(0,0,0,0.3)', transition: 'all 0.3s' }}>
+                            <div key={`dealer-${idx}`} style={{ width: 52, height: 72, background: hidden ? 'rgba(0,0,0,0.22)' : 'rgba(255,255,255,0.92)', color: 'var(--c-ink)', border: '2px solid var(--c-border)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, boxShadow: '0 4px 0 rgb(0 0 0 / 0.30)', transition: 'all 0.3s' }}>
                               {hidden ? '??' : cardLabel(card)}
                             </div>
                           );
                         })}
                       </div>
                       {blackjack.status !== 'player' && blackjack.dealer.length > 0 && (
-                        <div style={{ marginTop: 6, fontSize: 12, color: dealerScore > 21 ? '#E00000' : '#e6e6e6' }}>Total: <strong>{dealerScore}</strong></div>
+                        <div style={{ marginTop: 6, fontSize: 12, color: dealerScore > 21 ? 'var(--c-danger)' : 'var(--c-text)' }}>Total: <strong>{dealerScore}</strong></div>
                       )}
                     </div>
 
                     <div>
-                      <div style={{ fontSize: 12, color: '#9a9a9a', marginBottom: 6 }}>You</div>
+                      <div style={{ fontSize: 12, color: 'var(--c-muted)', marginBottom: 6 }}>You</div>
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                         {blackjack.player.map((card, idx) => (
-                          <div key={`player-${idx}`} style={{ width: 52, height: 72, background: '#fff', color: '#0b0b0b', border: '2px solid #2a2a2a', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, boxShadow: '0 4px 0 rgba(0,0,0,0.3)', transition: 'all 0.3s' }}>
+                          <div key={`player-${idx}`} style={{ width: 52, height: 72, background: 'rgba(255,255,255,0.92)', color: 'var(--c-ink)', border: '2px solid var(--c-border)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, boxShadow: '0 4px 0 rgb(0 0 0 / 0.30)', transition: 'all 0.3s' }}>
                             {cardLabel(card)}
                           </div>
                         ))}
                       </div>
                       {blackjack.player.length > 0 && (
-                        <div style={{ marginTop: 6, fontSize: 12, color: playerScore > 21 ? '#E00000' : '#e6e6e6' }}>Total: <strong>{playerScore}</strong></div>
+                        <div style={{ marginTop: 6, fontSize: 12, color: playerScore > 21 ? 'var(--c-danger)' : 'var(--c-text)' }}>Total: <strong>{playerScore}</strong></div>
                       )}
                     </div>
                   </div>
 
                   {/* Message & actions */}
                   <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'space-between' }}>
-                    <span style={{ color: blackjack.status === 'finished' ? (blackjack.message.includes('win') ? '#FFD54A' : blackjack.message.includes('Push') ? '#9a9a9a' : '#E00000') : '#FFD54A', fontSize: 12, fontWeight: 700 }}>{blackjack.message}</span>
+                    <span style={{ color: blackjack.status === 'finished' ? (blackjack.message.includes('win') ? 'var(--c-accent)' : blackjack.message.includes('Push') ? 'var(--c-muted)' : 'var(--c-danger)') : 'var(--c-accent)', fontSize: 12, fontWeight: 800 }}>{blackjack.message}</span>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                       {blackjack.status === 'idle' ? (
                         <button
                           onClick={startBlackjack}
                           disabled={blackjack.balance < blackjack.bet}
-                          style={{ background: '#FFD54A', color: '#0b0b0b', border: '1px solid #FFD54A', padding: '8px 12px', borderRadius: 8, cursor: blackjack.balance >= blackjack.bet ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 rgba(255,213,74,0.3)', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: blackjack.balance >= blackjack.bet ? 1 : 0.5 }}
+                          style={{ background: 'var(--c-accent)', color: 'var(--c-ink)', border: '1px solid var(--c-accent)', padding: '8px 12px', borderRadius: 8, cursor: blackjack.balance >= blackjack.bet ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 800, boxShadow: '0 4px 0 rgb(var(--rgb-accent) / 0.30)', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: blackjack.balance >= blackjack.bet ? 1 : 0.5 }}
                         >
                           Deal
                         </button>
@@ -1615,20 +1779,20 @@ export default function Home() {
                         <>
                           <button
                             onClick={hitBlackjack}
-                            style={{ background: '#FFD54A', color: '#0b0b0b', border: '1px solid #FFD54A', padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 rgba(255,213,74,0.3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                            style={{ background: 'var(--c-accent)', color: 'var(--c-ink)', border: '1px solid var(--c-accent)', padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 800, boxShadow: '0 4px 0 rgb(var(--rgb-accent) / 0.30)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
                           >
                             Hit
                           </button>
                           <button
                             onClick={standBlackjack}
-                            style={{ background: '#1a1a1a', color: '#FFD54A', border: '1px solid #FFD54A', padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 rgba(0,0,0,0.3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                            style={{ background: 'rgba(0,0,0,0.25)', color: 'var(--c-accent)', border: '1px solid var(--c-accent)', padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 800, boxShadow: '0 4px 0 rgb(0 0 0 / 0.30)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
                           >
                             Stand
                           </button>
                           {blackjack.canDoubleDown && (
                             <button
                               onClick={doubleDownBlackjack}
-                              style={{ background: '#E00000', color: '#fff', border: '1px solid #DC0000', padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 rgba(224,0,0,0.3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                              style={{ background: 'var(--c-danger)', color: 'var(--c-text)', border: '1px solid var(--c-danger)', padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 800, boxShadow: '0 4px 0 rgb(var(--rgb-danger) / 0.30)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
                             >
                               Double
                             </button>
@@ -1636,7 +1800,7 @@ export default function Home() {
                           {blackjack.canSplit && (
                             <button
                               onClick={splitBlackjack}
-                              style={{ background: '#FFD700', color: '#0b0b0b', border: '1px solid #FFD700', padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 rgba(255,215,0,0.3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                              style={{ background: 'var(--c-accent2)', color: 'var(--c-ink)', border: '1px solid var(--c-accent2)', padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 800, boxShadow: '0 4px 0 rgb(var(--rgb-accent2) / 0.30)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
                             >
                               Split
                             </button>
@@ -1647,13 +1811,13 @@ export default function Home() {
                           <button
                             onClick={startBlackjack}
                             disabled={blackjack.balance < blackjack.bet}
-                            style={{ background: '#FFD54A', color: '#0b0b0b', border: '1px solid #FFD54A', padding: '8px 12px', borderRadius: 8, cursor: blackjack.balance >= blackjack.bet ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 rgba(255,213,74,0.3)', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: blackjack.balance >= blackjack.bet ? 1 : 0.5 }}
+                            style={{ background: 'var(--c-accent)', color: 'var(--c-ink)', border: '1px solid var(--c-accent)', padding: '8px 12px', borderRadius: 8, cursor: blackjack.balance >= blackjack.bet ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 800, boxShadow: '0 4px 0 rgb(var(--rgb-accent) / 0.30)', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: blackjack.balance >= blackjack.bet ? 1 : 0.5 }}
                           >
                             Deal Again
                           </button>
                           <button
                             onClick={resetBlackjack}
-                            style={{ background: '#E00000', color: '#fff', border: '1px solid #DC0000', padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 0 rgba(224,0,0,0.3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                            style={{ background: 'var(--c-danger)', color: 'var(--c-text)', border: '1px solid var(--c-danger)', padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 800, boxShadow: '0 4px 0 rgb(var(--rgb-danger) / 0.30)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
                           >
                             Reset Stats
                           </button>
@@ -1663,19 +1827,19 @@ export default function Home() {
                   </div>
 
                   {/* Stats breakdown */}
-                  <div style={{ marginTop: 12, padding: 8, background: '#0f0f0f', borderRadius: 6, border: '1px solid #2a2a2a', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, fontSize: 11, color: '#e6e6e6' }}>
-                    <div>Wins: <span style={{ color: '#FFD54A', fontWeight: 700 }}>{blackjack.stats.wins}</span> | Losses: <span style={{ color: '#E00000', fontWeight: 700 }}>{blackjack.stats.losses}</span> | Pushes: <span style={{ color: '#9a9a9a', fontWeight: 700 }}>{blackjack.stats.pushes}</span></div>
-                    <div>Win rate: <span style={{ color: '#FFD54A', fontWeight: 700 }}>{blackjack.stats.wins + blackjack.stats.losses > 0 ? Math.round(blackjack.stats.wins * 100 / (blackjack.stats.wins + blackjack.stats.losses)) : 0}%</span></div>
-                    <div>Balance: <span style={{ color: blackjack.balance > 1000 ? '#FFD54A' : blackjack.balance < 100 ? '#E00000' : '#e6e6e6', fontWeight: 700 }}>{blackjack.balance}</span></div>
+                  <div style={{ marginTop: 12, padding: 8, background: 'rgba(0,0,0,0.22)', borderRadius: 6, border: '1px solid var(--c-border)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, fontSize: 11, color: 'var(--c-text)' }}>
+                    <div>Wins: <span style={{ color: 'var(--c-accent)', fontWeight: 800 }}>{blackjack.stats.wins}</span> | Losses: <span style={{ color: 'var(--c-danger)', fontWeight: 800 }}>{blackjack.stats.losses}</span> | Pushes: <span style={{ color: 'var(--c-muted)', fontWeight: 800 }}>{blackjack.stats.pushes}</span></div>
+                    <div>Win rate: <span style={{ color: 'var(--c-accent)', fontWeight: 800 }}>{blackjack.stats.wins + blackjack.stats.losses > 0 ? Math.round(blackjack.stats.wins * 100 / (blackjack.stats.wins + blackjack.stats.losses)) : 0}%</span></div>
+                    <div>Balance: <span style={{ color: blackjack.balance > 1000 ? 'var(--c-accent)' : blackjack.balance < 100 ? 'var(--c-danger)' : 'var(--c-text)', fontWeight: 800 }}>{blackjack.balance}</span></div>
                   </div>
                 </div>
               )}
             </div>
 
-            <div style={{ marginBottom: 60, background: 'linear-gradient(135deg, #0f0f0f, #151515)', border: '1px solid #222', borderRadius: 16, padding: '24px 24px 16px 24px', boxShadow: '0 10px 30px rgba(0,0,0,0.35)' }}>
+            <div style={{ marginBottom: 60, background: 'var(--g-surface-2)', border: '1px solid var(--c-border)', borderRadius: 16, padding: '24px 24px 16px 24px', boxShadow: '0 10px 30px rgb(0 0 0 / 0.35)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <h2 style={{ margin: 0, fontSize: 26, fontWeight: 800, color: '#FFD54A', letterSpacing: '0.02em' }}>🔥 Top Vinyls</h2>
-                <div style={{ fontSize: 12, color: '#8b8b8b' }}>Sorted by likes</div>
+                <h2 style={{ margin: 0, fontSize: 26, fontWeight: 900, color: 'var(--c-accent)', letterSpacing: '0.02em' }}>🔥 Top Vinyls</h2>
+                <div style={{ fontSize: 12, color: 'var(--c-muted)' }}>Sorted by likes</div>
               </div>
 
               <div style={{ position: 'relative' }}>
@@ -1684,18 +1848,18 @@ export default function Home() {
                     <button 
                       onClick={() => setCarouselIndex(Math.max(0, carouselIndex - 4))}
                       disabled={carouselIndex === 0}
-                      style={{ position: 'absolute', left: -24, top: '50%', transform: 'translateY(-50%)', width: 38, height: 38, borderRadius: '50%', background: carouselIndex === 0 ? '#1a1a1a' : '#0b0b0b', border: '1px solid #333', color: '#FFD54A', fontSize: 20, cursor: carouselIndex === 0 ? 'default' : 'pointer', transition: 'all 0.2s', zIndex: 10, opacity: carouselIndex === 0 ? 0.4 : 1 }}
-                      onMouseEnter={(e) => { if (carouselIndex !== 0) { e.currentTarget.style.borderColor = '#FFD54A'; e.currentTarget.style.boxShadow = '0 0 12px rgba(255,213,74,0.35)'; } }}
-                      onMouseLeave={(e) => { if (carouselIndex !== 0) { e.currentTarget.style.borderColor = '#333'; e.currentTarget.style.boxShadow = 'none'; } }}
+                      style={{ position: 'absolute', left: -24, top: '50%', transform: 'translateY(-50%)', width: 38, height: 38, borderRadius: '50%', background: carouselIndex === 0 ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.35)', border: '1px solid var(--c-border)', color: 'var(--c-accent)', fontSize: 20, cursor: carouselIndex === 0 ? 'default' : 'pointer', transition: 'all 0.2s', zIndex: 10, opacity: carouselIndex === 0 ? 0.4 : 1 }}
+                      onMouseEnter={(e) => { if (carouselIndex !== 0) { e.currentTarget.style.borderColor = 'var(--c-accent)'; e.currentTarget.style.boxShadow = '0 0 12px rgb(var(--rgb-accent) / 0.35)'; } }}
+                      onMouseLeave={(e) => { if (carouselIndex !== 0) { e.currentTarget.style.borderColor = 'var(--c-border)'; e.currentTarget.style.boxShadow = 'none'; } }}
                     >
                       ‹
                     </button>
                     <button 
                       onClick={() => setCarouselIndex(Math.min(topVinyls.length - 4, carouselIndex + 4))}
                       disabled={carouselIndex >= topVinyls.length - 4}
-                      style={{ position: 'absolute', right: -24, top: '50%', transform: 'translateY(-50%)', width: 38, height: 38, borderRadius: '50%', background: carouselIndex >= topVinyls.length - 4 ? '#1a1a1a' : '#0b0b0b', border: '1px solid #333', color: '#FFD54A', fontSize: 20, cursor: carouselIndex >= topVinyls.length - 4 ? 'default' : 'pointer', transition: 'all 0.2s', zIndex: 10, opacity: carouselIndex >= topVinyls.length - 4 ? 0.4 : 1 }}
-                      onMouseEnter={(e) => { if (carouselIndex < topVinyls.length - 4) { e.currentTarget.style.borderColor = '#FFD54A'; e.currentTarget.style.boxShadow = '0 0 12px rgba(255,213,74,0.35)'; } }}
-                      onMouseLeave={(e) => { if (carouselIndex < topVinyls.length - 4) { e.currentTarget.style.borderColor = '#333'; e.currentTarget.style.boxShadow = 'none'; } }}
+                      style={{ position: 'absolute', right: -24, top: '50%', transform: 'translateY(-50%)', width: 38, height: 38, borderRadius: '50%', background: carouselIndex >= topVinyls.length - 4 ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.35)', border: '1px solid var(--c-border)', color: 'var(--c-accent)', fontSize: 20, cursor: carouselIndex >= topVinyls.length - 4 ? 'default' : 'pointer', transition: 'all 0.2s', zIndex: 10, opacity: carouselIndex >= topVinyls.length - 4 ? 0.4 : 1 }}
+                      onMouseEnter={(e) => { if (carouselIndex < topVinyls.length - 4) { e.currentTarget.style.borderColor = 'var(--c-accent)'; e.currentTarget.style.boxShadow = '0 0 12px rgb(var(--rgb-accent) / 0.35)'; } }}
+                      onMouseLeave={(e) => { if (carouselIndex < topVinyls.length - 4) { e.currentTarget.style.borderColor = 'var(--c-border)'; e.currentTarget.style.boxShadow = 'none'; } }}
                     >
                       ›
                     </button>
@@ -1707,11 +1871,11 @@ export default function Home() {
                     const actualIndex = carouselIndex + idx;
                     return (
                       <div key={v.id} style={{ textAlign: 'center', position: 'relative', padding: '10px 10px 0 10px' }}>
-                        <div style={{ position: 'absolute', top: -6, right: -6, width: 38, height: 38, background: '#0b0b0b', color: '#FFD54A', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, border: '1px solid #333', boxShadow: '0 4px 12px rgba(0,0,0,0.4)', zIndex: 5 }}>
+                        <div style={{ position: 'absolute', top: 6, right: 6, width: 38, height: 38, background: 'rgba(0,0,0,0.35)', color: 'var(--c-accent)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 900, lineHeight: 1, border: '1px solid var(--c-border)', boxShadow: '0 4px 12px rgb(0 0 0 / 0.40)', zIndex: 5 }}>
                           {actualIndex + 1}.
                         </div>
 
-                        <div style={{ width: '100%', aspectRatio: '1', background: 'radial-gradient(circle at 35% 35%, #2a2a2a, #0b0b0b)', borderRadius: '50%', overflow: 'hidden', position: 'relative', boxShadow: '0 14px 28px rgba(0,0,0,0.45), inset 0 2px 6px rgba(255,255,255,0.06)', cursor: 'pointer', transition: 'all 0.3s', marginBottom: 14 }}
+                        <div style={{ width: '100%', aspectRatio: '1', background: 'var(--g-vinyl)', borderRadius: '50%', overflow: 'hidden', position: 'relative', boxShadow: '0 14px 28px rgb(0 0 0 / 0.45), inset 0 2px 6px rgb(255 255 255 / 0.06)', cursor: 'pointer', transition: 'all 0.3s', marginBottom: 14 }}
                              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
                              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
                           <div 
@@ -1728,28 +1892,28 @@ export default function Home() {
                           
                           <div 
                             onClick={(e) => { e.stopPropagation(); toggleSpin(v.id); }}
-                            style={{ position: 'absolute', inset: '35%', background: 'radial-gradient(circle, #222 0%, #000 100%)', borderRadius: '50%', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
-                            onMouseEnter={(e) => e.currentTarget.style.background = 'radial-gradient(circle, #333 0%, #111 100%)'}
-                            onMouseLeave={(e) => e.currentTarget.style.background = 'radial-gradient(circle, #222 0%, #000 100%)'}
+                            style={{ position: 'absolute', inset: '35%', background: 'radial-gradient(circle, rgb(var(--rgb-accent) / 0.12) 0%, rgb(0 0 0 / 0.75) 100%)', borderRadius: '50%', boxShadow: 'inset 0 2px 4px rgb(0 0 0 / 0.80)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = 'radial-gradient(circle, rgb(var(--rgb-accent) / 0.18) 0%, rgb(0 0 0 / 0.65) 100%)'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'radial-gradient(circle, rgb(var(--rgb-accent) / 0.12) 0%, rgb(0 0 0 / 0.75) 100%)'}
                           >
                             {spinningVinyls[v.id] ? (
-                              <div style={{ width: '40%', height: '40%', background: '#fff', borderRadius: 2 }}></div>
+                              <div style={{ width: '40%', height: '40%', background: 'var(--c-text)', borderRadius: 2 }}></div>
                             ) : (
-                              <div style={{ width: 0, height: 0, borderLeft: '15px solid #fff', borderTop: '10px solid transparent', borderBottom: '10px solid transparent', marginLeft: 4 }}></div>
+                              <div style={{ width: 0, height: 0, borderLeft: '15px solid var(--c-text)', borderTop: '10px solid transparent', borderBottom: '10px solid transparent', marginLeft: 4 }}></div>
                             )}
                           </div>
                         </div>
 
-                        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, lineHeight: 1.3, color: '#e6e6e6', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                        <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 4, lineHeight: 1.3, color: 'var(--c-text)', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                           {v.title}
                         </div>
-                        <div style={{ fontSize: 12, color: '#9a9a9a', marginBottom: 12 }}>
+                        <div style={{ fontSize: 12, color: 'var(--c-muted)', marginBottom: 12 }}>
                           {v.artist}
                         </div>
 
                         {(v.previewUrl || v.musicUrl) && (
                           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, background: '#0b0b0b', border: '1px solid #FFD54A', padding: '6px 12px', borderRadius: 20, color: '#FFD54A', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, background: 'rgba(0,0,0,0.25)', border: '1px solid var(--c-accent)', padding: '6px 12px', borderRadius: 20, color: 'var(--c-accent)', fontWeight: 800, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                               <span>♫</span>
                               <span>Audio Available</span>
                             </div>
@@ -1766,7 +1930,7 @@ export default function Home() {
                       <button
                         key={i}
                         onClick={() => setCarouselIndex(i * 4)}
-                        style={{ width: Math.floor(carouselIndex / 4) === i ? 30 : 10, height: 10, borderRadius: 5, background: Math.floor(carouselIndex / 4) === i ? '#000' : '#ddd', border: 'none', cursor: 'pointer', transition: 'all 0.3s' }}
+                        style={{ width: Math.floor(carouselIndex / 4) === i ? 30 : 10, height: 10, borderRadius: 5, background: Math.floor(carouselIndex / 4) === i ? 'var(--c-accent)' : 'rgb(255 255 255 / 0.18)', border: 'none', cursor: 'pointer', transition: 'all 0.3s' }}
                       />
                     ))}
                   </div>
@@ -1801,76 +1965,76 @@ export default function Home() {
 
             {/* ==== PLAYLISTS SECTION ==== */}
             {viewMode === 'playlists' && (
-            <div style={{ background: 'linear-gradient(180deg, #0b0b0b 0%, #151515 100%)', border: '1px solid #FFD54A', borderRadius: 16, padding: 32, boxShadow: '0 12px 40px rgba(255,213,74,0.15)' }}>
+            <div style={{ background: 'var(--g-surface-2)', border: '1px solid var(--c-border)', borderRadius: 16, padding: 32, boxShadow: '0 12px 40px rgb(var(--rgb-accent) / 0.15)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
-                <h2 style={{ margin: 0, fontSize: 32, fontWeight: 900, background: 'linear-gradient(135deg, #FFD54A, #FFD700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '0.02em', display: 'flex', alignItems: 'center', gap: 14, textTransform: 'uppercase', filter: 'drop-shadow(0 2px 8px rgba(255,213,74,0.3))' }}>
+                <h2 style={{ margin: 0, fontSize: 32, fontWeight: 900, color: 'var(--c-accent)', letterSpacing: '0.02em', display: 'flex', alignItems: 'center', gap: 14, textTransform: 'uppercase', textShadow: '0 0 22px rgb(var(--rgb-accent) / 0.18)' }}>
                   <span style={{ fontSize: 36 }}>♫</span>
                   My Playlists
                 </h2>
                 <button
                   onClick={openPlaylistForm}
-                  style={{ background: 'linear-gradient(135deg, #FFD54A, #F0C000)', color: '#0b0b0b', border: 'none', padding: '12px 24px', borderRadius: 10, fontSize: 13, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.8px', cursor: 'pointer', boxShadow: '0 8px 20px rgba(255,213,74,0.4)', transition: 'all 0.3s' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px) scale(1.05)'; e.currentTarget.style.boxShadow = '0 12px 28px rgba(255,213,74,0.5)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0) scale(1)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(255,213,74,0.4)'; }}
+                  style={{ background: 'var(--g-accent)', color: 'var(--c-ink)', border: 'none', padding: '12px 24px', borderRadius: 10, fontSize: 13, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.8px', cursor: 'pointer', boxShadow: '0 8px 20px rgb(var(--rgb-accent) / 0.40)', transition: 'all 0.3s' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px) scale(1.05)'; e.currentTarget.style.boxShadow = '0 12px 28px rgb(var(--rgb-accent) / 0.50)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0) scale(1)'; e.currentTarget.style.boxShadow = '0 8px 20px rgb(var(--rgb-accent) / 0.40)'; }}
                 >
                   + Create Playlist
                 </button>
               </div>
 
               {playlists.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '80px 20px', background: 'rgba(11,11,11,0.5)', borderRadius: 12, border: '1px solid #2a2a2a' }}>
-                  <div style={{ fontSize: 64, marginBottom: 20, color: '#FFD54A', filter: 'drop-shadow(0 4px 12px rgba(255,213,74,0.5))' }}>♫</div>
-                  <p style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#FFD54A' }}>No playlists yet</p>
-                  <p style={{ margin: '12px 0 0 0', fontSize: 14, color: '#9a9a9a' }}>Create your first playlist to organize your music collection!</p>
+                <div style={{ textAlign: 'center', padding: '80px 20px', background: 'rgba(0,0,0,0.22)', borderRadius: 12, border: '1px solid var(--c-border)' }}>
+                  <div style={{ fontSize: 64, marginBottom: 20, color: 'var(--c-accent)', filter: 'drop-shadow(0 4px 12px rgb(var(--rgb-accent) / 0.40))' }}>♫</div>
+                  <p style={{ margin: 0, fontSize: 20, fontWeight: 900, color: 'var(--c-accent)' }}>No playlists yet</p>
+                  <p style={{ margin: '12px 0 0 0', fontSize: 14, color: 'var(--c-muted)' }}>Create your first playlist to organize your music collection!</p>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                   {playlists.map(playlist => (
-                    <div key={playlist.id} style={{ background: '#121212', border: '2px solid #2a2a2a', borderRadius: 12, overflow: 'hidden', transition: 'all 0.3s' }}>
+                    <div key={playlist.id} style={{ background: 'rgba(0,0,0,0.22)', border: '2px solid var(--c-border)', borderRadius: 12, overflow: 'hidden', transition: 'all 0.3s' }}>
                       {/* Playlist Header */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 20, padding: 20, background: 'linear-gradient(135deg, #0b0b0b, #1a1a1a)', cursor: 'pointer', transition: 'all 0.3s' }}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 20, padding: 20, background: 'var(--g-surface-2)', cursor: 'pointer', transition: 'all 0.3s' }}
                         onClick={() => setSelectedPlaylist(selectedPlaylist?.id === playlist.id ? null : playlist)}
-                        onMouseEnter={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #1a1a1a, #0b0b0b)'; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #0b0b0b, #1a1a1a)'; }}
+                        onMouseEnter={(e) => { e.currentTarget.style.filter = 'brightness(1.05)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.filter = 'none'; }}
                       >
                         {playlist.cover_url ? (
-                          <img src={playlist.cover_url} alt={playlist.name} style={{ width: 100, height: 100, borderRadius: 10, objectFit: 'cover', boxShadow: '0 4px 16px rgba(0,0,0,0.5)', border: '2px solid #FFD54A' }} />
+                          <img src={playlist.cover_url} alt={playlist.name} style={{ width: 100, height: 100, borderRadius: 10, objectFit: 'cover', boxShadow: '0 4px 16px rgb(0 0 0 / 0.50)', border: '2px solid var(--c-accent)' }} />
                         ) : (
-                          <div style={{ width: 100, height: 100, borderRadius: 10, background: 'linear-gradient(135deg, #FFD54A, #F0C000)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, color: '#0b0b0b', boxShadow: '0 4px 16px rgba(255,213,74,0.4)' }}>♫</div>
+                          <div style={{ width: 100, height: 100, borderRadius: 10, background: 'var(--g-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, color: 'var(--c-ink)', boxShadow: '0 4px 16px rgb(var(--rgb-accent) / 0.40)' }}>♫</div>
                         )}
                         <div style={{ flex: 1 }}>
-                          <h3 style={{ margin: '0 0 8px 0', fontSize: 22, fontWeight: 900, color: '#FFD54A', letterSpacing: '0.5px' }}>{playlist.name}</h3>
+                          <h3 style={{ margin: '0 0 8px 0', fontSize: 22, fontWeight: 900, color: 'var(--c-accent)', letterSpacing: '0.5px' }}>{playlist.name}</h3>
                           {playlist.description && (
-                            <p style={{ margin: '0 0 8px 0', fontSize: 13, color: '#9a9a9a', lineHeight: 1.5 }}>{playlist.description}</p>
+                            <p style={{ margin: '0 0 8px 0', fontSize: 13, color: 'var(--c-muted)', lineHeight: 1.5 }}>{playlist.description}</p>
                           )}
-                          <div style={{ fontSize: 13, color: '#FFD54A', fontWeight: 700 }}>
-                            <span style={{ background: 'rgba(255,213,74,0.1)', padding: '4px 10px', borderRadius: 6, border: '1px solid rgba(255,213,74,0.3)' }}>{playlist.song_count || 0} songs</span>
+                          <div style={{ fontSize: 13, color: 'var(--c-accent)', fontWeight: 800 }}>
+                            <span style={{ background: 'rgb(var(--rgb-accent) / 0.10)', padding: '4px 10px', borderRadius: 6, border: '1px solid rgb(var(--rgb-accent) / 0.30)' }}>{playlist.song_count || 0} songs</span>
                           </div>
                         </div>
                         <div style={{ display: 'flex', gap: 8 }} onClick={(e) => e.stopPropagation()}>
                           <button 
                             onClick={() => openEditPlaylist(playlist)}
-                            style={{ background: 'rgba(11,11,11,0.8)', color: '#FFD54A', border: '1.5px solid #FFD54A', padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s', textTransform: 'uppercase', letterSpacing: '0.5px' }}
-                            onMouseEnter={(e) => { e.currentTarget.style.background = '#FFD54A'; e.currentTarget.style.color = '#0b0b0b'; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(11,11,11,0.8)'; e.currentTarget.style.color = '#FFD54A'; }}
+                            style={{ background: 'rgba(0,0,0,0.28)', color: 'var(--c-accent)', border: '1.5px solid var(--c-accent)', padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 900, cursor: 'pointer', transition: 'all 0.2s', textTransform: 'uppercase', letterSpacing: '0.5px' }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--c-accent)'; e.currentTarget.style.color = 'var(--c-ink)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.28)'; e.currentTarget.style.color = 'var(--c-accent)'; }}
                           >
                             ✎ Edit
                           </button>
                           <button 
                             onClick={() => handleDeletePlaylist(playlist.id)}
-                            style={{ background: 'rgba(11,11,11,0.8)', color: '#E00000', border: '1.5px solid #E00000', padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s', textTransform: 'uppercase', letterSpacing: '0.5px' }}
-                            onMouseEnter={(e) => { e.currentTarget.style.background = '#E00000'; e.currentTarget.style.color = '#0b0b0b'; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(11,11,11,0.8)'; e.currentTarget.style.color = '#E00000'; }}
+                            style={{ background: 'rgba(0,0,0,0.28)', color: 'var(--c-danger)', border: '1.5px solid var(--c-danger)', padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 900, cursor: 'pointer', transition: 'all 0.2s', textTransform: 'uppercase', letterSpacing: '0.5px' }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--c-danger)'; e.currentTarget.style.color = 'var(--c-ink)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.28)'; e.currentTarget.style.color = 'var(--c-danger)'; }}
                           >
                             🗑 Delete
                           </button>
                         </div>
-                        <div style={{ fontSize: 20, color: '#FFD54A', transition: 'all 0.3s', transform: selectedPlaylist?.id === playlist.id ? 'rotate(180deg)' : 'rotate(0deg)' }}>▼</div>
+                        <div style={{ fontSize: 20, color: 'var(--c-accent)', transition: 'all 0.3s', transform: selectedPlaylist?.id === playlist.id ? 'rotate(180deg)' : 'rotate(0deg)' }}>▼</div>
                       </div>
 
                       {/* Expanded Songs List */}
                       {selectedPlaylist?.id === playlist.id && (
-                        <div style={{ padding: 20, background: '#0b0b0b', borderTop: '1px solid #2a2a2a', maxHeight: 600, overflowY: 'auto' }}>
+                        <div style={{ padding: 20, background: 'rgba(0,0,0,0.22)', borderTop: '1px solid var(--c-border)', maxHeight: 600, overflowY: 'auto' }}>
                           {selectedPlaylist.songs && selectedPlaylist.songs.length > 0 ? (
                             <DndContext
                               sensors={sensors}
@@ -1899,15 +2063,15 @@ export default function Home() {
                                   const song = selectedPlaylist.songs.find((s) => s.id === activeId);
                                   if (!song) return null;
                                   return (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 14, background: 'linear-gradient(135deg, #FFD54A, #F0C000)', borderRadius: 10, boxShadow: '0 15px 40px rgba(255,213,74,0.5)' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 14, background: 'var(--g-accent)', borderRadius: 10, boxShadow: '0 15px 40px rgb(var(--rgb-accent) / 0.50)' }}>
                                       {song.coverUrl ? (
-                                        <img src={song.coverUrl} alt={song.title} style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 8, border: '2px solid #0b0b0b' }} />
+                                        <img src={song.coverUrl} alt={song.title} style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 8, border: '2px solid rgb(0 0 0 / 0.55)' }} />
                                       ) : (
-                                        <div style={{ width: 60, height: 60, borderRadius: 8, background: '#0b0b0b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>♫</div>
+                                        <div style={{ width: 60, height: 60, borderRadius: 8, background: 'rgb(0 0 0 / 0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, color: 'var(--c-text)' }}>♫</div>
                                       )}
                                       <div>
-                                        <div style={{ fontWeight: 900, color: '#0b0b0b', fontSize: 15 }}>{song.title}</div>
-                                        <div style={{ fontSize: 13, color: 'rgba(11,11,11,0.7)' }}>{song.artist} • {song.year}</div>
+                                        <div style={{ fontWeight: 900, color: 'var(--c-ink)', fontSize: 15 }}>{song.title}</div>
+                                        <div style={{ fontSize: 13, color: 'rgb(0 0 0 / 0.65)' }}>{song.artist} • {song.year}</div>
                                       </div>
                                     </div>
                                   );
@@ -1915,9 +2079,9 @@ export default function Home() {
                               </DragOverlay>
                             </DndContext>
                           ) : (
-                            <div style={{ textAlign: 'center', padding: '60px 20px', color: '#9a9a9a' }}>
-                              <div style={{ fontSize: 48, marginBottom: 16, color: '#FFD54A', opacity: 0.5 }}>♪</div>
-                              <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#e6e6e6' }}>No songs in this playlist yet</p>
+                            <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--c-muted)' }}>
+                              <div style={{ fontSize: 48, marginBottom: 16, color: 'var(--c-accent)', opacity: 0.5 }}>♪</div>
+                              <p style={{ margin: 0, fontSize: 16, fontWeight: 800, color: 'var(--c-text)' }}>No songs in this playlist yet</p>
                               <p style={{ margin: '8px 0 0 0', fontSize: 13 }}>Click "Add to Playlist" on any song to add it here!</p>
                             </div>
                           )}
@@ -1931,9 +2095,9 @@ export default function Home() {
             )}
 
             {viewMode === 'songs' && (
-            <div style={{ marginTop: 60, borderTop: '1px solid #222', paddingTop: 40 }}>
+            <div style={{ marginTop: 60, borderTop: '1px solid var(--c-border)', paddingTop: 40 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <h2 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: '#FFD54A', letterSpacing: '0.02em' }}>Complete Collection</h2>
+                <h2 style={{ margin: 0, fontSize: 24, fontWeight: 900, color: 'var(--c-accent)', letterSpacing: '0.02em' }}>Complete Collection</h2>
               </div>
               
               <div style={{ marginBottom: 24, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -1942,16 +2106,16 @@ export default function Home() {
                   placeholder="Search by title, artist, or year..."
                   value={search}
                   onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                  style={{ flex: 1, minWidth: 250, padding: '12px 16px', border: '1px solid #2a2a2a', borderRadius: 8, fontSize: 14, transition: 'border 0.2s', background: '#0f0f0f', color: '#e6e6e6' }}
-                  onFocus={(e) => e.currentTarget.style.borderColor = '#FFD54A'}
-                  onBlur={(e) => e.currentTarget.style.borderColor = '#2a2a2a'}
+                  style={{ flex: 1, minWidth: 250, padding: '12px 16px', border: '1px solid var(--c-border)', borderRadius: 10, fontSize: 14, transition: 'border 0.2s, box-shadow 0.2s', background: 'rgba(0,0,0,0.22)', color: 'var(--c-text)' }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--c-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgb(var(--rgb-accent) / 0.12)'; }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--c-border)'; e.currentTarget.style.boxShadow = 'none'; }}
                 />
                 <select 
                   value={sortBy}
                   onChange={(e) => { setSortBy(e.target.value); setPage(1); }}
-                  style={{ padding: '12px 16px', border: '1px solid #2a2a2a', borderRadius: 8, fontSize: 14, background: '#0f0f0f', color: '#FFD54A', cursor: 'pointer', transition: 'border 0.2s' }}
-                  onFocus={(e) => e.currentTarget.style.borderColor = '#FFD54A'}
-                  onBlur={(e) => e.currentTarget.style.borderColor = '#2a2a2a'}
+                  style={{ padding: '12px 16px', border: '1px solid var(--c-border)', borderRadius: 10, fontSize: 14, background: 'rgba(0,0,0,0.22)', color: 'var(--c-accent)', cursor: 'pointer', transition: 'border 0.2s, box-shadow 0.2s' }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--c-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgb(var(--rgb-accent) / 0.12)'; }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--c-border)'; e.currentTarget.style.boxShadow = 'none'; }}
                 >
                   <option value="title">Sort by Title (A-Z)</option>
                   <option value="artist">Sort by Artist (A-Z)</option>
@@ -1962,7 +2126,7 @@ export default function Home() {
                 {user?.role !== 'reader' && (
                   <button 
                     onClick={openCreate} 
-                    style={{ background: 'linear-gradient(135deg, #FFD54A, #F0C000)', color: '#0b0b0b', border: 'none', padding: '10px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 800, transition: 'all 0.2s', whiteSpace: 'nowrap', textTransform: 'uppercase', letterSpacing: '0.5px' }}
+                    style={{ background: 'var(--g-accent)', color: 'var(--c-ink)', border: 'none', padding: '10px 16px', borderRadius: 10, cursor: 'pointer', fontSize: 12, fontWeight: 900, transition: 'all 0.2s', whiteSpace: 'nowrap', textTransform: 'uppercase', letterSpacing: '0.5px', boxShadow: '0 10px 22px rgb(var(--rgb-accent) / 0.22)' }}
                     onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
                     onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                   >
@@ -1973,28 +2137,34 @@ export default function Home() {
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
                 {filtered.map((v, index) => (
-                  <div key={v.id} style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 12, padding: 16, background: '#121212', borderRadius: 12, border: '1px solid #2a2a2a', boxShadow: '0 8px 18px rgba(0,0,0,0.35)', transition: 'all 0.2s', overflow: 'hidden' }}
-                       onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#FFD54A'; e.currentTarget.style.boxShadow = '0 10px 24px rgba(255,213,74,0.15)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
-                       onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.boxShadow = '0 8px 18px rgba(0,0,0,0.35)'; e.currentTarget.style.transform = 'translateY(0)'; }}>
+                  <div key={v.id} style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 12, padding: 16, background: 'rgba(0,0,0,0.22)', borderRadius: 12, border: '1px solid var(--c-border)', boxShadow: '0 8px 18px rgb(0 0 0 / 0.35)', transition: 'all 0.2s', overflow: 'hidden' }}
+                       onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--c-accent)'; e.currentTarget.style.boxShadow = '0 10px 24px rgb(var(--rgb-accent) / 0.15)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
+                       onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--c-border)'; e.currentTarget.style.boxShadow = '0 8px 18px rgb(0 0 0 / 0.35)'; e.currentTarget.style.transform = 'translateY(0)'; }}>
+
+                    {isPreviewTrack(v) && (
+                      <div style={{ position: 'absolute', top: 12, left: 12, zIndex: 20 }}>
+                        <DemoBadge size={56} />
+                      </div>
+                    )}
                     
                     {/* Action Menu Button - Top Right */}
                     <button
                       onClick={() => setActionMenuId(actionMenuId === v.id ? null : v.id)}
-                      style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(11,11,11,0.85)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,213,74,0.3)', color: '#FFD54A', width: 32, height: 32, borderRadius: '50%', cursor: 'pointer', fontSize: 14, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20, transition: 'all 0.3s' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = '#FFD54A'; e.currentTarget.style.color = '#0b0b0b'; e.currentTarget.style.transform = 'scale(1.1)'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(11,11,11,0.85)'; e.currentTarget.style.color = '#FFD54A'; e.currentTarget.style.transform = 'scale(1)'; }}
+                      style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,0.50)', backdropFilter: 'blur(10px)', border: '1px solid rgb(var(--rgb-accent) / 0.30)', color: 'var(--c-accent)', width: 32, height: 32, borderRadius: '50%', cursor: 'pointer', fontSize: 14, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20, transition: 'all 0.3s' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--c-accent)'; e.currentTarget.style.color = 'var(--c-ink)'; e.currentTarget.style.transform = 'scale(1.1)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.50)'; e.currentTarget.style.color = 'var(--c-accent)'; e.currentTarget.style.transform = 'scale(1)'; }}
                       aria-label="Open actions"
                     >
                       ⋯
                     </button>
 
                     {/* Sliding Action Menu */}
-                    <div style={{ position: 'absolute', top: 0, right: actionMenuId === v.id ? 0 : '-120px', width: 50, height: '100%', background: 'linear-gradient(90deg, transparent, rgba(11,11,11,0.97))', backdropFilter: 'blur(10px)', borderLeft: actionMenuId === v.id ? '1px solid rgba(255,213,74,0.2)' : 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '16px 0', zIndex: 15, transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' }}>
+                    <div style={{ position: 'absolute', top: 0, right: actionMenuId === v.id ? 0 : '-120px', width: 50, height: '100%', background: 'linear-gradient(90deg, transparent, rgba(0,0,0,0.78))', backdropFilter: 'blur(10px)', borderLeft: actionMenuId === v.id ? '1px solid rgb(var(--rgb-accent) / 0.22)' : 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '16px 0', zIndex: 15, transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' }}>
                       <button
                         onClick={() => { setShowAddToPlaylist(v); setActionMenuId(null); }}
-                        style={{ background: 'rgba(11,11,11,0.8)', color: '#FFD54A', border: '1.5px solid #FFD54A', width: 38, height: 38, borderRadius: 8, cursor: 'pointer', fontSize: 18, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(255,213,74,0.2)' }}
-                        onMouseEnter={(e) => { e.currentTarget.style.background = '#FFD54A'; e.currentTarget.style.color = '#0b0b0b'; e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(255,213,74,0.4)'; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(11,11,11,0.8)'; e.currentTarget.style.color = '#FFD54A'; e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(255,213,74,0.2)'; }}
+                        style={{ background: 'rgba(0,0,0,0.45)', color: 'var(--c-accent)', border: '1.5px solid var(--c-accent)', width: 38, height: 38, borderRadius: 8, cursor: 'pointer', fontSize: 18, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', boxShadow: '0 2px 8px rgb(var(--rgb-accent) / 0.20)' }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--c-accent)'; e.currentTarget.style.color = 'var(--c-ink)'; e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 4px 12px rgb(var(--rgb-accent) / 0.40)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.45)'; e.currentTarget.style.color = 'var(--c-accent)'; e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 2px 8px rgb(var(--rgb-accent) / 0.20)'; }}
                         title="Add to Playlist"
                       >
                         +
@@ -2003,18 +2173,18 @@ export default function Home() {
                         <>
                           <button
                             onClick={() => { openEdit(v); setActionMenuId(null); }}
-                            style={{ background: 'rgba(11,11,11,0.8)', color: '#FFD54A', border: '1.5px solid #FFD54A', width: 38, height: 38, borderRadius: 8, cursor: 'pointer', fontSize: 16, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(255,213,74,0.2)' }}
-                            onMouseEnter={(e) => { e.currentTarget.style.background = '#FFD54A'; e.currentTarget.style.color = '#0b0b0b'; e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(255,213,74,0.4)'; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(11,11,11,0.8)'; e.currentTarget.style.color = '#FFD54A'; e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(255,213,74,0.2)'; }}
+                            style={{ background: 'rgba(0,0,0,0.45)', color: 'var(--c-accent)', border: '1.5px solid var(--c-accent)', width: 38, height: 38, borderRadius: 8, cursor: 'pointer', fontSize: 16, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', boxShadow: '0 2px 8px rgb(var(--rgb-accent) / 0.20)' }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--c-accent)'; e.currentTarget.style.color = 'var(--c-ink)'; e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 4px 12px rgb(var(--rgb-accent) / 0.40)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.45)'; e.currentTarget.style.color = 'var(--c-accent)'; e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 2px 8px rgb(var(--rgb-accent) / 0.20)'; }}
                             title="Edit"
                           >
                             ✎
                           </button>
                           <button
                             onClick={() => { onDelete(v.id); setActionMenuId(null); }}
-                            style={{ background: 'rgba(11,11,11,0.8)', color: '#FFD54A', border: '1.5px solid #FFD54A', width: 38, height: 38, borderRadius: 8, cursor: 'pointer', fontSize: 18, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(255,213,74,0.2)' }}
-                            onMouseEnter={(e) => { e.currentTarget.style.background = '#FFD54A'; e.currentTarget.style.color = '#0b0b0b'; e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(255,213,74,0.4)'; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(11,11,11,0.8)'; e.currentTarget.style.color = '#FFD54A'; e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(255,213,74,0.2)'; }}
+                            style={{ background: 'rgba(0,0,0,0.45)', color: 'var(--c-accent)', border: '1.5px solid var(--c-accent)', width: 38, height: 38, borderRadius: 8, cursor: 'pointer', fontSize: 18, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', boxShadow: '0 2px 8px rgb(var(--rgb-accent) / 0.20)' }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--c-accent)'; e.currentTarget.style.color = 'var(--c-ink)'; e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 4px 12px rgb(var(--rgb-accent) / 0.40)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.45)'; e.currentTarget.style.color = 'var(--c-accent)'; e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 2px 8px rgb(var(--rgb-accent) / 0.20)'; }}
                             title="Delete"
                           >
                             🗑
@@ -2023,18 +2193,18 @@ export default function Home() {
                       )}
                     </div>
 
-                    <div style={{ width: '100%', paddingTop: '100%', borderRadius: 10, overflow: 'hidden', position: 'relative', background: '#0b0b0b' }}>
+                    <div style={{ width: '100%', paddingTop: '100%', borderRadius: 10, overflow: 'hidden', position: 'relative', background: 'rgba(0,0,0,0.28)' }}>
                       {v.coverUrl && <img src={v.coverUrl} alt={v.title} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
                     </div>
 
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 16, fontWeight: 800, color: '#eaeaea', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <div style={{ fontSize: 16, fontWeight: 900, color: 'var(--c-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {v.title}
                       </div>
-                      <div style={{ fontSize: 13, color: '#9a9a9a', marginTop: 4 }}>
+                      <div style={{ fontSize: 13, color: 'var(--c-muted)', marginTop: 4 }}>
                         {v.artist} • {v.year}
                       </div>
-                      <div style={{ fontSize: 11, color: '#6f6f6f', marginTop: 6 }}>
+                      <div style={{ fontSize: 11, color: 'var(--c-muted)', marginTop: 6 }}>
                         {v.ownerName || 'Unknown'}
                       </div>
                     </div>
@@ -2043,8 +2213,8 @@ export default function Home() {
                       {(v.previewUrl || v.musicUrl) && (
                         <button
                           onClick={() => toggleSpin(v.id)}
-                          style={{ background: spinningVinyls[v.id] ? '#FFD54A' : '#0b0b0b', color: spinningVinyls[v.id] ? '#0b0b0b' : '#FFD54A', border: '1px solid #FFD54A', padding: '6px 12px', borderRadius: 20, cursor: 'pointer', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', transition: 'all 0.2s' }}
-                          onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 0 12px rgba(255,213,74,0.4)'; e.currentTarget.style.transform = 'scale(1.05)'; }}
+                          style={{ background: spinningVinyls[v.id] ? 'var(--c-accent)' : 'rgba(0,0,0,0.28)', color: spinningVinyls[v.id] ? 'var(--c-ink)' : 'var(--c-accent)', border: '1px solid var(--c-accent)', padding: '6px 12px', borderRadius: 20, cursor: 'pointer', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5px', transition: 'all 0.2s' }}
+                          onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 0 12px rgb(var(--rgb-accent) / 0.40)'; e.currentTarget.style.transform = 'scale(1.05)'; }}
                           onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'scale(1)'; }}
                         >
                           {spinningVinyls[v.id] ? '⏸ Pause' : '▶ Play'}
@@ -2052,10 +2222,10 @@ export default function Home() {
                       )}
                       <button 
                         onClick={() => handleLike(v.id)} 
-                        style={{ background: '#0b0b0b', border: '1px solid #2a2a2a', cursor: 'pointer', fontSize: 12, padding: '6px 10px', borderRadius: 20, color: '#FFD54A', display: 'flex', alignItems: 'center', gap: 6 }}
+                        style={{ background: 'rgba(0,0,0,0.28)', border: '1px solid var(--c-border)', cursor: 'pointer', fontSize: 12, padding: '6px 10px', borderRadius: 20, color: 'var(--c-accent)', display: 'flex', alignItems: 'center', gap: 6 }}
                       >
                         {v.likes?.includes(user?.id) ? '💛' : '♡'}
-                        <span style={{ fontSize: 11, color: '#FFD54A' }}>{v.likes?.length || 0}</span>
+                        <span style={{ fontSize: 11, color: 'var(--c-accent)' }}>{v.likes?.length || 0}</span>
                       </button>
                     </div>
                   </div>
@@ -2071,9 +2241,9 @@ export default function Home() {
             <h3 style={{ margin: '0 0 24px 0', fontSize: 24, fontWeight: 700 }}>{editing ? 'Edit Vinyl' : 'Add Vinyl'}</h3>
             
             {!editing && (
-              <div style={{ marginBottom: 24, padding: 16, background: '#f8f8f8', borderRadius: 8 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 20, color: '#1DB954' }}>♫</span>
+              <div style={{ marginBottom: 24, padding: 16, background: 'rgba(0,0,0,0.18)', borderRadius: 12, border: '1px solid var(--c-border)' }}>
+                <div style={{ fontSize: 14, fontWeight: 900, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--c-text)' }}>
+                  <span style={{ fontSize: 20, color: 'var(--c-accent2)' }}>♫</span>
                   Search Spotify
                 </div>
                 <form onSubmit={handleSpotifySearch} style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
@@ -2081,19 +2251,19 @@ export default function Home() {
                     value={spotifySearch} 
                     onChange={e => setSpotifySearch(e.target.value)}
                     placeholder="e.g., Daft Punk Random Access"
-                    style={{ flex: 1, padding: 10, border: '1px solid #ddd', borderRadius: 4, fontSize: 14 }}
+                    style={{ flex: 1, padding: 10, border: '1px solid var(--c-border)', borderRadius: 10, fontSize: 14, background: 'rgba(0,0,0,0.22)', color: 'var(--c-text)' }}
                   />
                   <button 
                     type="submit" 
                     disabled={searchingSpotify}
-                    style={{ padding: '10px 20px', background: '#1DB954', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap' }}
+                    style={{ padding: '10px 20px', background: 'var(--c-accent2)', color: 'var(--c-ink)', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 900, whiteSpace: 'nowrap', textTransform: 'uppercase', letterSpacing: '0.06em', boxShadow: '0 10px 22px rgb(var(--rgb-accent2) / 0.22)' }}
                   >
                     {searchingSpotify ? 'Searching...' : 'Search'}
                   </button>
                 </form>
                 
                 {spotifyResults.length > 0 && (
-                  <div style={{ maxHeight: 300, overflowY: 'auto', border: '1px solid #ddd', borderRadius: 4, background: 'white' }}>
+                  <div style={{ maxHeight: 300, overflowY: 'auto', border: '1px solid var(--c-border)', borderRadius: 10, background: 'rgba(0,0,0,0.22)' }}>
                     {spotifyResults.map(track => (
                       <div 
                         key={track.id}
@@ -2101,49 +2271,49 @@ export default function Home() {
                           display: 'flex', 
                           gap: 12, 
                           padding: 12, 
-                          borderBottom: '1px solid #f0f0f0',
+                          borderBottom: '1px solid rgb(255 255 255 / 0.06)',
                           transition: 'background 0.2s',
                           alignItems: 'center'
                         }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = '#f8f8f8'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                       >
                         {track.coverUrl && (
                           <img src={track.coverUrl} alt={track.title} style={{ width: 50, height: 50, borderRadius: 4, objectFit: 'cover' }} />
                         )}
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 14, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <div style={{ fontSize: 14, fontWeight: 900, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--c-text)' }}>
                             {track.title}
                           </div>
-                          <div style={{ fontSize: 12, color: '#666', marginTop: 2 }}>
+                          <div style={{ fontSize: 12, color: 'var(--c-muted)', marginTop: 2 }}>
                             {track.artist} • {track.year}
                           </div>
                           {track.previewUrl && (
-                            <div style={{ fontSize: 11, color: '#1DB954', marginTop: 2 }}>
+                            <div style={{ fontSize: 11, color: 'var(--c-accent2)', marginTop: 2, fontWeight: 800 }}>
                               ✓ 30s preview available
                             </div>
                           )}
                           {!track.previewUrl && (
-                            <div style={{ fontSize: 11, color: '#d17c00', marginTop: 2 }}>
+                            <div style={{ fontSize: 11, color: 'var(--c-accent3)', marginTop: 2, fontWeight: 800 }}>
                               No Spotify preview. Upload your own audio to enable play/add.
                             </div>
                           )}
                           {spotifyUploads[track.id]?.musicUrl && (
-                            <div style={{ fontSize: 11, color: '#1DB954', marginTop: 2 }}>
+                            <div style={{ fontSize: 11, color: 'var(--c-accent2)', marginTop: 2, fontWeight: 800 }}>
                               ✓ Custom audio uploaded
                             </div>
                           )}
                         </div>
                         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                           {!track.previewUrl && (
-                            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#555', cursor: 'pointer' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--c-muted)', cursor: 'pointer' }}>
                               <input
                                 type="file"
                                 accept="audio/mpeg,audio/wav,audio/ogg,audio/flac"
                                 style={{ display: 'none' }}
                                 onChange={(e) => handleSpotifyUpload(track.id, e.target.files?.[0])}
                               />
-                              <span style={{ background: '#eee', padding: '6px 10px', borderRadius: 4, border: '1px solid #ddd' }}>
+                              <span style={{ background: 'rgba(255,255,255,0.06)', padding: '6px 10px', borderRadius: 8, border: '1px solid var(--c-border)', color: 'var(--c-text)', fontWeight: 800 }}>
                                 {spotifyUploads[track.id]?.uploading ? 'Uploading...' : 'Upload audio'}
                               </span>
                             </label>
@@ -2152,7 +2322,7 @@ export default function Home() {
                             <button
                               type="button"
                               onClick={() => togglePreview(track)}
-                              style={{ background: playingPreview === track.id ? '#ff006e' : '#1DB954', color: 'white', border: 'none', padding: '6px 12px', borderRadius: 4, cursor: 'pointer', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap', transition: 'all 0.2s' }}
+                              style={{ background: playingPreview === track.id ? 'var(--c-danger)' : 'var(--c-accent2)', color: 'var(--c-ink)', border: 'none', padding: '6px 12px', borderRadius: 10, cursor: 'pointer', fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap', transition: 'all 0.2s', boxShadow: playingPreview === track.id ? '0 10px 22px rgb(var(--rgb-danger) / 0.20)' : '0 10px 22px rgb(var(--rgb-accent2) / 0.20)' }}
                               onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
                               onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                             >
@@ -2162,7 +2332,7 @@ export default function Home() {
                           <button
                             type="button"
                             onClick={() => fillFromSpotify(track)}
-                            style={{ background: '#000', color: 'white', border: 'none', padding: '6px 12px', borderRadius: 4, cursor: 'pointer', fontSize: 12, fontWeight: 500, whiteSpace: 'nowrap' }}
+                            style={{ background: 'rgba(0,0,0,0.35)', color: 'var(--c-text)', border: '1px solid var(--c-border)', padding: '6px 12px', borderRadius: 10, cursor: 'pointer', fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap' }}
                             onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
                             onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                           >
@@ -2172,7 +2342,7 @@ export default function Home() {
                             type="button"
                             onClick={() => quickAddFromSpotify(track)}
                             disabled={!track.previewUrl && !spotifyUploads[track.id]?.musicUrl}
-                            style={{ background: (track.previewUrl || spotifyUploads[track.id]?.musicUrl) ? '#1DB954' : '#ccc', color: 'white', border: 'none', padding: '6px 12px', borderRadius: 4, cursor: (track.previewUrl || spotifyUploads[track.id]?.musicUrl) ? 'pointer' : 'not-allowed', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}
+                            style={{ background: (track.previewUrl || spotifyUploads[track.id]?.musicUrl) ? 'var(--c-accent2)' : 'rgba(255,255,255,0.12)', color: (track.previewUrl || spotifyUploads[track.id]?.musicUrl) ? 'var(--c-ink)' : 'var(--c-muted)', border: '1px solid var(--c-border)', padding: '6px 12px', borderRadius: 10, cursor: (track.previewUrl || spotifyUploads[track.id]?.musicUrl) ? 'pointer' : 'not-allowed', fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap', boxShadow: (track.previewUrl || spotifyUploads[track.id]?.musicUrl) ? '0 10px 22px rgb(var(--rgb-accent2) / 0.20)' : 'none' }}
                             onMouseEnter={(e) => { if (track.previewUrl || spotifyUploads[track.id]?.musicUrl) e.currentTarget.style.opacity = '0.9'; }}
                             onMouseLeave={(e) => { if (track.previewUrl || spotifyUploads[track.id]?.musicUrl) e.currentTarget.style.opacity = '1'; }}
                           >
@@ -2185,7 +2355,7 @@ export default function Home() {
                 )}
                 
                 {spotifyResults.length === 0 && spotifySearch && !searchingSpotify && (
-                  <div style={{ padding: 12, textAlign: 'center', color: '#999', fontSize: 12 }}>
+                  <div style={{ padding: 12, textAlign: 'center', color: 'var(--c-muted)', fontSize: 12 }}>
                     No results found
                   </div>
                 )}
@@ -2194,18 +2364,18 @@ export default function Home() {
             
             <form onSubmit={onSubmit}>
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, marginBottom: 8 }}>Title<br />
-                  <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required style={{ width: '100%', padding: 10, marginTop: 4, border: '1px solid #ddd', borderRadius: 4, fontSize: 14, transition: 'border 0.2s' }} onFocus={(e) => e.currentTarget.style.borderColor = '#000'} onBlur={(e) => e.currentTarget.style.borderColor = '#ddd'} />
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 900, marginBottom: 8, color: 'var(--c-text)' }}>Title<br />
+                  <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required style={{ width: '100%', padding: 10, marginTop: 6, border: '1px solid var(--c-border)', borderRadius: 10, fontSize: 14, transition: 'border 0.2s, box-shadow 0.2s', background: 'rgba(0,0,0,0.22)', color: 'var(--c-text)' }} onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--c-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgb(var(--rgb-accent) / 0.12)'; }} onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--c-border)'; e.currentTarget.style.boxShadow = 'none'; }} />
                 </label>
               </div>
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, marginBottom: 8 }}>Artist<br />
-                  <input value={form.artist} onChange={e => setForm({ ...form, artist: e.target.value })} required style={{ width: '100%', padding: 10, marginTop: 4, border: '1px solid #ddd', borderRadius: 4, fontSize: 14, transition: 'border 0.2s' }} onFocus={(e) => e.currentTarget.style.borderColor = '#000'} onBlur={(e) => e.currentTarget.style.borderColor = '#ddd'} />
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 900, marginBottom: 8, color: 'var(--c-text)' }}>Artist<br />
+                  <input value={form.artist} onChange={e => setForm({ ...form, artist: e.target.value })} required style={{ width: '100%', padding: 10, marginTop: 6, border: '1px solid var(--c-border)', borderRadius: 10, fontSize: 14, transition: 'border 0.2s, box-shadow 0.2s', background: 'rgba(0,0,0,0.22)', color: 'var(--c-text)' }} onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--c-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgb(var(--rgb-accent) / 0.12)'; }} onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--c-border)'; e.currentTarget.style.boxShadow = 'none'; }} />
                 </label>
               </div>
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, marginBottom: 8 }}>Year<br />
-                  <input type="number" value={form.year} onChange={e => setForm({ ...form, year: parseInt(e.target.value) })} style={{ width: '100%', padding: 10, marginTop: 4, border: '1px solid #ddd', borderRadius: 4, fontSize: 14, transition: 'border 0.2s' }} onFocus={(e) => e.currentTarget.style.borderColor = '#000'} onBlur={(e) => e.currentTarget.style.borderColor = '#ddd'} />
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 900, marginBottom: 8, color: 'var(--c-text)' }}>Year<br />
+                  <input type="number" value={form.year} onChange={e => setForm({ ...form, year: parseInt(e.target.value) })} style={{ width: '100%', padding: 10, marginTop: 6, border: '1px solid var(--c-border)', borderRadius: 10, fontSize: 14, transition: 'border 0.2s, box-shadow 0.2s', background: 'rgba(0,0,0,0.22)', color: 'var(--c-text)' }} onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--c-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgb(var(--rgb-accent) / 0.12)'; }} onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--c-border)'; e.currentTarget.style.boxShadow = 'none'; }} />
                 </label>
               </div>
               <div style={{ marginBottom: 16 }}>
@@ -2218,7 +2388,7 @@ export default function Home() {
                       disabled={uploading}
                       style={{ flex: 1 }}
                     />
-                    {uploading && <span style={{ fontSize: 12, color: '#666' }}>Uploading...</span>}
+                    {uploading && <span style={{ fontSize: 12, color: 'var(--c-muted)' }}>Uploading...</span>}
                   </div>
                   {form.coverUrl && (
                     <div style={{ marginTop: 8, textAlign: 'center' }}>
@@ -2237,30 +2407,86 @@ export default function Home() {
                       disabled={uploadingMusic}
                       style={{ flex: 1 }}
                     />
-                    {uploadingMusic && <span style={{ fontSize: 12, color: '#666' }}>Uploading...</span>}
+                    {uploadingMusic && <span style={{ fontSize: 12, color: 'var(--c-muted)' }}>Uploading...</span>}
                   </div>
                   {form.musicUrl && (
-                    <div style={{ marginTop: 8, fontSize: 12, color: '#666' }}>
+                    <div style={{ marginTop: 8, fontSize: 12, color: 'var(--c-muted)' }}>
                       ✓ Music uploaded
                     </div>
                   )}
                 </label>
               </div>
+
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, marginBottom: 8 }}>Note<br />
-                  <input value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} placeholder="e.g. Where I bought it, favorite track..." style={{ width: '100%', padding: 10, marginTop: 4, border: '1px solid #ddd', borderRadius: 4, fontSize: 14, transition: 'border 0.2s' }} onFocus={(e) => e.currentTarget.style.borderColor = '#000'} onBlur={(e) => e.currentTarget.style.borderColor = '#ddd'} />
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, marginBottom: 8 }}>Timed Lyrics (.lrc) (optional)<br />
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
+                    <input
+                      type="file"
+                      accept=".lrc,text/plain"
+                      onChange={handleLyricsUpload}
+                      style={{ flex: 1 }}
+                    />
+                    {form.lyricsLrc ? (
+                      <button
+                        type="button"
+                        onClick={() => setForm(prev => ({ ...prev, lyricsLrc: '' }))}
+                        style={{ padding: '6px 10px', background: 'rgba(0,0,0,0.25)', color: 'var(--c-text)', border: '1px solid var(--c-border)', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}
+                      >
+                        Clear
+                      </button>
+                    ) : null}
+                  </div>
+                  {form.lyricsLrc && (
+                    <div style={{ marginTop: 8, fontSize: 12, color: 'var(--c-muted)' }}>
+                      ✓ Lyrics loaded
+                    </div>
+                  )}
+                </label>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 900, marginBottom: 8, color: 'var(--c-text)' }}>Note<br />
+                  <input value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} placeholder="e.g. Where I bought it, favorite track..." style={{ width: '100%', padding: 10, marginTop: 6, border: '1px solid var(--c-border)', borderRadius: 10, fontSize: 14, transition: 'border 0.2s, box-shadow 0.2s', background: 'rgba(0,0,0,0.22)', color: 'var(--c-text)' }} onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--c-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgb(var(--rgb-accent) / 0.12)'; }} onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--c-border)'; e.currentTarget.style.boxShadow = 'none'; }} />
                 </label>
               </div>
               <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
-                <button type="submit" style={{ flex: 1, padding: '10px 16px', background: '#ff006e', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 14, fontWeight: 600, transition: 'all 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>Save</button>
-                <button type="button" onClick={() => setShowForm(false)} style={{ flex: 1, padding: '10px 16px', background: '#f0f0f0', color: '#222', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 14, fontWeight: 600, transition: 'all 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.background = '#e0e0e0'} onMouseLeave={(e) => e.currentTarget.style.background = '#f0f0f0'}>Cancel</button>
+                <button type="submit" style={{ flex: 1, padding: '10px 16px', background: 'var(--g-accent)', color: 'var(--c-ink)', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 900, transition: 'all 0.2s', textTransform: 'uppercase', letterSpacing: '0.08em', boxShadow: '0 10px 22px rgb(var(--rgb-accent) / 0.22)' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>Save</button>
+                <button type="button" onClick={() => setShowForm(false)} style={{ flex: 1, padding: '10px 16px', background: 'rgba(0,0,0,0.25)', color: 'var(--c-text)', border: '1px solid var(--c-border)', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 900, transition: 'all 0.2s', textTransform: 'uppercase', letterSpacing: '0.08em' }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }} onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.25)'; }}>Cancel</button>
               </div>
             </form>
           </Modal>
         )}
 
         {currentlyPlaying && (
-          <div style={{ position: 'fixed', bottom: 20, left: 20, width: 340, background: 'linear-gradient(135deg, #0f0f0f, #151515)', borderRadius: 14, border: '1px solid #2a2a2a', boxShadow: '0 12px 32px rgba(0,0,0,0.45)', padding: 16, zIndex: 1000 }}>
+          <div
+            ref={miniPlayerRef}
+            style={{ position: 'fixed', left: miniPlayerPos.x, top: miniPlayerPos.y, width: 340, background: 'var(--g-surface-2)', borderRadius: 14, border: '1px solid var(--c-border)', boxShadow: '0 12px 32px rgb(0 0 0 / 0.45)', padding: 16, zIndex: 1000 }}
+          >
+            {/* Drag handle */}
+            <div
+              onPointerDown={startMiniDrag}
+              onPointerMove={moveMiniDrag}
+              onPointerUp={endMiniDrag}
+              onPointerCancel={endMiniDrag}
+              style={{
+                height: 18,
+                margin: '-6px -6px 10px -6px',
+                borderRadius: 10,
+                cursor: 'grab',
+                touchAction: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--c-accent)',
+                opacity: 0.7,
+                userSelect: 'none',
+                background: 'rgba(0,0,0,0.25)',
+                border: '1px solid rgb(var(--rgb-accent) / 0.15)'
+              }}
+              title="Drag player"
+              aria-label="Drag player"
+            >
+              ⋮⋮
+            </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
               <button
                 onClick={() => {
@@ -2270,24 +2496,29 @@ export default function Home() {
                   setSpinningVinyls(prev => ({ ...prev, [currentlyPlaying.id]: false }));
                   setCurrentlyPlaying(null);
                 }}
-                style={{ background: '#0b0b0b', border: '1px solid #2a2a2a', fontSize: 18, color: '#FFD54A', cursor: 'pointer', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', transition: 'all 0.2s' }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#FFD54A'; e.currentTarget.style.boxShadow = '0 0 10px rgba(255,213,74,0.35)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.boxShadow = 'none'; }}
+                style={{ background: 'var(--c-bg2)', border: '1px solid var(--c-border)', fontSize: 18, color: 'var(--c-accent)', cursor: 'pointer', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', transition: 'all 0.2s' }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--c-accent)'; e.currentTarget.style.boxShadow = '0 0 10px rgb(var(--rgb-accent) / 0.35)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--c-border)'; e.currentTarget.style.boxShadow = 'none'; }}
               >
                 ×
               </button>
             </div>
 
             <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-              <div style={{ width: 64, height: 64, background: 'radial-gradient(circle at 35% 35%, #2a2a2a, #0b0b0b)', borderRadius: 10, overflow: 'hidden', flexShrink: 0, border: '1px solid #2a2a2a' }}>
+              <div style={{ width: 64, height: 64, background: 'var(--g-vinyl)', borderRadius: 10, overflow: 'hidden', flexShrink: 0, border: '1px solid var(--c-border)' }}>
                 {currentlyPlaying.coverUrl && <img src={currentlyPlaying.coverUrl} alt={currentlyPlaying.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
               </div>
 
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 800, color: '#eaeaea', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {currentlyPlaying.title}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--c-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flex: 1 }}>
+                    {currentlyPlaying.title}
+                  </div>
+                  {isPreviewTrack(currentlyPlaying) && (
+                    <DemoBadge size={34} />
+                  )}
                 </div>
-                <div style={{ fontSize: 12, color: '#9a9a9a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ fontSize: 12, color: 'var(--c-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {currentlyPlaying.artist}
                 </div>
               </div>
@@ -2295,7 +2526,7 @@ export default function Home() {
               <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                 <button
                   onClick={() => toggleSpin(currentlyPlaying.id)}
-                  style={{ background: '#FFD54A', color: '#0b0b0b', border: 'none', width: 40, height: 40, borderRadius: '50%', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', boxShadow: '0 6px 16px rgba(255,213,74,0.35)' }}
+                  style={{ background: 'var(--c-accent)', color: 'var(--c-ink)', border: 'none', width: 40, height: 40, borderRadius: '50%', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', boxShadow: '0 6px 16px rgb(var(--rgb-accent) / 0.30)' }}
                   onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.08)'}
                   onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
@@ -2303,9 +2534,9 @@ export default function Home() {
                 </button>
                 <button
                   onClick={() => setFullscreenPlayer(true)}
-                  style={{ background: '#0b0b0b', color: '#FFD54A', border: '1px solid #2a2a2a', width: 40, height: 40, borderRadius: '50%', cursor: 'pointer', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#FFD54A'; e.currentTarget.style.boxShadow = '0 0 10px rgba(255,213,74,0.35)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.boxShadow = 'none'; }}
+                  style={{ background: 'rgba(0,0,0,0.28)', color: 'var(--c-accent)', border: '1px solid var(--c-border)', width: 40, height: 40, borderRadius: '50%', cursor: 'pointer', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--c-accent)'; e.currentTarget.style.boxShadow = '0 0 10px rgb(var(--rgb-accent) / 0.35)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--c-border)'; e.currentTarget.style.boxShadow = 'none'; }}
                   title="Fullscreen player"
                 >
                   ⛶
@@ -2314,12 +2545,12 @@ export default function Home() {
             </div>
 
             <div style={{ marginBottom: 10 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#9a9a9a', marginBottom: 6 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--c-muted)', marginBottom: 6 }}>
                 <span>{formatTime(currentTime[currentlyPlaying.id] || 0)}</span>
                 <span>{formatTime(duration[currentlyPlaying.id] || 0)}</span>
               </div>
               <div
-                style={{ height: 6, background: '#1a1a1a', borderRadius: 3, overflow: 'hidden', cursor: 'pointer', position: 'relative', border: '1px solid #2a2a2a' }}
+                style={{ height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden', cursor: 'pointer', position: 'relative', border: '1px solid var(--c-border)' }}
                 onClick={(e) => {
                   if (!audioRefsRef.current[currentlyPlaying.id] || !duration[currentlyPlaying.id]) return;
                   const rect = e.currentTarget.getBoundingClientRect();
@@ -2330,69 +2561,51 @@ export default function Home() {
               >
                 <div style={{
                   height: '100%',
-                  background: 'linear-gradient(90deg, #FFD54A, #E00000)',
+                  background: 'linear-gradient(90deg, var(--c-accent), var(--c-danger))',
                   width: `${((currentTime[currentlyPlaying.id] || 0) / (duration[currentlyPlaying.id] || 1)) * 100}%`,
                   transition: 'width 0.1s linear'
                 }}></div>
               </div>
             </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#9a9a9a' }}>
-              <span style={{ fontSize: 14 }}>🔊</span>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={volume * 100}
-                onChange={(e) => {
-                  const newVolume = e.target.value / 100;
-                  setVolume(newVolume);
-                  Object.values(audioRefsRef.current).forEach(audio => {
-                    if (audio) audio.volume = newVolume;
-                  });
-                }}
-                style={{
-                  flex: 1,
-                  height: 4,
-                  borderRadius: 2,
-                  outline: 'none',
-                  background: `linear-gradient(to right, #FFD54A 0%, #FFD54A ${volume * 100}%, #2a2a2a ${volume * 100}%, #2a2a2a 100%)`
-                }}
-              />
-              <span style={{ fontSize: 10, color: '#9a9a9a', minWidth: 30 }}>{Math.round(volume * 100)}%</span>
-            </div>
           </div>
         )}
 
         {fullscreenPlayer && currentlyPlaying && (
-          <div style={{ position: 'fixed', inset: 0, background: 'radial-gradient(ellipse at top, #1a1a1a 0%, #0b0b0b 60%, #000000 100%)', display: 'flex', flexDirection: 'column', zIndex: 2000, overflow: 'hidden' }}>
+          <div style={{ position: 'fixed', inset: 0, background: 'radial-gradient(ellipse at top, rgb(var(--rgb-accent) / 0.10) 0%, rgba(0,0,0,0.78) 55%, rgba(0,0,0,0.96) 100%)', display: 'flex', flexDirection: 'column', zIndex: 2000, overflow: 'hidden' }}>
             {/* Animated Background Gradients */}
             <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-              <div style={{ position: 'absolute', top: '-20%', left: '50%', transform: 'translateX(-50%)', width: 800, height: 800, background: 'radial-gradient(circle, rgba(255,213,74,0.12) 0%, transparent 70%)', borderRadius: '50%', animation: 'pulse 6s ease-in-out infinite' }}></div>
-              <div style={{ position: 'absolute', bottom: '-30%', right: '10%', width: 600, height: 600, background: 'radial-gradient(circle, rgba(224,0,0,0.08) 0%, transparent 70%)', borderRadius: '50%', animation: 'pulse 8s ease-in-out infinite 2s' }}></div>
-              <div style={{ position: 'absolute', top: '20%', left: '-10%', width: 500, height: 500, background: 'radial-gradient(circle, rgba(255,215,0,0.06) 0%, transparent 70%)', borderRadius: '50%', animation: 'pulse 7s ease-in-out infinite 1s' }}></div>
+              <div style={{ position: 'absolute', top: '-20%', left: '50%', transform: 'translateX(-50%)', width: 800, height: 800, background: 'radial-gradient(circle, rgb(var(--rgb-accent) / 0.14) 0%, transparent 70%)', borderRadius: '50%', animation: 'pulse 6s ease-in-out infinite' }}></div>
+              <div style={{ position: 'absolute', bottom: '-30%', right: '10%', width: 600, height: 600, background: 'radial-gradient(circle, rgb(var(--rgb-danger) / 0.10) 0%, transparent 70%)', borderRadius: '50%', animation: 'pulse 8s ease-in-out infinite 2s' }}></div>
+              <div style={{ position: 'absolute', top: '20%', left: '-10%', width: 500, height: 500, background: 'radial-gradient(circle, rgb(var(--rgb-accent3) / 0.10) 0%, transparent 70%)', borderRadius: '50%', animation: 'pulse 7s ease-in-out infinite 1s' }}></div>
             </div>
 
             {/* Close Button */}
             <button
               onClick={() => setFullscreenPlayer(false)}
-              style={{ position: 'absolute', top: 32, right: 32, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(12px)', border: '2px solid #FFD54A', color: '#FFD54A', fontSize: 28, width: 56, height: 56, borderRadius: 14, cursor: 'pointer', transition: 'all 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, zIndex: 100, boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = '#FFD54A'; e.currentTarget.style.color = '#0b0b0b'; e.currentTarget.style.transform = 'rotate(90deg) scale(1.05)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.7)'; e.currentTarget.style.color = '#FFD54A'; e.currentTarget.style.transform = 'rotate(0deg) scale(1)'; }}
+              style={{ position: 'absolute', top: 32, right: 32, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(12px)', border: '2px solid var(--c-accent)', color: 'var(--c-accent)', fontSize: 28, width: 56, height: 56, borderRadius: 14, cursor: 'pointer', transition: 'all 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, zIndex: 100, boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--c-accent)'; e.currentTarget.style.color = 'var(--c-ink)'; e.currentTarget.style.transform = 'rotate(90deg) scale(1.05)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.7)'; e.currentTarget.style.color = 'var(--c-accent)'; e.currentTarget.style.transform = 'rotate(0deg) scale(1)'; }}
             >
               ✕
             </button>
 
             {/* Header - Track Info */}
-            <div style={{ position: 'relative', zIndex: 10, padding: '32px 60px', textAlign: 'center', borderBottom: '1px solid rgba(255,213,74,0.1)' }}>
-              <h1 style={{ margin: 0, background: 'linear-gradient(135deg, #FFD54A 0%, #FFD700 50%, #FFD54A 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontSize: 48, fontWeight: 900, marginBottom: 12, letterSpacing: '0.02em', filter: 'drop-shadow(0 4px 16px rgba(255,213,74,0.4))' }}>
+            <div style={{ position: 'relative', zIndex: 10, padding: '32px 60px', textAlign: 'center', borderBottom: '1px solid rgb(var(--rgb-accent) / 0.12)' }}>
+              <h1 style={{ margin: 0, background: 'var(--g-accent)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontSize: 48, fontWeight: 900, marginBottom: 12, letterSpacing: '0.02em', filter: 'drop-shadow(0 4px 16px rgb(var(--rgb-accent) / 0.35))' }}>
                 {currentlyPlaying.title}
               </h1>
-              <p style={{ margin: 0, color: '#e6e6e6', fontSize: 24, fontWeight: 600, letterSpacing: '0.5px' }}>
+
+              {isPreviewTrack(currentlyPlaying) && (
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}>
+                  <DemoBadge size={58} />
+                </div>
+              )}
+
+              <p style={{ margin: 0, color: 'var(--c-text)', fontSize: 24, fontWeight: 800, letterSpacing: '0.5px' }}>
                 {currentlyPlaying.artist}
               </p>
               {currentlyPlaying.year && (
-                <p style={{ margin: '8px 0 0 0', color: '#9a9a9a', fontSize: 14, letterSpacing: '1px', fontWeight: 500 }}>
+                <p style={{ margin: '8px 0 0 0', color: 'var(--c-muted)', fontSize: 14, letterSpacing: '1px', fontWeight: 800 }}>
                   {currentlyPlaying.year}
                 </p>
               )}
@@ -2403,12 +2616,7 @@ export default function Home() {
               ref={lyricsContainerRef}
               style={{ flex: 1, position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', padding: '40px 20px', overflowY: 'auto', overflowX: 'hidden' }}>
               <div style={{ width: '100%', maxWidth: 900, padding: '0 40px' }}>
-                {lyricsLoading ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, minHeight: 300 }}>
-                    <div style={{ width: 60, height: 60, border: '4px solid rgba(255,213,74,0.2)', borderTop: '4px solid #FFD54A', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-                    <span style={{ color: '#9a9a9a', fontSize: 16, fontWeight: 500 }}>Loading lyrics...</span>
-                  </div>
-                ) : lyrics ? (
+                {lyrics ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                     {lyricsLines.map((line, idx) => {
                       const highlight = idx === currentLyricIndex;
@@ -2418,21 +2626,28 @@ export default function Home() {
                         <p
                           key={idx}
                           ref={highlight ? activeLyricRef : null}
+                          onClick={() => {
+                            const audio = audioRefsRef.current[currentlyPlaying.id];
+                            if (!audio) return;
+                            audio.volume = 1;
+                            audio.currentTime = (line.startTime || 0) / 1000;
+                          }}
                           style={{
                             margin: 0,
                             padding: '16px 24px',
-                            color: highlight ? '#FFD54A' : isPast ? '#e6e6e6' : '#5a5a5a',
+                            color: highlight ? 'var(--c-accent)' : isPast ? 'var(--c-text)' : 'var(--c-muted)',
                             fontSize: highlight ? 32 : isPast ? 24 : 20,
                             fontWeight: highlight ? 800 : isPast ? 600 : 500,
                             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                            borderLeft: highlight ? '5px solid #FFD54A' : 'none',
+                            borderLeft: highlight ? '5px solid var(--c-accent)' : 'none',
                             paddingLeft: highlight ? 24 : 24,
                             lineHeight: 1.7,
                             textAlign: 'center',
-                            textShadow: highlight ? '0 0 20px rgba(255,213,74,0.5), 0 2px 12px rgba(255,213,74,0.3)' : 'none',
+                            textShadow: highlight ? '0 0 20px rgb(var(--rgb-accent) / 0.45), 0 2px 12px rgb(var(--rgb-accent) / 0.25)' : 'none',
                             transform: highlight ? 'translateX(8px) scale(1.02)' : 'translateX(0) scale(1)',
                             borderRadius: 12,
-                            background: highlight ? 'linear-gradient(90deg, rgba(255,213,74,0.1) 0%, transparent 100%)' : 'transparent'
+                            background: highlight ? 'linear-gradient(90deg, rgb(var(--rgb-accent) / 0.10) 0%, transparent 100%)' : 'transparent',
+                            cursor: 'pointer'
                           }}
                         >
                           {line.text}
@@ -2445,25 +2660,27 @@ export default function Home() {
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 300, gap: 16 }}>
                     <span style={{ fontSize: 48 }}>🎵</span>
-                    <span style={{ color: '#6f6f6f', fontSize: 18, fontWeight: 500 }}>Lyrics not available for this track</span>
+                    <span style={{ color: 'var(--c-muted)', fontSize: 18, fontWeight: 800 }}>
+                      {isPreviewTrack(currentlyPlaying) ? 'Lyrics disabled for preview tracks' : 'Lyrics not available for this track'}
+                    </span>
                   </div>
                 )}
               </div>
             </div>
 
             {/* Footer - Controls */}
-            <div style={{ position: 'relative', zIndex: 10, padding: '24px 60px 32px', borderTop: '1px solid rgba(255,213,74,0.1)', background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 100%)' }}>
+            <div style={{ position: 'relative', zIndex: 10, padding: '24px 60px 32px', borderTop: '1px solid rgb(var(--rgb-accent) / 0.12)', background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.35) 100%)' }}>
               {/* Progress Bar */}
               <div style={{ marginBottom: 24 }}>
                 <div
                   style={{ 
                     height: 8, 
-                    background: 'linear-gradient(90deg, rgba(255,213,74,0.1) 0%, rgba(255,213,74,0.05) 100%)', 
+                    background: 'linear-gradient(90deg, rgb(var(--rgb-accent) / 0.12) 0%, rgb(var(--rgb-accent) / 0.06) 100%)', 
                     borderRadius: 8, 
                     overflow: 'hidden', 
                     cursor: 'pointer', 
                     position: 'relative', 
-                    border: '1px solid rgba(255,213,74,0.2)',
+                    border: '1px solid rgb(var(--rgb-accent) / 0.20)',
                     boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.3)'
                   }}
                   onClick={(e) => {
@@ -2476,33 +2693,29 @@ export default function Home() {
                 >
                   <div style={{
                     height: '100%',
-                    background: 'linear-gradient(90deg, #FFD54A 0%, #FFD700 50%, #E00000 100%)',
+                    background: 'linear-gradient(90deg, var(--c-accent) 0%, var(--c-accent2) 50%, var(--c-danger) 100%)',
                     width: `${((currentTime[currentlyPlaying.id] || 0) / (duration[currentlyPlaying.id] || 1)) * 100}%`,
                     transition: 'width 0.1s linear',
-                    boxShadow: '0 0 20px rgba(255,213,74,0.7), inset 0 1px 4px rgba(255,255,255,0.4)',
+                    boxShadow: '0 0 20px rgb(var(--rgb-accent) / 0.45), inset 0 1px 4px rgba(255,255,255,0.28)',
                     position: 'relative'
                   }}>
-                    <div style={{ position: 'absolute', right: -6, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, background: '#FFD54A', borderRadius: '50%', boxShadow: '0 0 16px rgba(255,213,74,1), 0 0 32px rgba(255,213,74,0.5)', border: '2px solid #0b0b0b' }}></div>
+                    <div style={{ position: 'absolute', right: -6, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, background: 'var(--c-accent)', borderRadius: '50%', boxShadow: '0 0 16px rgb(var(--rgb-accent) / 0.9), 0 0 32px rgb(var(--rgb-accent) / 0.45)', border: '2px solid rgba(0,0,0,0.55)' }}></div>
                   </div>
                 </div>
                 
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#9a9a9a', fontSize: 13, marginTop: 12, fontWeight: 600, letterSpacing: '0.5px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--c-muted)', fontSize: 13, marginTop: 12, fontWeight: 800, letterSpacing: '0.5px' }}>
                   <span>{formatTime(currentTime[currentlyPlaying.id] || 0)}</span>
                   <span>{formatTime(duration[currentlyPlaying.id] || 0)}</span>
                 </div>
               </div>
 
-              {/* Play/Pause and Volume Controls */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 40 }}>
-                {/* Spacer */}
-                <div style={{ flex: 1 }}></div>
-
-                {/* Play/Pause Button (Center) */}
+              {/* Play/Pause */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <button
                   onClick={() => toggleSpin(currentlyPlaying.id)}
                   style={{ 
-                    background: 'linear-gradient(135deg, #FFD54A 0%, #FFD700 100%)', 
-                    color: '#0b0b0b', 
+                    background: 'var(--g-accent)', 
+                    color: 'var(--c-ink)', 
                     border: 'none', 
                     width: 80, 
                     height: 80, 
@@ -2513,52 +2726,21 @@ export default function Home() {
                     alignItems: 'center', 
                     justifyContent: 'center', 
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', 
-                    boxShadow: '0 16px 48px rgba(255,213,74,0.6), 0 0 40px rgba(255,213,74,0.4)',
+                    boxShadow: '0 16px 48px rgb(var(--rgb-accent) / 0.45), 0 0 40px rgb(var(--rgb-accent) / 0.30)',
                     fontWeight: 900,
                     flexShrink: 0
                   }}
                   onMouseEnter={(e) => { 
                     e.currentTarget.style.transform = 'scale(1.15) translateY(-4px)'; 
-                    e.currentTarget.style.boxShadow = '0 20px 60px rgba(255,213,74,0.8), 0 0 50px rgba(255,213,74,0.5)'; 
+                    e.currentTarget.style.boxShadow = '0 20px 60px rgb(var(--rgb-accent) / 0.60), 0 0 50px rgb(var(--rgb-accent) / 0.35)'; 
                   }}
                   onMouseLeave={(e) => { 
                     e.currentTarget.style.transform = 'scale(1) translateY(0)'; 
-                    e.currentTarget.style.boxShadow = '0 16px 48px rgba(255,213,74,0.6), 0 0 40px rgba(255,213,74,0.4)'; 
+                    e.currentTarget.style.boxShadow = '0 16px 48px rgb(var(--rgb-accent) / 0.45), 0 0 40px rgb(var(--rgb-accent) / 0.30)'; 
                   }}
                 >
                   {spinningVinyls[currentlyPlaying.id] ? '⏸' : '▶'}
                 </button>
-
-                {/* Volume Control (Right) */}
-                <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 16, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(12px)', padding: '12px 24px', borderRadius: 16, border: '1px solid rgba(255,213,74,0.2)' }}>
-                    <span style={{ fontSize: 20, color: '#FFD54A' }}>🔊</span>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={volume * 100}
-                      onChange={(e) => {
-                        const newVolume = e.target.value / 100;
-                        setVolume(newVolume);
-                        Object.values(audioRefsRef.current).forEach(audio => {
-                          if (audio) audio.volume = newVolume;
-                        });
-                      }}
-                      style={{
-                        width: 200,
-                        height: 6,
-                        borderRadius: 4,
-                        outline: 'none',
-                        cursor: 'pointer',
-                        WebkitAppearance: 'none',
-                        background: `linear-gradient(to right, #FFD54A 0%, #FFD54A ${volume * 100}%, rgba(255,213,74,0.15) ${volume * 100}%, rgba(255,213,74,0.15) 100%)`,
-                        boxShadow: '0 0 12px rgba(255,213,74,0.4)'
-                      }}
-                    />
-                    <span style={{ fontSize: 14, color: '#FFD54A', minWidth: 38, fontWeight: 800, textAlign: 'right', letterSpacing: '0.5px' }}>{Math.round(volume * 100)}</span>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -2567,55 +2749,55 @@ export default function Home() {
         {/* Playlist Form Modal */}
         {showPlaylistForm && (
           <div className="modal-overlay" onClick={() => setShowPlaylistForm(false)} style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)' }}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ background: 'linear-gradient(180deg, #0b0b0b 0%, #1a1a1a 100%)', border: '2px solid #FFD54A', borderRadius: 16, maxWidth: 550, boxShadow: '0 20px 60px rgba(255,213,74,0.3)' }}>
-              <div style={{ borderBottom: '1px solid #2a2a2a', padding: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ margin: 0, fontSize: 24, fontWeight: 900, background: 'linear-gradient(135deg, #FFD54A, #FFD700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ background: 'var(--g-surface-2)', border: '1px solid rgb(var(--rgb-accent) / 0.32)', borderRadius: 16, maxWidth: 550, boxShadow: '0 20px 60px rgb(var(--rgb-accent) / 0.20)' }}>
+              <div style={{ borderBottom: '1px solid var(--c-border)', padding: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: 0, fontSize: 24, fontWeight: 900, background: 'var(--g-accent)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                   {editingPlaylist ? '✎ Edit Playlist' : '+ Create Playlist'}
                 </h3>
-                <button onClick={() => setShowPlaylistForm(false)} style={{ background: 'transparent', border: 'none', color: '#FFD54A', fontSize: 32, cursor: 'pointer', padding: 0, width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, transition: 'all 0.2s' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,213,74,0.1)'; e.currentTarget.style.transform = 'rotate(90deg)'; }}
+                <button onClick={() => setShowPlaylistForm(false)} style={{ background: 'transparent', border: 'none', color: 'var(--c-accent)', fontSize: 32, cursor: 'pointer', padding: 0, width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, transition: 'all 0.2s' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgb(var(--rgb-accent) / 0.12)'; e.currentTarget.style.transform = 'rotate(90deg)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.transform = 'rotate(0deg)'; }}
                 >×</button>
               </div>
               <form onSubmit={handlePlaylistSubmit} style={{ padding: 24 }}>
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 800, color: '#FFD54A', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Playlist Name*</label>
+                  <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 900, color: 'var(--c-accent)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Playlist Name*</label>
                   <input
                     type="text"
                     value={playlistForm.name}
                     onChange={(e) => setPlaylistForm({ ...playlistForm, name: e.target.value })}
                     placeholder="My Awesome Playlist"
                     required
-                    style={{ width: '100%', padding: '12px 16px', background: '#0f0f0f', border: '1.5px solid #2a2a2a', borderRadius: 8, fontSize: 15, color: '#e6e6e6', transition: 'all 0.2s', boxSizing: 'border-box' }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = '#FFD54A'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255,213,74,0.1)'; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.boxShadow = 'none'; }}
+                    style={{ width: '100%', padding: '12px 16px', background: 'rgba(0,0,0,0.22)', border: '1.5px solid var(--c-border)', borderRadius: 10, fontSize: 15, color: 'var(--c-text)', transition: 'all 0.2s', boxSizing: 'border-box' }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--c-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgb(var(--rgb-accent) / 0.12)'; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--c-border)'; e.currentTarget.style.boxShadow = 'none'; }}
                   />
                 </div>
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 800, color: '#FFD54A', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Description</label>
+                  <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 900, color: 'var(--c-accent)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Description</label>
                   <textarea
                     value={playlistForm.description}
                     onChange={(e) => setPlaylistForm({ ...playlistForm, description: e.target.value })}
                     placeholder="Tell us about this playlist..."
                     rows={3}
-                    style={{ width: '100%', padding: '12px 16px', background: '#0f0f0f', border: '1.5px solid #2a2a2a', borderRadius: 8, fontSize: 14, color: '#e6e6e6', resize: 'vertical', transition: 'all 0.2s', boxSizing: 'border-box', fontFamily: 'inherit' }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = '#FFD54A'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255,213,74,0.1)'; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.boxShadow = 'none'; }}
+                    style={{ width: '100%', padding: '12px 16px', background: 'rgba(0,0,0,0.22)', border: '1.5px solid var(--c-border)', borderRadius: 10, fontSize: 14, color: 'var(--c-text)', resize: 'vertical', transition: 'all 0.2s', boxSizing: 'border-box', fontFamily: 'inherit' }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--c-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgb(var(--rgb-accent) / 0.12)'; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--c-border)'; e.currentTarget.style.boxShadow = 'none'; }}
                   />
                 </div>
                 <div style={{ marginBottom: 24 }}>
-                  <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 800, color: '#FFD54A', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Cover Image</label>
+                  <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 900, color: 'var(--c-accent)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Cover Image</label>
                   <div 
                     onDrop={handlePlaylistCoverDrop}
                     onDragOver={(e) => e.preventDefault()}
                     style={{
-                      border: '2px dashed #FFD54A',
+                      border: '2px dashed var(--c-accent)',
                       borderRadius: 12,
                       padding: 32,
                       textAlign: 'center',
                       cursor: 'pointer',
                       marginBottom: 12,
-                      background: playlistForm.coverUrl ? `linear-gradient(rgba(11,11,11,0.5), rgba(11,11,11,0.5)), url(${playlistForm.coverUrl}) center/cover` : 'linear-gradient(135deg, rgba(255,213,74,0.05), rgba(224,0,0,0.05))',
+                      background: playlistForm.coverUrl ? `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${playlistForm.coverUrl}) center/cover` : 'linear-gradient(135deg, rgb(var(--rgb-accent) / 0.06), rgb(var(--rgb-accent3) / 0.06))',
                       transition: 'all 0.3s',
                       minHeight: 120,
                       display: 'flex',
@@ -2623,25 +2805,25 @@ export default function Home() {
                       justifyContent: 'center'
                     }}
                     onClick={() => document.getElementById('playlist-cover-file-input').click()}
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#FFD700'; e.currentTarget.style.background = playlistForm.coverUrl ? `linear-gradient(rgba(11,11,11,0.3), rgba(11,11,11,0.3)), url(${playlistForm.coverUrl}) center/cover` : 'linear-gradient(135deg, rgba(255,213,74,0.1), rgba(224,0,0,0.1))'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#FFD54A'; e.currentTarget.style.background = playlistForm.coverUrl ? `linear-gradient(rgba(11,11,11,0.5), rgba(11,11,11,0.5)), url(${playlistForm.coverUrl}) center/cover` : 'linear-gradient(135deg, rgba(255,213,74,0.05), rgba(224,0,0,0.05))'; }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--c-accent)'; e.currentTarget.style.background = playlistForm.coverUrl ? `linear-gradient(rgba(0,0,0,0.38), rgba(0,0,0,0.38)), url(${playlistForm.coverUrl}) center/cover` : 'linear-gradient(135deg, rgb(var(--rgb-accent) / 0.12), rgb(var(--rgb-accent3) / 0.12))'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--c-accent)'; e.currentTarget.style.background = playlistForm.coverUrl ? `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${playlistForm.coverUrl}) center/cover` : 'linear-gradient(135deg, rgb(var(--rgb-accent) / 0.06), rgb(var(--rgb-accent3) / 0.06))'; }}
                   >
                     {uploadingPlaylistCover ? (
-                      <div style={{ color: '#FFD54A', fontWeight: 700 }}>
+                      <div style={{ color: 'var(--c-accent)', fontWeight: 900 }}>
                         <div style={{ fontSize: 32, marginBottom: 8 }}>⟳</div>
                         <div>Uploading...</div>
                       </div>
                     ) : playlistForm.coverUrl ? (
-                      <div style={{ background: 'rgba(11,11,11,0.85)', color: '#FFD54A', padding: 16, borderRadius: 8, backdropFilter: 'blur(10px)' }}>
+                      <div style={{ background: 'rgba(0,0,0,0.55)', color: 'var(--c-accent)', padding: 16, borderRadius: 10, backdropFilter: 'blur(10px)' }}>
                         <div style={{ fontSize: 28, marginBottom: 8 }}>✓</div>
                         <div style={{ fontWeight: 700, marginBottom: 4 }}>Cover uploaded</div>
-                        <small style={{ color: '#9a9a9a' }}>Click or drag to replace</small>
+                        <small style={{ color: 'var(--c-muted)' }}>Click or drag to replace</small>
                       </div>
                     ) : (
                       <div>
-                        <div style={{ fontSize: 40, marginBottom: 12, color: '#FFD54A' }}>📁</div>
-                        <div style={{ fontWeight: 700, color: '#FFD54A', marginBottom: 6 }}>Drop image here or click to browse</div>
-                        <small style={{ color: '#9a9a9a' }}>PNG, JPG, WEBP up to 5MB</small>
+                        <div style={{ fontSize: 40, marginBottom: 12, color: 'var(--c-accent)' }}>📁</div>
+                        <div style={{ fontWeight: 900, color: 'var(--c-accent)', marginBottom: 6 }}>Drop image here or click to browse</div>
+                        <small style={{ color: 'var(--c-muted)' }}>PNG, JPG, WEBP up to 5MB</small>
                       </div>
                     )}
                   </div>
@@ -2657,21 +2839,21 @@ export default function Home() {
                     value={playlistForm.coverUrl}
                     onChange={(e) => setPlaylistForm({ ...playlistForm, coverUrl: e.target.value })}
                     placeholder="Or paste image URL..."
-                    style={{ width: '100%', padding: '10px 14px', background: '#0f0f0f', border: '1.5px solid #2a2a2a', borderRadius: 8, fontSize: 13, color: '#9a9a9a', transition: 'all 0.2s', boxSizing: 'border-box' }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = '#FFD54A'; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = '#2a2a2a'; }}
+                    style={{ width: '100%', padding: '10px 14px', background: 'rgba(0,0,0,0.22)', border: '1.5px solid var(--c-border)', borderRadius: 10, fontSize: 13, color: 'var(--c-text)', transition: 'all 0.2s', boxSizing: 'border-box' }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--c-accent)'; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--c-border)'; }}
                   />
                 </div>
-                <div style={{ display: 'flex', gap: 12, paddingTop: 20, borderTop: '1px solid #2a2a2a' }}>
-                  <button type="button" onClick={() => setShowPlaylistForm(false)} style={{ flex: 1, background: 'transparent', border: '2px solid #2a2a2a', color: '#9a9a9a', padding: '12px', borderRadius: 8, fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', cursor: 'pointer', transition: 'all 0.2s' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#E00000'; e.currentTarget.style.color = '#E00000'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.color = '#9a9a9a'; }}
+                <div style={{ display: 'flex', gap: 12, paddingTop: 20, borderTop: '1px solid var(--c-border)' }}>
+                  <button type="button" onClick={() => setShowPlaylistForm(false)} style={{ flex: 1, background: 'transparent', border: '1.5px solid var(--c-border)', color: 'var(--c-muted)', padding: '12px', borderRadius: 10, fontSize: 13, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5px', cursor: 'pointer', transition: 'all 0.2s' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--c-danger)'; e.currentTarget.style.color = 'var(--c-danger)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--c-border)'; e.currentTarget.style.color = 'var(--c-muted)'; }}
                   >
                     Cancel
                   </button>
-                  <button type="submit" style={{ flex: 1, background: 'linear-gradient(135deg, #FFD54A, #F0C000)', border: 'none', color: '#0b0b0b', padding: '12px', borderRadius: 8, fontSize: 13, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5px', cursor: 'pointer', boxShadow: '0 6px 18px rgba(255,213,74,0.4)', transition: 'all 0.2s' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(255,213,74,0.5)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 6px 18px rgba(255,213,74,0.4)'; }}
+                  <button type="submit" style={{ flex: 1, background: 'var(--g-accent)', border: 'none', color: 'var(--c-ink)', padding: '12px', borderRadius: 10, fontSize: 13, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5px', cursor: 'pointer', boxShadow: '0 10px 22px rgb(var(--rgb-accent) / 0.22)', transition: 'all 0.2s' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 28px rgb(var(--rgb-accent) / 0.28)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 22px rgb(var(--rgb-accent) / 0.22)'; }}
                   >
                     {editingPlaylist ? 'Save Changes' : 'Create Playlist'}
                   </button>
@@ -2689,11 +2871,11 @@ export default function Home() {
                 <h3>Add to Playlist</h3>
                 <button className="modal-close" onClick={() => setShowAddToPlaylist(null)}>×</button>
               </div>
-              <p style={{ margin: '0 0 20px 0', color: '#666' }}>
+              <p style={{ margin: '0 0 20px 0', color: 'var(--c-muted)' }}>
                 Add <strong>{showAddToPlaylist.title}</strong> to:
               </p>
               {playlists.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#666' }}>
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--c-muted)' }}>
                   <p>No playlists yet. Create one first!</p>
                   <button 
                     className="modal-btn modal-btn-primary"
@@ -2717,7 +2899,7 @@ export default function Home() {
                       {playlist.cover_url ? (
                         <img src={playlist.cover_url} alt={playlist.name} style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }} />
                       ) : (
-                        <div style={{ width: 40, height: 40, borderRadius: 8, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 20 }}>
+                        <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--g-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--c-ink)', fontSize: 20, fontWeight: 900 }}>
                           🎵
                         </div>
                       )}

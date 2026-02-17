@@ -35,9 +35,25 @@ export default function Login() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f5f5' }}>
-      <div style={{ background: 'white', padding: 40, borderRadius: 8, boxShadow: '0 20px 60px rgba(0,0,0,0.2)', maxWidth: 400, width: '90%' }}>
-        <h1 style={{ textAlign: 'center', marginBottom: 24, fontSize: 32, fontWeight: 700, letterSpacing: '-1px', margin: '0 0 24px 0' }}>Medioteka</h1>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--c-bg)' }}>
+      <div style={{ background: 'var(--g-surface)', padding: 40, borderRadius: 12, border: '1px solid var(--c-border)', boxShadow: '0 20px 60px rgb(0 0 0 / 0.35)', maxWidth: 420, width: '90%' }}>
+        <h1
+          style={{
+            textAlign: 'center',
+            margin: '0 0 24px 0',
+            fontSize: 88,
+            fontWeight: 400,
+            letterSpacing: '0.02em',
+            color: 'var(--c-ink)',
+            WebkitTextStroke: '1.75px var(--c-accent)',
+            textTransform: 'uppercase',
+            filter: 'drop-shadow(0 12px 30px rgba(0,0,0,0.25))',
+            fontFamily: "'Plaster', 'Poppins', system-ui, -apple-system, sans-serif",
+            lineHeight: 0.9,
+          }}
+        >
+          MT
+        </h1>
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: 'block', fontSize: 14, fontWeight: 500, marginBottom: 8 }}>Username<br />
@@ -45,9 +61,9 @@ export default function Login() {
                 type="text"
                 value={username}
                 onChange={e => setUsername(e.target.value)}
-                style={{ width: '100%', padding: 10, marginTop: 4, border: '1px solid #ddd', borderRadius: 4, fontSize: 14, transition: 'border 0.2s' }}
-                onFocus={(e) => e.currentTarget.style.borderColor = '#000'}
-                onBlur={(e) => e.currentTarget.style.borderColor = '#ddd'}
+                style={{ width: '100%', padding: 10, marginTop: 4, border: '1px solid var(--c-border)', borderRadius: 8, fontSize: 14, transition: 'border 0.2s', background: 'rgba(0,0,0,0.25)', color: 'var(--c-text)' }}
+                onFocus={(e) => e.currentTarget.style.borderColor = 'var(--c-accent)'}
+                onBlur={(e) => e.currentTarget.style.borderColor = 'var(--c-border)'}
               />
             </label>
           </div>
@@ -57,17 +73,17 @@ export default function Login() {
                 type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                style={{ width: '100%', padding: 10, marginTop: 4, border: '1px solid #ddd', borderRadius: 4, fontSize: 14, transition: 'border 0.2s' }}
-                onFocus={(e) => e.currentTarget.style.borderColor = '#000'}
-                onBlur={(e) => e.currentTarget.style.borderColor = '#ddd'}
+                style={{ width: '100%', padding: 10, marginTop: 4, border: '1px solid var(--c-border)', borderRadius: 8, fontSize: 14, transition: 'border 0.2s', background: 'rgba(0,0,0,0.25)', color: 'var(--c-text)' }}
+                onFocus={(e) => e.currentTarget.style.borderColor = 'var(--c-accent)'}
+                onBlur={(e) => e.currentTarget.style.borderColor = 'var(--c-border)'}
               />
             </label>
           </div>
-          {error && <div style={{ color: '#d32f2f', marginBottom: 16, fontSize: 14, fontWeight: 500 }}>{error}</div>}
+          {error && <div style={{ color: 'var(--c-danger)', marginBottom: 16, fontSize: 14, fontWeight: 700 }}>{error}</div>}
           <button
             type="submit"
             disabled={loading}
-            style={{ width: '100%', padding: 10, background: '#ff006e', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 14, fontWeight: 600, transition: 'all 0.2s' }}
+            style={{ width: '100%', padding: 12, background: 'var(--g-accent)', color: 'var(--c-ink)', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 14, fontWeight: 800, transition: 'all 0.2s', textTransform: 'uppercase', letterSpacing: '0.06em', boxShadow: '0 10px 24px rgb(var(--rgb-accent) / 0.25)' }}
             onMouseEnter={(e) => !loading && (e.currentTarget.style.transform = 'scale(1.02)')}
             onMouseLeave={(e) => !loading && (e.currentTarget.style.transform = 'scale(1)')}
           >
@@ -77,13 +93,13 @@ export default function Login() {
         <div style={{ textAlign: 'center', marginTop: 16 }}>
           <button
             onClick={() => setIsLogin(!isLogin)}
-            style={{ background: 'none', border: 'none', color: '#000', cursor: 'pointer', textDecoration: 'underline', fontSize: 14, fontWeight: 500 }}
+            style={{ background: 'none', border: 'none', color: 'var(--c-text)', cursor: 'pointer', textDecoration: 'underline', fontSize: 14, fontWeight: 600 }}
           >
             {isLogin ? 'Need an account? Register' : 'Have an account? Login'}
           </button>
         </div>
-        <div style={{ marginTop: 24, padding: 12, background: '#f5f5f5', borderRadius: 4, fontSize: 12, color: '#666' }}>
-          <p style={{ margin: '0 0 8px 0', fontWeight: 600, color: '#000' }}>Demo credentials:</p>
+        <div style={{ marginTop: 24, padding: 12, background: 'rgba(0,0,0,0.25)', borderRadius: 10, fontSize: 12, color: 'var(--c-muted)', border: '1px solid var(--c-border)' }}>
+          <p style={{ margin: '0 0 8px 0', fontWeight: 800, color: 'var(--c-text)' }}>Demo credentials:</p>
           <p style={{ margin: 0 }}>Username: <strong>admin</strong><br />Password: <strong>admin123</strong></p>
         </div>
       </div>
