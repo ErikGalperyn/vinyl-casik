@@ -421,6 +421,7 @@ export default function Home() {
         }}
       >
         <span
+          className="demo-badge-text"
           style={{
             color: 'var(--c-accent2)',
             fontWeight: 900,
