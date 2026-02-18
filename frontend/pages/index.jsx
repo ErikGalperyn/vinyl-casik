@@ -2618,11 +2618,11 @@ export default function Home() {
             </button>
 
             {/* Header - Track Info */}
-            <div style={{ position: 'relative', zIndex: 10, padding: '40px 60px', textAlign: 'center', borderBottom: '2px solid var(--c-accent2)', background: 'var(--c-surface)', boxShadow: '0 6px 20px rgb(var(--rgb-accent2) / 0.25)' }}>
-              <div style={{ fontSize: 12, fontWeight: 900, color: 'var(--c-accent2)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <div style={{ position: 'relative', zIndex: 10, padding: '40px 60px', textAlign: 'center', borderBottom: '3px solid var(--c-accent)', background: 'var(--c-surface)', boxShadow: '0 6px 20px rgba(165, 0, 68, 0.35)' }}>
+              <div style={{ fontSize: 12, fontWeight: 900, color: '#FDCB00', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, textShadow: '0 2px 8px rgba(253, 203, 0, 0.4)' }}>
                 <span style={{ fontSize: 16 }}>♪</span> NOW PLAYING
               </div>
-              <h1 style={{ margin: 0, color: 'var(--c-text)', fontSize: 52, fontWeight: 900, marginBottom: 16, letterSpacing: '0.02em', textShadow: '0 2px 0 rgb(var(--rgb-accent2) / 0.35)' }}>
+              <h1 style={{ margin: 0, color: '#FFFFFF', fontSize: 56, fontWeight: 900, marginBottom: 16, letterSpacing: '0.02em', textShadow: '0 4px 12px rgba(165, 0, 68, 0.6), 0 0 24px rgba(253, 203, 0, 0.3)' }}>
                 {currentlyPlaying.title}
               </h1>
 
@@ -2632,7 +2632,7 @@ export default function Home() {
                 </div>
               )}
 
-              <p style={{ margin: 0, color: 'var(--c-text)', fontSize: 26, fontWeight: 800, letterSpacing: '0.5px' }}>
+              <p style={{ margin: 0, color: '#5DADE2', fontSize: 28, fontWeight: 800, letterSpacing: '0.5px', textShadow: '0 2px 8px rgba(93, 173, 226, 0.4)' }}>
                 {currentlyPlaying.artist}
               </p>
               {currentlyPlaying.year && (
@@ -2666,18 +2666,18 @@ export default function Home() {
                           style={{
                             margin: 0,
                             padding: '16px 24px',
-                            color: highlight ? 'var(--c-accent2)' : isPast ? 'var(--c-text)' : 'var(--c-muted)',
-                            fontSize: highlight ? 32 : isPast ? 24 : 20,
-                            fontWeight: highlight ? 900 : isPast ? 600 : 500,
+                            color: highlight ? '#FDCB00' : isPast ? '#ffffff' : 'rgba(255, 255, 255, 0.5)',
+                            fontSize: highlight ? 36 : isPast ? 24 : 20,
+                            fontWeight: highlight ? 900 : isPast ? 700 : 500,
                             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                            borderLeft: highlight ? '5px solid var(--c-accent2)' : 'none',
-                            paddingLeft: highlight ? 24 : 24,
+                            borderLeft: highlight ? '5px solid var(--c-accent)' : '5px solid transparent',
+                            paddingLeft: 24,
                             lineHeight: 1.7,
                             textAlign: 'center',
-                            textShadow: highlight ? '0 0 24px rgb(var(--rgb-accent2) / 0.6), 0 2px 0 rgb(0 0 0 / 0.5)' : 'none',
-                            transform: highlight ? 'translateX(8px) scale(1.02)' : 'translateX(0) scale(1)',
+                            textShadow: highlight ? '0 0 28px rgba(165, 0, 68, 0.7), 0 0 8px rgba(253, 203, 0, 0.5)' : isPast ? '0 1px 4px rgba(0, 0, 0, 0.3)' : 'none',
+                            transform: highlight ? 'translateX(12px) scale(1.05)' : 'translateX(0) scale(1)',
                             borderRadius: 12,
-                            background: highlight ? 'rgba(0,0,0,0.15)' : 'transparent',
+                            background: highlight ? 'rgba(165, 0, 68, 0.15)' : 'transparent',
                             cursor: 'pointer'
                           }}
                         >
@@ -2700,19 +2700,19 @@ export default function Home() {
             </div>
 
             {/* Footer - Controls */}
-            <div style={{ position: 'relative', zIndex: 10, padding: '28px 60px 36px', borderTop: '2px solid var(--c-accent2)', background: 'var(--c-surface)', boxShadow: '0 -6px 20px rgb(var(--rgb-accent2) / 0.15)' }}>
+            <div style={{ position: 'relative', zIndex: 10, padding: '28px 60px 36px', borderTop: '3px solid var(--c-accent)', background: 'var(--c-surface)', boxShadow: '0 -6px 20px rgba(165, 0, 68, 0.25)' }}>
               {/* Progress Bar */}
               <div style={{ marginBottom: 28 }}>
                 <div
                   style={{ 
                     height: 10, 
-                    background: 'var(--c-badge-bg)', 
+                    background: 'rgba(0, 0, 0, 0.4)', 
                     borderRadius: 999, 
                     overflow: 'hidden', 
                     cursor: 'pointer', 
                     position: 'relative', 
-                    border: '2px solid var(--c-accent2)',
-                    boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.3)'
+                    border: '2px solid var(--c-accent)',
+                    boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.5), 0 0 12px rgba(165, 0, 68, 0.3)'
                   }}
                   onClick={(e) => {
                     if (!audioRefsRef.current[currentlyPlaying.id] || !duration[currentlyPlaying.id]) return;
@@ -2724,17 +2724,17 @@ export default function Home() {
                 >
                   <div style={{
                     height: '100%',
-                    background: 'var(--c-accent2)',
+                    background: 'linear-gradient(90deg, var(--c-accent) 0%, #FDCB00 100%)',
                     width: `${((currentTime[currentlyPlaying.id] || 0) / (duration[currentlyPlaying.id] || 1)) * 100}%`,
                     transition: 'width 0.1s linear',
-                    boxShadow: '0 0 24px rgb(var(--rgb-accent2) / 0.7)',
+                    boxShadow: '0 0 28px rgba(165, 0, 68, 0.8), 0 0 16px rgba(253, 203, 0, 0.5)',
                     position: 'relative'
                   }}>
                     <div style={{ position: 'absolute', right: -8, top: '50%', transform: 'translateY(-50%)', width: 20, height: 20, background: 'var(--c-ink)', borderRadius: '50%', border: '3px solid var(--c-accent2)', boxShadow: '0 0 16px rgb(var(--rgb-accent2) / 0.9)' }}></div>
                   </div>
                 </div>
                 
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--c-text)', fontSize: 14, marginTop: 14, fontWeight: 900, letterSpacing: '0.5px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#FDCB00', fontSize: 14, marginTop: 14, fontWeight: 900, letterSpacing: '0.5px', textShadow: '0 2px 6px rgba(253, 203, 0, 0.3)' }}>
                   <span>{formatTime(currentTime[currentlyPlaying.id] || 0)}</span>
                   <span>{formatTime(duration[currentlyPlaying.id] || 0)}</span>
                 </div>
@@ -2745,29 +2745,29 @@ export default function Home() {
                 <button
                   onClick={() => toggleSpin(currentlyPlaying.id)}
                   style={{ 
-                    background: 'var(--c-accent2)', 
-                    color: 'var(--c-ink)', 
-                    border: '3px solid var(--c-accent2)', 
-                    width: 90, 
-                    height: 90, 
-                    borderRadius: 24, 
+                    background: 'linear-gradient(135deg, var(--c-accent) 0%, #A50044 50%, #8a0037 100%)', 
+                    color: '#FDCB00', 
+                    border: '3px solid #FDCB00', 
+                    width: 100, 
+                    height: 100, 
+                    borderRadius: 28, 
                     cursor: 'pointer', 
-                    fontSize: 40, 
+                    fontSize: 48, 
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center', 
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', 
-                    boxShadow: '0 16px 0 rgb(var(--rgb-accent2) / 0.5), 0 20px 50px rgb(var(--rgb-accent2) / 0.45)',
+                    boxShadow: '0 16px 0 rgba(253, 203, 0, 0.6), 0 20px 60px rgba(165, 0, 68, 0.7), 0 0 40px rgba(253, 203, 0, 0.4)',
                     fontWeight: 900,
                     flexShrink: 0
                   }}
                   onMouseEnter={(e) => { 
-                    e.currentTarget.style.transform = 'translateY(-6px)'; 
-                    e.currentTarget.style.boxShadow = '0 22px 0 rgb(var(--rgb-accent2) / 0.5), 0 26px 60px rgb(var(--rgb-accent2) / 0.60)'; 
+                    e.currentTarget.style.transform = 'translateY(-8px) scale(1.08)'; 
+                    e.currentTarget.style.boxShadow = '0 24px 0 rgba(253, 203, 0, 0.7), 0 28px 70px rgba(165, 0, 68, 0.85), 0 0 50px rgba(253, 203, 0, 0.5)'; 
                   }}
                   onMouseLeave={(e) => { 
-                    e.currentTarget.style.transform = 'translateY(0)'; 
-                    e.currentTarget.style.boxShadow = '0 16px 0 rgb(var(--rgb-accent2) / 0.5), 0 20px 50px rgb(var(--rgb-accent2) / 0.45)'; 
+                    e.currentTarget.style.transform = 'translateY(0) scale(1)'; 
+                    e.currentTarget.style.boxShadow = '0 16px 0 rgba(253, 203, 0, 0.6), 0 20px 60px rgba(165, 0, 68, 0.7), 0 0 40px rgba(253, 203, 0, 0.4)'; 
                   }}
                 >
                   {spinningVinyls[currentlyPlaying.id] ? '⏸' : '▶'}
