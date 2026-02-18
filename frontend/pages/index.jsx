@@ -1472,9 +1472,9 @@ export default function Home() {
               <div style={{ width: 22, height: 22, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {!menuOpen ? (
                   <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 4.5 }}>
-                    <div style={{ width: '100%', height: 2.5, background: 'var(--c-accent2)', borderRadius: 3, transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 1px 2px rgb(var(--rgb-accent2) / 0.4)' }} />
-                    <div style={{ width: '75%', height: 2.5, background: 'var(--c-accent2)', borderRadius: 3, marginLeft: 'auto', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 1px 2px rgb(var(--rgb-accent2) / 0.4)' }} />
-                    <div style={{ width: '100%', height: 2.5, background: 'var(--c-accent2)', borderRadius: 3, transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 1px 2px rgb(var(--rgb-accent2) / 0.4)' }} />
+                    <div className="burger-line" style={{ width: '100%', height: 2.5, background: 'var(--c-accent2)', borderRadius: 3, transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 1px 2px rgb(var(--rgb-accent2) / 0.4)' }} />
+                    <div className="burger-line" style={{ width: '75%', height: 2.5, background: 'var(--c-accent2)', borderRadius: 3, marginLeft: 'auto', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 1px 2px rgb(var(--rgb-accent2) / 0.4)' }} />
+                    <div className="burger-line" style={{ width: '100%', height: 2.5, background: 'var(--c-accent2)', borderRadius: 3, transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 1px 2px rgb(var(--rgb-accent2) / 0.4)' }} />
                   </div>
                 ) : (
                   <div style={{ position: 'relative', width: 22, height: 22 }}>
