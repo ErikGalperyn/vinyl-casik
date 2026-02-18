@@ -1606,9 +1606,9 @@ export default function Home() {
                     className="game-tab-btn game-tab-btn-poker"
                     onClick={() => setCurrentGame('poker')}
                     style={{ 
-                      background: currentGame === 'poker' ? 'var(--c-accent2)' : 'var(--c-badge-bg)', 
-                      color: currentGame === 'poker' ? 'var(--c-ink)' : 'var(--c-accent2)', 
-                      border: '1px solid var(--c-accent2)', 
+                      background: currentGame === 'poker' ? 'var(--c-accent)' : 'var(--c-badge-bg)', 
+                      color: currentGame === 'poker' ? '#ffffff' : 'var(--c-accent2)', 
+                      border: currentGame === 'poker' ? '1px solid #FDCB00' : '1px solid var(--c-accent2)', 
                       padding: '8px 14px', 
                       borderRadius: 8, 
                       cursor: 'pointer', 
@@ -1616,7 +1616,7 @@ export default function Home() {
                       fontWeight: 700, 
                       textTransform: 'uppercase',
                       transition: 'all 0.2s',
-                      boxShadow: currentGame === 'poker' ? '0 4px 0 rgb(var(--rgb-accent2) / 0.30)' : 'none'
+                      boxShadow: currentGame === 'poker' ? '0 4px 0 rgba(253, 203, 0, 0.50), 0 0 20px rgba(165, 0, 68, 0.6)' : 'none'
                     }}
                   >
                     ♣️ Poker
