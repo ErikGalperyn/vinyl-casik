@@ -290,9 +290,12 @@ export default function Home() {
     if (el) {
       audioRefsRef.current[vinylId] = el;
       el.volume = 1;
-      console.log(`✓ Audio element created for vinyl ${vinylId}, src: ${el.src}`);
+      console.log(`✓ Audio element created for vinyl ${vinylId}, src: ${el.src.slice(-50)}`);
+      el.addEventListener('canplay', () => {
+        console.log(`✓ Audio canplay for ${vinylId}, duration: ${el.duration}s`);
+      });
       el.addEventListener('error', (e) => {
-        console.error(`✗ Audio error for vinyl ${vinylId}:`, e.error);
+        console.error(`✗ Audio error for vinyl ${vinylId}:`, e.error?.message || e.error);
       });
     }
   }, []);
@@ -370,9 +373,10 @@ export default function Home() {
       }
       const data = await getVinyls();
       console.log('📦 Loaded vinyls from API:', data.length, 'tracks');
-      data.forEach((v, idx) => {
-        if (v.title.includes('Up') || v.title.includes('HUSBAND')) {
-          console.log(`  [${idx}] "${v.title}" - musicUrl: ${v.musicUrl ? '✓' : '✗'}, previewUrl: ${v.previewUrl ? '✓' : '✗'}`);
+      console.log('First vinyl:', data[0]);
+      data.forEach((v) => {
+        if (v.title.toLowerCase().includes('up') || v.title.toLowerCase().includes('husband')) {
+          console.log(`🎧 "${v.title}" - musicUrl: ${v.musicUrl || '(empty)'}, previewUrl: ${v.previewUrl || '(empty)'}`);
         }
       });
       setVinyls(data);
@@ -1424,16 +1428,17 @@ export default function Home() {
         alert('⚠️ No audio file available for this track.');
         return;
       }
-      if ((vinyl?.musicUrl || vinyl?.previewUrl) && audioRefsRef.current[id]) {
-        console.log(`▶ Playing audio for vinyl ${id}`);
-        audioRefsRef.current[id].volume = 1;
-        audioRefsRef.current[id].play().catch(err => {
-          console.error(`✗ Play error for vinyl ${id}:`, err);
-        });
-        setCurrentlyPlaying(vinyl);
-      } else {
-        console.warn(`⚠ Audio element not found in ref for vinyl ${id}. Available refs:`, Object.keys(audioRefsRef.current));
+      const audioEl = audioRefsRef.current[id];
+      if (!audioEl) {
+        console.error(`✗ Audio element NOT found in refs for ${id}. Available IDs:`, Object.keys(audioRefsRef.current).slice(0, 10));
+        return;
       }
+      console.log(`▶ Found audio element, src: ${audioEl.src}, playing...`);
+      audioEl.volume = 1;
+      audioEl.play().catch(err => {
+        console.error(`✗ Play error for vinyl ${id}:`, err.name, err.message);
+      });
+      setCurrentlyPlaying(vinyl);
     }
 
     setSpinningVinyls(prev => ({
@@ -1975,12 +1980,18 @@ export default function Home() {
                 )}
 
                 <div style={{ display: 'none' }}>
-                  {vinyls.map(v => (
-                    (v.musicUrl || v.previewUrl) && (
+                  {vinyls.map(v => {
+                    const audioSrc = v.musicUrl || v.previewUrl;
+                    if (!audioSrc) {
+                      console.warn(`⚠ No audio source for vinyl ${v.id}: "${v.title}"`);
+                      return null;
+                    }
+                    return (
                       <audio
                         key={v.id}
                         ref={(el) => handleAudioRef(el, v.id)}
-                        src={v.musicUrl || v.previewUrl}
+                        src={audioSrc}
+                        crossOrigin="anonymous"
                         onTimeUpdate={(e) => {
                           setCurrentTime(prev => ({ ...prev, [v.id]: e.target.currentTime }));
                         }}
@@ -1992,8 +2003,8 @@ export default function Home() {
                           setCurrentlyPlaying(null);
                         }}
                       />
-                    )
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
