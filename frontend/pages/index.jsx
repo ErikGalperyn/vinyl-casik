@@ -1478,8 +1478,8 @@ export default function Home() {
                   </div>
                 ) : (
                   <div style={{ position: 'relative', width: 22, height: 22 }}>
-                    <div style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 2.5, background: 'var(--c-ink)', borderRadius: 3, transform: 'rotate(45deg)', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 1px 2px rgba(0,0,0,0.3)' }} />
-                    <div style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 2.5, background: 'var(--c-ink)', borderRadius: 3, transform: 'rotate(-45deg)', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 1px 2px rgba(0,0,0,0.3)' }} />
+                    <div className="burger-close-line" style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 2.5, background: 'var(--c-ink)', borderRadius: 3, transform: 'rotate(45deg)', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 1px 2px rgba(0,0,0,0.3)' }} />
+                    <div className="burger-close-line" style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 2.5, background: 'var(--c-ink)', borderRadius: 3, transform: 'rotate(-45deg)', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 1px 2px rgba(0,0,0,0.3)' }} />
                   </div>
                 )}
               </div>

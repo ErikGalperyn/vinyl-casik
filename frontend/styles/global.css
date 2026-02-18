@@ -1818,6 +1818,11 @@ html[data-theme='barcelona-home'] .burger-button div div {
   box-shadow: 0 1px 3px rgba(253, 203, 0, 0.4) !important;
 }
 
+html[data-theme='barcelona-home'] .burger-close-line {
+  background: #FDCB00 !important;
+  box-shadow: 0 1px 3px rgba(253, 203, 0, 0.4) !important;
+}
+
 /* Barcelona: Logo */
 html[data-theme='barcelona-home'] .logo-animated {
   color: #FDCB00 !important;
