@@ -1407,12 +1407,12 @@ export default function Home() {
       }
     } else {
       const vinyl = vinyls.find(v => String(v.id) === id);
-      // Check if audio file exists
-      if (!vinyl?.musicUrl) {
+      // Check if audio file exists (musicUrl or previewUrl)
+      if (!vinyl?.musicUrl && !vinyl?.previewUrl) {
         alert('⚠️ No audio file available for this track.');
         return;
       }
-      if (vinyl?.musicUrl && audioRefsRef.current[id]) {
+      if ((vinyl?.musicUrl || vinyl?.previewUrl) && audioRefsRef.current[id]) {
         audioRefsRef.current[id].volume = 1;
         audioRefsRef.current[id].play().catch(err => console.log('Audio play error:', err));
         setCurrentlyPlaying(vinyl);
@@ -1959,11 +1959,11 @@ export default function Home() {
 
                 <div style={{ display: 'none' }}>
                   {vinyls.map(v => (
-                    v.musicUrl && (
+                    (v.musicUrl || v.previewUrl) && (
                       <audio
                         key={v.id}
                         ref={(el) => handleAudioRef(el, v.id)}
-                        src={v.musicUrl}
+                        src={v.musicUrl || v.previewUrl}
                         onTimeUpdate={(e) => {
                           setCurrentTime(prev => ({ ...prev, [v.id]: e.target.currentTime }));
                         }}
