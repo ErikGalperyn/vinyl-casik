@@ -83,7 +83,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            style={{ width: '100%', padding: 12, background: 'var(--g-accent)', color: 'var(--c-ink)', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 14, fontWeight: 800, transition: 'all 0.2s', textTransform: 'uppercase', letterSpacing: '0.06em', boxShadow: '0 10px 24px rgb(var(--rgb-accent) / 0.25)' }}
+            style={{ width: '100%', padding: 12, background: 'var(--c-accent2)', color: 'var(--c-ink)', border: '1px solid var(--c-accent2)', borderRadius: 10, cursor: 'pointer', fontSize: 14, fontWeight: 800, transition: 'all 0.2s', textTransform: 'uppercase', letterSpacing: '0.06em', boxShadow: '0 10px 24px rgb(var(--rgb-accent2) / 0.25)' }}
             onMouseEnter={(e) => !loading && (e.currentTarget.style.transform = 'scale(1.02)')}
             onMouseLeave={(e) => !loading && (e.currentTarget.style.transform = 'scale(1)')}
           >

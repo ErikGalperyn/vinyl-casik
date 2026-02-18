@@ -28,14 +28,24 @@
   --rgb-accent3: 220 0 0;
   --rgb-danger: 220 0 0;
 
+  --c-logo-fill: var(--c-ink);
+  --c-logo-stroke: var(--c-accent);
+  --rgb-logo-glow: var(--rgb-accent);
+
   --c-header-bg: #0a0a0a;
   --c-header-border: var(--c-accent);
+
+  /* Input/badge/button colors */
+  --c-input-bg: rgba(0,0,0,0.22);
+  --c-badge-bg: rgba(0,0,0,0.25);
+  --c-button-secondary: rgba(0,0,0,0.25);
 
   --g-surface: linear-gradient(135deg, var(--c-surface), var(--c-surface2));
   --g-surface-2: linear-gradient(135deg, var(--c-surface2), var(--c-surface3));
   --g-accent: linear-gradient(135deg, var(--c-accent), var(--c-accent2));
   --g-accent-h: linear-gradient(90deg, var(--c-accent), var(--c-accent2));
   --g-vinyl: radial-gradient(circle at 35% 35%, var(--c-border), var(--c-bg2));
+  --g-page: none;
 
   /* Legacy vars (keep older CSS working) */
   --primary: var(--c-text);
@@ -47,42 +57,188 @@
 }
 
 html[data-theme='barcelona-home']{
-  /* Colors based on your palette: maroon / blue / yellow */
-  --c-bg: #040b16;
-  --c-bg2: #02070f;
-  --c-surface: #071a32;
-  --c-surface2: #051326;
-  --c-surface3: #091e3a;
-  --c-border: rgba(252, 203, 0, 0.22);
+  /* FC Barcelona Dark Kit: dark blue / maroon / yellow (Blaugrana + Catalan colors) */
+  --c-bg: #0a2a54;        /* dark blue background */
+  --c-bg2: #081f40;       /* dark blue darker */
+  --c-surface: #0d3566;   /* dark blue surface */
+  --c-surface2: #0a2a54;  /* dark blue medium */
+  --c-surface3: #072040;  /* dark blue darker */
+  --c-border: rgba(165, 0, 68, 0.6);  /* maroon borders */
 
-  --c-text: #f4f4f4;
-  --c-muted: rgba(244, 244, 244, 0.72);
+  --c-text: #f0f4f8;      /* light text */
+  --c-muted: rgba(240, 244, 248, 0.75);
   --c-ink: #0b0b0b;
 
-  --c-accent: #FDCB00;   /* yellow */
-  --c-accent2: #A50044;  /* maroon */
-  --c-accent3: #004D98;  /* blue */
+  --c-accent: #A50044;    /* Barça maroon (grana) */
+  --c-accent2: #004D98;   /* Barça blue (blau) */
+  --c-accent3: #FDCB00;   /* Catalan yellow */
   --c-danger: #A50044;
 
-  --rgb-accent: 253 203 0;
-  --rgb-accent2: 165 0 68;
-  --rgb-accent3: 0 77 152;
+  --rgb-accent: 165 0 68;
+  --rgb-accent2: 0 77 152;
+  --rgb-accent3: 253 203 0;
   --rgb-danger: 165 0 68;
 
-  --c-header-bg: var(--c-accent3);
-  --c-header-border: var(--c-accent);
+  --c-logo-fill: #5DADE2;
+  --c-logo-stroke: var(--c-accent);
+  --rgb-logo-glow: var(--rgb-accent3);
 
-  --g-surface: linear-gradient(135deg, rgba(0,77,152,0.18), rgba(165,0,68,0.18));
-  --g-surface-2: linear-gradient(135deg, rgba(0,77,152,0.12), rgba(253,203,0,0.08));
-  --g-accent: linear-gradient(135deg, var(--c-accent), var(--c-accent2));
-  --g-accent-h: linear-gradient(90deg, var(--c-accent), var(--c-accent2));
-  --g-vinyl: radial-gradient(circle at 35% 35%, rgba(253,203,0,0.22), rgba(0,77,152,0.25));
+  --c-header-bg: #0d3566;
+  --c-header-border: rgba(165, 0, 68, 0.7);
+
+  /* Input/badge/button colors */
+  --c-input-bg: rgba(0,0,0,0.85);
+  --c-badge-bg: #0b0b0b;
+  --c-button-secondary: #A50044;
+
+  --g-surface: #0d3566;
+  --g-surface-2: #0a2a54;
+  --g-accent: #A50044;
+  --g-accent-h: #A50044;
+  
+  /* Barcelona: fractured vertical stripes (SVG path, non-repeating) */
+  --g-page: url('/barcelona-fractured-stripes.svg');
+  --g-vinyl: radial-gradient(circle at 35% 35%, rgba(0,77,152,0.4), rgba(165,0,68,0.3));
 
   --primary: var(--c-text);
   --bg: var(--c-bg);
   --text: var(--c-text);
   --muted: var(--c-muted);
   --accent: var(--c-accent);
+}
+
+html[data-theme='vodafone-mclaren']{
+  /* Vodafone McLaren: silver / red / white */
+  --c-bg: #e8ecf0;        /* silver main */
+  --c-bg2: #d4d8dc;       /* silver darker */
+  --c-surface: #f5f7f9;   /* silver lighter */
+  --c-surface2: #e0e4e8;  /* silver medium */
+  --c-surface3: #d0d4d8;  /* silver darker */
+  --c-border: rgba(212, 0, 26, 0.6);  /* red borders */
+
+  --c-text: #0b0b0b;      /* black text */
+  --c-muted: rgba(11, 11, 11, 0.7);
+  --c-ink: #0b0b0b;
+
+  --c-accent: #d4001a;    /* McLaren red */
+  --c-accent2: #d4001a;   /* McLaren red */
+  --c-accent3: #ffffff;   /* white */
+  --c-danger: #d4001a;
+
+  --rgb-accent: 212 0 26;
+  --rgb-accent2: 212 0 26;
+  --rgb-accent3: 255 255 255;
+  --rgb-danger: 212 0 26;
+
+  --c-logo-fill: var(--c-accent);
+  --c-logo-stroke: var(--c-ink);
+  --rgb-logo-glow: var(--rgb-accent3);
+
+  --c-header-bg: #e0e4e8;
+  --c-header-border: rgba(212, 0, 26, 0.7);
+
+  /* Input/badge/button colors */
+  --c-input-bg: rgba(0,0,0,0.85);
+  --c-badge-bg: #0b0b0b;
+  --c-button-secondary: #d4001a;
+
+  --g-surface: #f0f4f8;
+  --g-surface-2: #e8ecf0;
+  --g-accent: #d4001a;
+  --g-accent-h: #d4001a;
+  
+  /* Carbon fiber pattern on silver */
+  --g-page: 
+    repeating-linear-gradient(45deg, 
+      rgba(0,0,0,0) 0px, 
+      rgba(0,0,0,0) 2px, 
+      rgba(0,0,0,0.08) 2px, 
+      rgba(0,0,0,0.08) 4px),
+    repeating-linear-gradient(-45deg, 
+      rgba(255,255,255,0.4) 0px, 
+      rgba(255,255,255,0.4) 2px, 
+      rgba(0,0,0,0.06) 2px, 
+      rgba(0,0,0,0.06) 4px),
+    repeating-linear-gradient(45deg, 
+      rgba(255,255,255,0.3) 0px, 
+      rgba(255,255,255,0.3) 6px, 
+      rgba(0,0,0,0.05) 6px, 
+      rgba(0,0,0,0.05) 12px),
+    repeating-linear-gradient(-45deg, 
+      rgba(0,0,0,0.04) 0px, 
+      rgba(0,0,0,0.04) 6px, 
+      rgba(255,255,255,0.3) 6px, 
+      rgba(255,255,255,0.3) 12px);
+  --g-vinyl: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.7), rgba(200,200,200,0.9));
+
+  --primary: var(--c-text);
+  --bg: var(--c-bg);
+  --text: var(--c-text);
+  --muted: var(--c-muted);
+  --accent: var(--c-accent);
+}
+
+html[data-theme='arsenal-classic']{
+  /* Arsenal Classic: black / yellow / red */
+  --c-bg: #f4d000;
+  --c-bg2: #e3bf00;
+  --c-surface: #f7da2a;
+  --c-surface2: #b8a32d;
+  --c-surface3: #caa800;
+  --c-border: rgb(200, 16, 47);
+
+  --c-text: #000000;
+  --c-muted: #1a1a1a;
+  --c-ink: #0b0b0b;
+
+  --c-accent: #ffd500;   /* yellow (primary) */
+  --c-accent2: #c8102e;  /* red */
+  --c-accent3: #0b0b0b;  /* black */
+  --c-danger: #c8102e;
+
+  --rgb-accent: 255 213 0;
+  --rgb-accent2: 200 16 46;
+  --rgb-accent3: 11 11 11;
+  --rgb-danger: 200 16 46;
+
+  --c-logo-fill: var(--c-accent2);
+  --c-logo-stroke: var(--c-accent3);
+  --rgb-logo-glow: var(--rgb-accent2);
+
+  --c-header-bg: #f2cf00;
+  --c-header-border: rgba(0, 0, 0, 0.6);
+
+  /* Improved readability colors */
+  --c-input-bg: #1a1501;
+  --c-badge-bg: #0b0b0b;
+  --c-button-secondary: #c00606;
+
+  --g-surface: #ffd500;
+  --g-surface-2: #f0cc00;
+  --g-accent: linear-gradient(135deg, var(--c-accent), var(--c-accent2));
+  --g-accent-h: #c8102e;
+  --g-vinyl: radial-gradient(circle at 35% 35%, rgba(255,213,0,0.6), rgba(8,8,8,0.85));
+  --g-page: repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(11,11,11,0.65) 35px, rgba(11,11,11,0.65) 45px);
+
+  --primary: var(--c-text);
+  --bg: var(--c-bg);
+  --text: var(--c-text);
+  --muted: var(--c-muted);
+  --accent: var(--c-accent);
+}
+
+/* Arsenal theme: improved text readability */
+html[data-theme='arsenal-classic'] body,
+html[data-theme='arsenal-classic'] body * {
+  font-weight: 600;
+}
+
+html[data-theme='arsenal-classic'] strong,
+html[data-theme='arsenal-classic'] b,
+html[data-theme='arsenal-classic'] .font-weight-800,
+html[data-theme='arsenal-classic'] [style*="fontWeight: 800"],
+html[data-theme='arsenal-classic'] [style*="fontWeight: 900"] {
+  font-weight: 900 !important;
 }
 
 @keyframes spin {
@@ -142,10 +298,19 @@ body {
   margin: 0;
   font-family: 'Poppins', 'Archivo', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   background: var(--bg);
+  background-image: var(--g-page);
+  background-attachment: fixed;
   color: var(--text);
   font-weight: 500;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Barcelona theme: keep fractured pattern behind content */
+html[data-theme='barcelona-home'] body {
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center top;
 }
 
 .app-wrap {
@@ -497,7 +662,7 @@ body {
 }
 
 .save-btn {
-  background: var(--g-accent);
+  background: var(--c-accent);
   color: var(--c-ink);
 }
 
@@ -594,16 +759,16 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .create-playlist-btn {
-  background: var(--g-accent);
+  background: var(--c-accent2);
   color: var(--c-ink);
-  border: none;
+  border: 1px solid var(--c-accent2);
   padding: 12px 24px;
   border-radius: 12px;
   cursor: pointer;
   font-size: 15px;
   font-weight: 600;
   transition: all 0.3s;
-  box-shadow: 0 4px 15px rgb(var(--rgb-accent) / 0.35);
+  box-shadow: 0 4px 15px rgb(var(--rgb-accent2) / 0.35);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -611,7 +776,7 @@ input[type="range"]::-moz-range-thumb {
 
 .create-playlist-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgb(var(--rgb-accent) / 0.45);
+  box-shadow: 0 6px 20px rgb(var(--rgb-accent2) / 0.45);
 }
 
 .create-playlist-btn:active {
@@ -884,6 +1049,735 @@ input[type="range"]::-moz-range-thumb {
   transform: scale(1.05);
 }
 
+/* Arsenal Classic: playlist readability */
+html[data-theme='arsenal-classic'] .playlists-section {
+  background: var(--g-surface-2);
+  border: 2px solid var(--c-border);
+  box-shadow: 0 12px 36px rgb(var(--rgb-accent2) / 0.2);
+}
+
+html[data-theme='arsenal-classic'] .playlists-header h2 {
+  color: var(--c-text);
+  text-shadow: 0 2px 0 rgb(var(--rgb-accent2) / 0.25);
+  font-weight: 900;
+}
+
+html[data-theme='arsenal-classic'] .create-playlist-btn {
+  background: var(--c-accent2);
+  color: var(--c-ink);
+  box-shadow: 0 6px 18px rgb(var(--rgb-accent2) / 0.35);
+}
+
+html[data-theme='arsenal-classic'] .create-playlist-btn:hover {
+  box-shadow: 0 8px 22px rgb(var(--rgb-accent2) / 0.45);
+}
+
+html[data-theme='arsenal-classic'] .playlist-card {
+  background: var(--g-surface);
+  border: 2px solid var(--c-border);
+  box-shadow: 0 8px 22px rgb(var(--rgb-accent2) / 0.2);
+}
+
+html[data-theme='arsenal-classic'] .playlist-card::before {
+  background: rgba(200, 16, 46, 0.12);
+}
+
+html[data-theme='arsenal-classic'] .playlist-name {
+  color: var(--c-text);
+  font-weight: 900;
+}
+
+html[data-theme='arsenal-classic'] .playlist-meta {
+  color: var(--c-text);
+  opacity: 1;
+  font-weight: 700;
+}
+
+html[data-theme='arsenal-classic'] .playlist-edit-btn {
+  background: var(--c-badge-bg);
+  color: var(--c-accent2);
+  border: 1px solid var(--c-accent2);
+  font-weight: 800;
+}
+
+html[data-theme='arsenal-classic'] .playlist-edit-btn:hover {
+  background: var(--c-accent2);
+  color: var(--c-ink);
+}
+
+html[data-theme='arsenal-classic'] .playlist-delete-btn {
+  background: var(--c-accent2);
+  color: var(--c-ink);
+  border: 1px solid var(--c-accent2);
+  font-weight: 800;
+}
+
+html[data-theme='arsenal-classic'] .save-btn,
+html[data-theme='arsenal-classic'] .modal-btn-primary,
+html[data-theme='arsenal-classic'] .add-to-playlist-btn,
+html[data-theme='arsenal-classic'] .playlist-selector-item.selected {
+  background: var(--c-accent2);
+  color: var(--c-ink);
+  border: 1px solid var(--c-accent2);
+}
+
+html[data-theme='arsenal-classic'] .playlist-delete-btn:hover {
+  background: #a80f27;
+  color: var(--c-ink);
+}
+
+/* ========================================
+   Vodafone McLaren Theme Overrides
+   ======================================== */
+
+/* McLaren theme: improved text readability */
+html[data-theme='vodafone-mclaren'] body,
+html[data-theme='vodafone-mclaren'] body * {
+  font-weight: 600;
+}
+
+html[data-theme='vodafone-mclaren'] strong,
+html[data-theme='vodafone-mclaren'] b,
+html[data-theme='vodafone-mclaren'] .font-weight-800,
+html[data-theme='vodafone-mclaren'] [style*="fontWeight: 800"],
+html[data-theme='vodafone-mclaren'] [style*="fontWeight: 900"] {
+  font-weight: 900 !important;
+}
+
+/* Playlist section improvements */
+html[data-theme='vodafone-mclaren'] .playlists-section {
+  background: var(--g-surface-2);
+  border: 2px solid var(--c-accent);
+  box-shadow: 0 12px 36px rgba(212, 0, 26, 0.25);
+}
+
+html[data-theme='vodafone-mclaren'] .playlists-header h2 {
+  color: var(--c-text);
+  text-shadow: 0 2px 0 rgba(212, 0, 26, 0.3);
+  font-weight: 900;
+}
+
+html[data-theme='vodafone-mclaren'] .create-playlist-btn {
+  background: var(--c-accent);
+  color: #ffffff;
+  border: 2px solid var(--c-accent);
+  box-shadow: 0 6px 18px rgba(212, 0, 26, 0.35);
+}
+
+html[data-theme='vodafone-mclaren'] .create-playlist-btn:hover {
+  background: #a00014;
+  color: #ffffff;
+  box-shadow: 0 8px 22px rgba(212, 0, 26, 0.45);
+}
+
+html[data-theme='vodafone-mclaren'] .playlist-card {
+  background: var(--g-surface);
+  border: 2px solid rgba(212, 0, 26, 0.3);
+  box-shadow: 0 8px 22px rgba(212, 0, 26, 0.15);
+}
+
+html[data-theme='vodafone-mclaren'] .playlist-card::before {
+  background: rgba(212, 0, 26, 0.08);
+}
+
+html[data-theme='vodafone-mclaren'] .playlist-name {
+  color: var(--c-text);
+  font-weight: 900;
+}
+
+html[data-theme='vodafone-mclaren'] .playlist-meta {
+  color: var(--c-text);
+  opacity: 1;
+  font-weight: 700;
+}
+
+html[data-theme='vodafone-mclaren'] .playlist-edit-btn {
+  background: var(--c-badge-bg);
+  color: #ffffff;
+  border: 2px solid var(--c-accent);
+  font-weight: 800;
+}
+
+html[data-theme='vodafone-mclaren'] .playlist-edit-btn:hover {
+  background: var(--c-accent);
+  color: #ffffff;
+}
+
+html[data-theme='vodafone-mclaren'] .playlist-delete-btn {
+  background: var(--c-accent);
+  color: #ffffff;
+  border: 2px solid var(--c-accent);
+  font-weight: 800;
+}
+
+html[data-theme='vodafone-mclaren'] .save-btn,
+html[data-theme='vodafone-mclaren'] .modal-btn-primary,
+html[data-theme='vodafone-mclaren'] .add-to-playlist-btn,
+html[data-theme='vodafone-mclaren'] .playlist-selector-item.selected {
+  background: var(--c-accent);
+  color: #ffffff;
+  border: 2px solid var(--c-accent);
+}
+
+html[data-theme='vodafone-mclaren'] .playlist-delete-btn:hover {
+  background: #a00014;
+  color: #ffffff;
+}
+
+/* ========================================
+   FC Barcelona Theme Overrides
+   ======================================== */
+
+/* ========================================
+   FC Barcelona Theme Overrides
+   ======================================== */
+
+/* Barcelona theme: improved text readability */
+html[data-theme='barcelona-home'] body,
+html[data-theme='barcelona-home'] body * {
+  font-weight: 600;
+}
+
+html[data-theme='barcelona-home'] strong,
+html[data-theme='barcelona-home'] b,
+html[data-theme='barcelona-home'] .font-weight-800,
+html[data-theme='barcelona-home'] [style*="fontWeight: 800"],
+html[data-theme='barcelona-home'] [style*="fontWeight: 900"] {
+  font-weight: 900 !important;
+}
+
+/* Playlist section improvements */
+html[data-theme='barcelona-home'] .playlists-section {
+  background: rgba(10, 20, 42, 0.95);
+  border: 2px solid var(--c-accent2);
+  box-shadow: 0 12px 36px rgba(0, 77, 152, 0.4);
+}
+
+html[data-theme='barcelona-home'] .playlists-header h2 {
+  color: var(--c-text);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+  font-weight: 900;
+}
+
+html[data-theme='barcelona-home'] .create-playlist-btn {
+  background: var(--c-accent);
+  color: #ffffff;
+  border: 2px solid #5DADE2;
+  box-shadow: 0 6px 18px rgba(165, 0, 68, 0.5);
+}
+
+html[data-theme='barcelona-home'] .create-playlist-btn:hover {
+  background: #A50044;
+  color: #ffffff;
+  box-shadow: 0 8px 22px rgba(165, 0, 68, 0.6);
+}
+
+html[data-theme='barcelona-home'] .playlist-card {
+  background: rgba(13, 53, 102, 0.6);
+  border: 2px solid #5DADE2;
+  box-shadow: 0 8px 22px rgba(0, 77, 152, 0.3);
+}
+
+html[data-theme='barcelona-home'] .playlist-card::before {
+  background: linear-gradient(135deg, rgba(165, 0, 68, 0.15), rgba(0, 77, 152, 0.15));
+}
+
+html[data-theme='barcelona-home'] .playlist-name {
+  color: var(--c-text);
+  font-weight: 900;
+}
+
+html[data-theme='barcelona-home'] .playlist-meta {
+  color: var(--c-muted);
+  opacity: 1;
+  font-weight: 700;
+}
+
+html[data-theme='barcelona-home'] .playlist-edit-btn {
+  background: transparent;
+  color: #5DADE2;
+  border: 2px solid #5DADE2;
+  font-weight: 800;
+}
+
+html[data-theme='barcelona-home'] .playlist-edit-btn:hover {
+  background: #5DADE2;
+  color: var(--c-ink);
+}
+
+html[data-theme='barcelona-home'] .playlist-delete-btn {
+  background: var(--c-accent);
+  color: #ffffff;
+  border: 2px solid #5DADE2;
+  font-weight: 800;
+}
+
+html[data-theme='barcelona-home'] .save-btn,
+html[data-theme='barcelona-home'] .modal-btn-primary,
+html[data-theme='barcelona-home'] .add-to-playlist-btn,
+html[data-theme='barcelona-home'] .playlist-selector-item.selected {
+  background: var(--c-accent);
+  color: #ffffff;
+  border: 2px solid #5DADE2;
+}
+
+html[data-theme='barcelona-home'] .playlist-delete-btn:hover {
+  background: #A50044;
+  color: #ffffff;
+}
+
+/* Barcelona: Modal & Form styles */
+html[data-theme='barcelona-home'] .modal-content {
+  background: rgba(10, 20, 42, 0.95);
+  border: 2px solid #5DADE2;
+}
+
+html[data-theme='barcelona-home'] .modal-header {
+  border-bottom: 2px solid #FDCB00;
+}
+
+html[data-theme='barcelona-home'] input[type="text"],
+html[data-theme='barcelona-home'] input[type="number"],
+html[data-theme='barcelona-home'] textarea {
+  background: rgba(0, 0, 0, 0.85);
+  border: 2px solid #5DADE2;
+  color: #ffffff;
+}
+
+html[data-theme='barcelona-home'] input[type="text"]:focus,
+html[data-theme='barcelona-home'] input[type="number"]:focus,
+html[data-theme='barcelona-home'] textarea:focus {
+  border-color: #FDCB00;
+  box-shadow: 0 0 12px rgba(253, 203, 0, 0.3);
+}
+
+html[data-theme='barcelona-home'] label {
+  color: #5DADE2;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+html[data-theme='barcelona-home'] select {
+  background: rgba(0, 0, 0, 0.85);
+  border: 2px solid #5DADE2;
+  color: #ffffff;
+}
+
+html[data-theme='barcelona-home'] select:focus {
+  border-color: #FDCB00;
+}
+
+html[data-theme='barcelona-home'] .btn,
+html[data-theme='barcelona-home'] button {
+  border-color: #5DADE2;
+}
+
+html[data-theme='barcelona-home'] .btn:hover,
+html[data-theme='barcelona-home'] button:hover {
+  background: var(--c-accent);
+  color: #ffffff;
+}
+
+/* Barcelona: Theme selector & any other buttons */
+html[data-theme='barcelona-home'] .theme-selector,
+html[data-theme='barcelona-home'] select {
+  background: rgba(13, 53, 102, 0.7);
+  border: 2px solid #5DADE2;
+  color: #5DADE2;
+}
+
+/* Barcelona: Header & Navigation */
+html[data-theme='barcelona-home'] .header {
+  border-bottom: 3px solid var(--c-accent);
+}
+
+html[data-theme='barcelona-home'] .header h1 {
+  color: var(--c-text);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+html[data-theme='barcelona-home'] .header-right {
+  gap: 12px;
+}
+
+html[data-theme='barcelona-home'] .logout-btn,
+html[data-theme='barcelona-home'] .add-btn {
+  background: var(--c-accent);
+  color: #ffffff;
+  border: 2px solid #5DADE2;
+  font-weight: 800;
+}
+
+html[data-theme='barcelona-home'] .logout-btn:hover,
+html[data-theme='barcelona-home'] .add-btn:hover {
+  background: #A50044;
+  box-shadow: 0 4px 12px rgba(165, 0, 68, 0.4);
+}
+
+/* Barcelona: Search Bar */
+html[data-theme='barcelona-home'] .search-bar input {
+  background: rgba(13, 53, 102, 0.6);
+  border: 2px solid #5DADE2;
+  color: #ffffff;
+}
+
+html[data-theme='barcelona-home'] .search-bar input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+html[data-theme='barcelona-home'] .search-bar input:focus {
+  border-color: var(--c-accent);
+  box-shadow: 0 0 16px rgba(165, 0, 68, 0.3);
+}
+
+/* Barcelona: Vinyl Cards */
+html[data-theme='barcelona-home'] .vinyl-item {
+  transform: none;
+}
+
+html[data-theme='barcelona-home'] .vinyl-item:hover {
+  transform: translateY(-8px);
+}
+
+html[data-theme='barcelona-home'] .vinyl-title {
+  color: var(--c-text);
+  font-weight: 900;
+}
+
+html[data-theme='barcelona-home'] .vinyl-artist {
+  color: var(--c-muted);
+  font-weight: 700;
+}
+
+html[data-theme='barcelona-home'] .vinyl-actions button {
+  background: rgba(13, 53, 102, 0.6);
+  border: 2px solid #5DADE2;
+  color: #5DADE2;
+  font-weight: 800;
+}
+
+html[data-theme='barcelona-home'] .edit-btn {
+  border-color: #5DADE2 !important;
+  color: #5DADE2;
+}
+
+html[data-theme='barcelona-home'] .edit-btn:hover {
+  background: #5DADE2;
+  color: var(--c-bg);
+}
+
+html[data-theme='barcelona-home'] .delete-btn {
+  border-color: var(--c-accent) !important;
+  color: var(--c-accent);
+}
+
+html[data-theme='barcelona-home'] .delete-btn:hover {
+  background: var(--c-accent);
+  color: #ffffff;
+}
+
+/* Barcelona: Playlist Song Items */
+html[data-theme='barcelona-home'] .playlist-song-item {
+  background: rgba(13, 53, 102, 0.5);
+  border: 2px solid #5DADE2;
+}
+
+html[data-theme='barcelona-home'] .playlist-song-item:hover {
+  background: rgba(13, 53, 102, 0.7);
+  border-color: var(--c-accent);
+  box-shadow: 0 6px 16px rgba(165, 0, 68, 0.3);
+}
+
+html[data-theme='barcelona-home'] .playlist-song-drag-handle {
+  color: var(--c-accent);
+}
+
+html[data-theme='barcelona-home'] .playlist-song-title {
+  color: var(--c-text);
+  font-weight: 900;
+}
+
+html[data-theme='barcelona-home'] .playlist-song-artist {
+  color: var(--c-muted);
+  font-weight: 700;
+}
+
+html[data-theme='barcelona-home'] .playlist-song-remove {
+  background: rgba(165, 0, 68, 0.2);
+  color: var(--c-accent);
+  border: 2px solid var(--c-accent);
+  font-weight: 800;
+}
+
+html[data-theme='barcelona-home'] .playlist-song-remove:hover {
+  background: var(--c-accent);
+  color: #ffffff;
+  border-color: var(--c-accent);
+}
+
+/* Barcelona: Player Controls */
+html[data-theme='barcelona-home'] .player-controls button,
+html[data-theme='barcelona-home'] .mini-player button {
+  background: transparent;
+  color: #5DADE2;
+  border: 2px solid #5DADE2;
+  font-weight: 800;
+}
+
+html[data-theme='barcelona-home'] .player-controls button:hover,
+html[data-theme='barcelona-home'] .mini-player button:hover {
+  background: #5DADE2;
+  color: var(--c-bg);
+}
+
+html[data-theme='barcelona-home'] .player-controls button.play-btn,
+html[data-theme='barcelona-home'] .mini-player button.play-btn {
+  background: var(--c-accent);
+  color: #ffffff;
+  border-color: #5DADE2;
+}
+
+html[data-theme='barcelona-home'] .player-controls button.play-btn:hover,
+html[data-theme='barcelona-home'] .mini-player button.play-btn:hover {
+  background: #A50044;
+}
+
+/* Barcelona: Progress Bar */
+html[data-theme='barcelona-home'] .progress-slider,
+html[data-theme='barcelona-home'] .volume-control,
+html[data-theme='barcelona-home'] input[type="range"] {
+  accent-color: #5DADE2;
+}
+
+html[data-theme='barcelona-home'] .progress-slider::-webkit-slider-thumb,
+html[data-theme='barcelona-home'] input[type="range"]::-webkit-slider-thumb {
+  background: #FDCB00;
+  box-shadow: 0 0 8px rgba(253, 203, 0, 0.5);
+}
+
+/* Barcelona: Badges & Tags */
+html[data-theme='barcelona-home'] .badge,
+html[data-theme='barcelona-home'] .tag {
+  background: var(--c-accent);
+  color: #ffffff;
+  border: 2px solid #5DADE2;
+  font-weight: 800;
+}
+
+html[data-theme='barcelona-home'] .section-title {
+  color: var(--c-text);
+  border-bottom: 2px solid #5DADE2;
+  padding-bottom: 12px;
+  font-weight: 900;
+}
+
+/* Barcelona: Lyrics Display */
+html[data-theme='barcelona-home'] .lyrics-line {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+html[data-theme='barcelona-home'] .lyrics-line.active {
+  color: #FDCB00;
+  font-weight: 900;
+  text-shadow: 0 0 12px rgba(253, 203, 0, 0.5);
+}
+
+/* Barcelona: Pagination */
+html[data-theme='barcelona-home'] .pagination button {
+  background: rgba(13, 53, 102, 0.6);
+  border: 2px solid #5DADE2;
+  color: #5DADE2;
+  font-weight: 800;
+}
+
+html[data-theme='barcelona-home'] .pagination button:hover:not(:disabled) {
+  background: var(--c-accent);
+  color: #ffffff;
+  border-color: var(--c-accent);
+}
+
+html[data-theme='barcelona-home'] .pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Barcelona: Info Text */
+html[data-theme='barcelona-home'] .user-info {
+  color: #5DADE2;
+  font-weight: 700;
+}
+
+html[data-theme='barcelona-home'] .user-info strong {
+  color: var(--c-text);
+  font-weight: 900;
+}
+
+html[data-theme='barcelona-home'] .pagination-info {
+  color: #5DADE2;
+  font-weight: 700;
+}
+
+/* Barcelona: Modal Adjustments */
+html[data-theme='barcelona-home'] .modal-btn-primary {
+  background: var(--c-accent);
+  color: #ffffff;
+  border: 2px solid #5DADE2;
+  font-weight: 800;
+}
+
+html[data-theme='barcelona-home'] .modal-btn-secondary {
+  background: transparent;
+  color: #5DADE2;
+  border: 2px solid #5DADE2;
+  font-weight: 800;
+}
+
+html[data-theme='barcelona-home'] .modal-btn-secondary:hover {
+  background: #5DADE2;
+  color: var(--c-bg);
+}
+
+/* Barcelona: Top Vinyls Section */
+html[data-theme='barcelona-home'] h2:has(+ div) {
+  color: var(--c-text) !important;
+}
+
+/* Barcelona: 8-BIT Arcade Section */
+html[data-theme='barcelona-home'] .arcade-8bit-badge {
+  background: var(--c-accent) !important;
+  border-color: #5DADE2 !important;
+  color: #FDCB00 !important;
+  box-shadow: 0 4px 0 #5DADE2 !important;
+}
+
+html[data-theme='barcelona-home'] .arcade-title {
+  color: var(--c-text) !important;
+  text-shadow: 0 1px 0 rgba(165, 0, 68, 0.35) !important;
+}
+
+/* Barcelona: Game Tab Buttons (21, Poker) */
+html[data-theme='barcelona-home'] .game-tab-btn {
+  background: rgba(13, 53, 102, 0.7) !important;
+  border-color: #5DADE2 !important;
+  color: #5DADE2 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='barcelona-home'] .game-tab-btn[style*="boxShadow: 0 4px"] {
+  background: var(--c-accent) !important;
+  color: #ffffff !important;
+  border-color: #5DADE2 !important;
+  box-shadow: 0 4px 0 rgba(165, 0, 68, 0.30) !important;
+}
+
+/* Barcelona: PLAY button */
+html[data-theme='barcelona-home'] .arcade-play-btn {
+  background: var(--c-accent) !important;
+  color: #ffffff !important;
+  border-color: #5DADE2 !important;
+  box-shadow: 0 4px 0 rgba(93, 173, 226, 0.30) !important;
+}
+
+/* "Sorted by likes" badge */
+html[data-theme='barcelona-home'] .sorted-badge {
+  background: var(--c-accent) !important;
+  color: #ffffff !important;
+  border-color: #5DADE2 !important;
+}
+
+/* "Sorted by likes" badge */
+html[data-theme='barcelona-home'] div[style*="Sorted by likes"],
+html[data-theme='barcelona-home'] div[style*="borderRadius: 999"] {
+  background: var(--c-accent) !important;
+  color: #ffffff !important;
+  border-color: #5DADE2 !important;
+}
+
+/* Vinyl rank badges (1, 2, 3, 4) */
+html[data-theme='barcelona-home'] div[style*="position: absolute"][style*="top: 6"][style*="right: 6"] {
+  background: var(--c-accent) !important;
+  color: #FDCB00 !important;
+  border-color: #5DADE2 !important;
+  box-shadow: 0 4px 12px rgba(165, 0, 68, 0.5) !important;
+}
+
+/* Audio Available badges */
+html[data-theme='barcelona-home'] div[style*="Audio Available"],
+html[data-theme='barcelona-home'] div[style*="borderRadius: 20"] {
+  background: rgba(13, 53, 102, 0.7) !important;
+  color: #5DADE2 !important;
+  border-color: #5DADE2 !important;
+}
+
+/* Carousel navigation buttons */
+html[data-theme='barcelona-home'] button[style*="position: absolute"][style*="translateY(-50%)"] {
+  background: rgba(13, 53, 102, 0.7) !important;
+  border-color: #5DADE2 !important;
+  color: #5DADE2 !important;
+}
+
+html[data-theme='barcelona-home'] button[style*="position: absolute"][style*="translateY(-50%)"]:hover:not(:disabled) {
+  background: var(--c-accent) !important;
+  color: #ffffff !important;
+  border-color: var(--c-accent) !important;
+}
+
+/* Pagination dots */
+html[data-theme='barcelona-home'] button[style*="borderRadius: 5"][style*="height: 10"] {
+  background: rgba(255, 255, 255, 0.18) !important;
+}
+
+html[data-theme='barcelona-home'] button[style*="borderRadius: 5"][style*="height: 10"][style*="width: 30"] {
+  background: var(--c-accent) !important;
+}
+
+/* Barcelona: View Mode buttons (SONGS/PLAYLISTS) */
+html[data-theme='barcelona-home'] .view-mode-btn {
+  background: var(--c-accent2) !important;
+  color: #ffffff !important;
+  border: 2px solid #5DADE2 !important;
+  box-shadow: 0 4px 0 rgba(93, 173, 226, 0.30) !important;
+}
+
+html[data-theme='barcelona-home'] .view-mode-btn[style*="var(--c-badge-bg)"] {
+  background: rgba(0, 77, 152, 0.5) !important;
+  color: #5DADE2 !important;
+  border: 2px solid #5DADE2 !important;
+  box-shadow: none !important;
+}
+
+/* Barcelona: Progress bar under header */
+html[data-theme='barcelona-home'] .progress-bar-accent {
+  background: linear-gradient(90deg, var(--c-accent) 0%, #5DADE2 50%, var(--c-accent) 100%) !important;
+  box-shadow: 0 0 16px rgba(165, 0, 68, 0.6), 0 0 32px rgba(93, 173, 226, 0.4) !important;
+}
+
+/* Barcelona: Sort dropdown */
+html[data-theme='barcelona-home'] .sort-dropdown {
+  background: var(--c-accent) !important;
+  color: #ffffff !important;
+  border: 2px solid #5DADE2 !important;
+  font-weight: 900 !important;
+  box-shadow: 0 4px 0 rgba(93, 173, 226, 0.30) !important;
+}
+
+html[data-theme='barcelona-home'] .sort-dropdown:focus {
+  border-color: #FDCB00 !important;
+  box-shadow: 0 0 12px rgba(253, 203, 0, 0.5) !important;
+}
+
+/* Barcelona: Add Vinyl button */
+html[data-theme='barcelona-home'] .add-vinyl-btn {
+  background: var(--c-accent) !important;
+  color: #ffffff !important;
+  border: 2px solid #5DADE2 !important;
+  box-shadow: 0 6px 0 rgba(93, 173, 226, 0.35), 0 12px 24px rgba(165, 0, 68, 0.25) !important;
+}
+
+html[data-theme='barcelona-home'] .add-vinyl-btn:hover {
+  box-shadow: 0 8px 0 rgba(93, 173, 226, 0.40), 0 16px 32px rgba(165, 0, 68, 0.35) !important;
+}
+
 /* Drag and Drop States */
 .dragging {
   opacity: 0.5;
@@ -1025,7 +1919,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .modal-btn-primary {
-  background: var(--g-accent);
+  background: var(--c-accent);
   color: var(--c-ink);
   box-shadow: 0 10px 22px rgb(var(--rgb-accent) / 0.22);
 }
@@ -1047,7 +1941,7 @@ input[type="range"]::-moz-range-thumb {
 
 /* Add to Playlist Button */
 .add-to-playlist-btn {
-  background: var(--g-accent);
+  background: var(--c-accent);
   color: var(--c-ink);
   border: none;
   padding: 8px 12px;
@@ -1089,6 +1983,6 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .playlist-selector-item.selected {
-  background: var(--g-accent);
+  background: var(--c-accent);
   color: var(--c-ink);
 }
