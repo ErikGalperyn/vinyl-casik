@@ -1407,11 +1407,6 @@ export default function Home() {
       }
     } else {
       const vinyl = vinyls.find(v => String(v.id) === id);
-      // Don't play preview tracks
-      if (vinyl && isPreviewTrack(vinyl)) {
-        alert('⚠️ This is a demo/preview track and cannot be played. Full tracks require audio files.');
-        return;
-      }
       // Check if audio file exists
       if (!vinyl?.musicUrl) {
         alert('⚠️ No audio file available for this track.');
