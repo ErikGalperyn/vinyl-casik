@@ -1740,16 +1740,16 @@ html[data-theme='barcelona-home'] button[style*="borderRadius: 5"][style*="heigh
 
 /* Barcelona: View Mode buttons (SONGS/PLAYLISTS) */
 html[data-theme='barcelona-home'] .view-mode-btn {
-  background: var(--c-accent2) !important;
+  background: #5DADE2 !important;
   color: #ffffff !important;
-  border: 2px solid #5DADE2 !important;
-  box-shadow: 0 4px 0 rgba(93, 173, 226, 0.30) !important;
+  border: 3px solid #5DADE2 !important;
+  box-shadow: 0 6px 0 rgba(93, 173, 226, 0.50), 0 8px 20px rgba(93, 173, 226, 0.35) !important;
 }
 
 html[data-theme='barcelona-home'] .view-mode-btn[style*="var(--c-badge-bg)"] {
-  background: rgba(0, 77, 152, 0.5) !important;
-  color: #5DADE2 !important;
-  border: 2px solid #5DADE2 !important;
+  background: rgba(0, 77, 152, 0.25) !important;
+  color: rgba(93, 173, 226, 0.7) !important;
+  border: 3px solid rgba(93, 173, 226, 0.4) !important;
   box-shadow: none !important;
 }
 
@@ -1792,21 +1792,33 @@ html[data-theme='barcelona-home'] .burger-button {
   box-shadow: 0 6px 0 rgba(93, 173, 226, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
 }
 
+/* Barcelona: Burger button (inactive) */
+html[data-theme='barcelona-home'] .burger-button {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border: 3px solid #FDCB00 !important;
+  box-shadow: 0 6px 20px rgba(253, 203, 0, 0.4), inset 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+html[data-theme='barcelona-home'] .burger-button:hover {
+  background: rgba(253, 203, 0, 0.15) !important;
+  box-shadow: 0 8px 24px rgba(253, 203, 0, 0.5), inset 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
 html[data-theme='barcelona-home'] .burger-button[style*="var(--c-accent2)"] {
   background: var(--c-accent2) !important;
-  border: 2px solid #FDCB00 !important;
-  box-shadow: 0 8px 0 rgba(253, 203, 0, 0.50), 0 12px 24px rgba(0, 77, 152, 0.35) !important;
+  border: 3px solid #FDCB00 !important;
+  box-shadow: 0 8px 0 rgba(253, 203, 0, 0.60), 0 12px 28px rgba(0, 77, 152, 0.45) !important;
 }
 
 html[data-theme='barcelona-home'] .burger-button div div {
-  background: #5DADE2 !important;
+  background: #FDCB00 !important;
 }
 
 /* Barcelona: Logo */
 html[data-theme='barcelona-home'] .logo-animated {
-  color: #FDCB00 !important;
-  -webkit-text-stroke: 1.5px var(--c-accent) !important;
-  filter: drop-shadow(0 4px 12px rgba(165, 0, 68, 0.6)) drop-shadow(0 0 20px rgba(253, 203, 0, 0.4)) !important;
+  color: var(--c-accent) !important;
+  -webkit-text-stroke: 2px #FDCB00 !important;
+  filter: drop-shadow(0 4px 16px rgba(253, 203, 0, 0.7)) drop-shadow(0 0 24px rgba(165, 0, 68, 0.5)) !important;
 }
 
 /* Barcelona: Theme selector */
