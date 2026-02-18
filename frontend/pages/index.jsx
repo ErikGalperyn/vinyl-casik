@@ -290,6 +290,10 @@ export default function Home() {
     if (el) {
       audioRefsRef.current[vinylId] = el;
       el.volume = 1;
+      console.log(`✓ Audio element created for vinyl ${vinylId}, src: ${el.src}`);
+      el.addEventListener('error', (e) => {
+        console.error(`✗ Audio error for vinyl ${vinylId}:`, e.error);
+      });
     }
   }, []);
 
@@ -365,6 +369,12 @@ export default function Home() {
         setUser(decoded);
       }
       const data = await getVinyls();
+      console.log('📦 Loaded vinyls from API:', data.length, 'tracks');
+      data.forEach((v, idx) => {
+        if (v.title.includes('Up') || v.title.includes('HUSBAND')) {
+          console.log(`  [${idx}] "${v.title}" - musicUrl: ${v.musicUrl ? '✓' : '✗'}, previewUrl: ${v.previewUrl ? '✓' : '✗'}`);
+        }
+      });
       setVinyls(data);
       const playlistsData = await getPlaylists();
       setPlaylists(playlistsData);
@@ -1407,15 +1417,22 @@ export default function Home() {
       }
     } else {
       const vinyl = vinyls.find(v => String(v.id) === id);
+      console.log(`🎵 Trying to play vinyl ${id}:`, vinyl?.title, '- musicUrl:', vinyl?.musicUrl, '- previewUrl:', vinyl?.previewUrl);
       // Check if audio file exists (musicUrl or previewUrl)
       if (!vinyl?.musicUrl && !vinyl?.previewUrl) {
+        console.error(`✗ No audio URL for vinyl ${id}`);
         alert('⚠️ No audio file available for this track.');
         return;
       }
       if ((vinyl?.musicUrl || vinyl?.previewUrl) && audioRefsRef.current[id]) {
+        console.log(`▶ Playing audio for vinyl ${id}`);
         audioRefsRef.current[id].volume = 1;
-        audioRefsRef.current[id].play().catch(err => console.log('Audio play error:', err));
+        audioRefsRef.current[id].play().catch(err => {
+          console.error(`✗ Play error for vinyl ${id}:`, err);
+        });
         setCurrentlyPlaying(vinyl);
+      } else {
+        console.warn(`⚠ Audio element not found in ref for vinyl ${id}. Available refs:`, Object.keys(audioRefsRef.current));
       }
     }
 
