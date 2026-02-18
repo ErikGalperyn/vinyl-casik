@@ -1867,8 +1867,8 @@ html[data-theme='barcelona-home'] .vinyl-action-menu-btn:hover {
 
 /* Barcelona: Vinyl cover container */
 html[data-theme='barcelona-home'] .vinyl-cover-container {
-  border: 3px solid #5DADE2 !important;
-  box-shadow: 0 4px 12px rgba(93, 173, 226, 0.4), inset 0 0 20px rgba(0, 77, 152, 0.2) !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45) !important;
 }
 
 /* Barcelona: Vinyl title */
@@ -1884,7 +1884,7 @@ html[data-theme='barcelona-home'] .vinyl-artist {
 
 /* Barcelona: Vinyl genre/owner */
 html[data-theme='barcelona-home'] .vinyl-genre {
-  color: #5DADE2 !important;
+  color: #FDCB00 !important;
   font-weight: 700 !important;
 }
 
