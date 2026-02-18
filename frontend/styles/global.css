@@ -1936,6 +1936,83 @@ html[data-theme='barcelona-home'] .top-vinyl-cover > div[style*="inset: '15%'"] 
   border-color: #5DADE2 !important;
 }
 
+/* Barcelona: Mini Player */
+html[data-theme='barcelona-home'] .mini-player {
+  background: var(--c-surface) !important;
+  border-color: var(--c-accent) !important;
+  box-shadow: 0 20px 50px rgba(165, 0, 68, 0.5), 0 0 80px rgba(165, 0, 68, 0.25) !important;
+}
+
+html[data-theme='barcelona-home'] .mini-player div[style*="NOW PLAYING"] {
+  color: var(--c-accent) !important;
+}
+
+html[data-theme='barcelona-home'] .mini-player button[style*="var(--c-accent2)"] {
+  background: var(--c-accent) !important;
+  border-color: #FDCB00 !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 0 rgba(253, 203, 0, 0.4) !important;
+}
+
+html[data-theme='barcelona-home'] .mini-player button[style*="var(--c-badge-bg)"] {
+  background: rgba(165, 0, 68, 0.15) !important;
+  border-color: var(--c-accent) !important;
+  color: var(--c-accent) !important;
+}
+
+html[data-theme='barcelona-home'] .mini-player button[style*="var(--c-badge-bg)"]:hover {
+  background: var(--c-accent) !important;
+  color: #ffffff !important;
+}
+
+html[data-theme='barcelona-home'] .mini-player div[style*="background: 'var(--c-badge-bg)'"] {
+  background: rgba(165, 0, 68, 0.1) !important;
+  border-color: var(--c-accent) !important;
+}
+
+html[data-theme='barcelona-home'] .mini-player div[style*="background: 'var(--c-accent2)'"],
+html[data-theme='barcelona-home'] .mini-player div[style*="width: `"] {
+  background: var(--c-accent) !important;
+  box-shadow: 0 0 12px rgba(165, 0, 68, 0.6) !important;
+}
+
+/* Barcelona: Fullscreen Player */
+html[data-theme='barcelona-home'] .fullscreen-player {
+  background: linear-gradient(135deg, rgba(165, 0, 68, 0.08) 0%, rgba(0, 77, 152, 0.08) 100%) !important;
+}
+
+html[data-theme='barcelona-home'] .fullscreen-player > div[style*="borderBottom: '2px solid"] {
+  border-color: var(--c-accent) !important;
+  background: var(--c-surface) !important;
+  box-shadow: 0 6px 20px rgba(165, 0, 68, 0.25) !important;
+}
+
+html[data-theme='barcelona-home'] .fullscreen-player div[style*="NOW PLAYING"] {
+  color: var(--c-accent) !important;
+}
+
+html[data-theme='barcelona-home'] .fullscreen-player h1 {
+  text-shadow: 0 2px 0 rgba(165, 0, 68, 0.35) !important;
+}
+
+html[data-theme='barcelona-home'] .fullscreen-player > button[style*="position: 'absolute'"] {
+  background: rgba(165, 0, 68, 0.15) !important;
+  border-color: var(--c-accent) !important;
+  color: var(--c-accent) !important;
+  box-shadow: 0 8px 24px rgba(165, 0, 68, 0.35) !important;
+}
+
+html[data-theme='barcelona-home'] .fullscreen-player > button[style*="position: 'absolute'"]:hover {
+  background: var(--c-accent) !important;
+  color: #ffffff !important;
+}
+
+html[data-theme='barcelona-home'] .fullscreen-player p[style*="color: 'var(--c-accent2)'"],
+html[data-theme='barcelona-home'] .fullscreen-player p[style*="color: highlight ? 'var(--c-accent2)'"] {
+  color: var(--c-accent) !important;
+  text-shadow: 0 0 24px rgba(165, 0, 68, 0.6), 0 2px 0 rgba(0, 0, 0, 0.5) !important;
+}
+
 /* Drag and Drop States */
 .dragging {
   opacity: 0.5;
