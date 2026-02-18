@@ -1748,8 +1748,8 @@ html[data-theme='barcelona-home'] .view-mode-btn[style*="var(--c-badge-bg)"] {
 
 /* Barcelona: Progress bar under header */
 html[data-theme='barcelona-home'] .progress-bar-accent {
-  background: linear-gradient(90deg, var(--c-accent) 0%, #5DADE2 50%, var(--c-accent) 100%) !important;
-  box-shadow: 0 0 16px rgba(165, 0, 68, 0.6), 0 0 32px rgba(93, 173, 226, 0.4) !important;
+  background: linear-gradient(90deg, var(--c-accent2) 0%, #FDCB00 50%, var(--c-accent2) 100%) !important;
+  box-shadow: 0 0 16px rgba(0, 77, 152, 0.6), 0 0 32px rgba(253, 203, 0, 0.5) !important;
 }
 
 /* Barcelona: Sort dropdown */
@@ -1839,10 +1839,10 @@ html[data-theme='barcelona-home'] .logout-btn:hover {
 
 /* Barcelona: Audio Available badge */
 html[data-theme='barcelona-home'] .audio-available-badge {
-  background: rgba(0, 77, 152, 0.6) !important;
-  color: #5DADE2 !important;
+  background: var(--c-accent) !important;
+  color: #FDCB00 !important;
   border: 2px solid #5DADE2 !important;
-  box-shadow: 0 4px 0 rgba(93, 173, 226, 0.30) !important;
+  box-shadow: 0 4px 0 rgba(93, 173, 226, 0.35), 0 0 12px rgba(165, 0, 68, 0.4) !important;
 }
 
 /* Barcelona: Vinyl action menu button (three dots) */
@@ -1920,12 +1920,12 @@ html[data-theme='barcelona-home'] .vinyl-like-count {
 
 /* Barcelona: Top vinyl cover (circular) */
 html[data-theme='barcelona-home'] .top-vinyl-cover {
-  box-shadow: 0 0 0 4px #5DADE2, 0 14px 28px rgba(93, 173, 226, 0.45), inset 0 2px 6px rgba(93, 173, 226, 0.15) !important;
+  box-shadow: 0 0 0 4px #FDCB00, 0 14px 28px rgba(253, 203, 0, 0.45), inset 0 2px 6px rgba(165, 0, 68, 0.15) !important;
 }
 
 /* Barcelona: Top vinyl inner border */
 html[data-theme='barcelona-home'] .top-vinyl-cover > div[style*="inset: '15%'"] {
-  border-color: var(--c-accent) !important;
+  border-color: #5DADE2 !important;
 }
 
 /* Drag and Drop States */
