@@ -1778,6 +1778,65 @@ html[data-theme='barcelona-home'] .add-vinyl-btn:hover {
   box-shadow: 0 8px 0 rgba(93, 173, 226, 0.40), 0 16px 32px rgba(165, 0, 68, 0.35) !important;
 }
 
+/* Barcelona: Hamburger menu button */
+html[data-theme='barcelona-home'] .burger-button {
+  background: var(--c-accent) !important;
+  border: 2px solid #5DADE2 !important;
+  box-shadow: 0 6px 0 rgba(93, 173, 226, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+}
+
+html[data-theme='barcelona-home'] .burger-button[style*="var(--c-accent2)"] {
+  background: var(--c-accent2) !important;
+  border: 2px solid #FDCB00 !important;
+  box-shadow: 0 8px 0 rgba(253, 203, 0, 0.50), 0 12px 24px rgba(0, 77, 152, 0.35) !important;
+}
+
+html[data-theme='barcelona-home'] .burger-button div div {
+  background: #5DADE2 !important;
+}
+
+/* Barcelona: Logo */
+html[data-theme='barcelona-home'] .logo-animated {
+  color: #FDCB00 !important;
+  -webkit-text-stroke: 1.5px var(--c-accent) !important;
+  filter: drop-shadow(0 4px 12px rgba(165, 0, 68, 0.6)) drop-shadow(0 0 20px rgba(253, 203, 0, 0.4)) !important;
+}
+
+/* Barcelona: Theme selector */
+html[data-theme='barcelona-home'] .theme-selector {
+  background: var(--c-accent) !important;
+  color: #ffffff !important;
+  border: 2px solid #5DADE2 !important;
+  box-shadow: 0 6px 0 rgba(93, 173, 226, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+}
+
+html[data-theme='barcelona-home'] .theme-selector:hover {
+  box-shadow: 0 8px 0 rgba(93, 173, 226, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Barcelona: Welcome message */
+html[data-theme='barcelona-home'] .welcome-msg {
+  color: #ffffff !important;
+}
+
+html[data-theme='barcelona-home'] .username-display {
+  color: #FDCB00 !important;
+  text-shadow: 0 2px 4px rgba(165, 0, 68, 0.5), 0 0 12px rgba(253, 203, 0, 0.3) !important;
+}
+
+/* Barcelona: Logout button */
+html[data-theme='barcelona-home'] .logout-btn {
+  background: var(--c-accent) !important;
+  color: #ffffff !important;
+  border: 2px solid #5DADE2 !important;
+  box-shadow: 0 4px 0 rgba(93, 173, 226, 0.35), 0 8px 16px rgba(165, 0, 68, 0.4) !important;
+}
+
+html[data-theme='barcelona-home'] .logout-btn:hover {
+  box-shadow: 0 6px 0 rgba(93, 173, 226, 0.45), 0 12px 24px rgba(165, 0, 68, 0.5) !important;
+  transform: translateY(-2px) !important;
+}
+
 /* Drag and Drop States */
 .dragging {
   opacity: 0.5;

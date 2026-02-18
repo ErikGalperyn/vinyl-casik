@@ -1505,6 +1505,7 @@ export default function Home() {
           </div>
           <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
             <select
+              className="theme-selector"
               value={theme}
               onChange={handleThemeChange}
               aria-label="Theme"
@@ -1529,8 +1530,9 @@ export default function Home() {
               <option value="arsenal-classic">Arsenal Classic</option>
             </select>
 
-            {user && <span style={{ fontSize: 12, color: 'var(--c-text)', fontWeight: 700 }}>Welcome, <strong style={{ color: 'var(--c-accent2)', fontWeight: 900, textShadow: '0 1px 0 rgb(0 0 0 / 0.35)' }}>{user.username}</strong> ({user.role})</span>}
+            {user && <span className="welcome-msg" style={{ fontSize: 12, color: 'var(--c-text)', fontWeight: 700 }}>Welcome, <strong className="username-display" style={{ color: 'var(--c-accent2)', fontWeight: 900, textShadow: '0 1px 0 rgb(0 0 0 / 0.35)' }}>{user.username}</strong> ({user.role})</span>}
             <button
+              className="logout-btn"
               onClick={handleLogout}
               style={{ background: 'var(--c-danger)', color: 'var(--c-ink)', border: '1px solid var(--c-danger)', padding: '8px 16px', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', transition: 'all 0.2s', boxShadow: '0 4px 12px rgb(var(--rgb-danger) / 0.40)' }}
               onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 6px 20px rgb(var(--rgb-danger) / 0.50)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
