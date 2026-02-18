@@ -1740,17 +1740,19 @@ html[data-theme='barcelona-home'] button[style*="borderRadius: 5"][style*="heigh
 
 /* Barcelona: View Mode buttons (SONGS/PLAYLISTS) */
 html[data-theme='barcelona-home'] .view-mode-btn {
-  background: #5DADE2 !important;
-  color: #ffffff !important;
-  border: 3px solid #5DADE2 !important;
-  box-shadow: 0 6px 0 rgba(93, 173, 226, 0.50), 0 8px 20px rgba(93, 173, 226, 0.35) !important;
+  background: var(--c-accent) !important;
+  color: #FDCB00 !important;
+  border: 3px solid #FDCB00 !important;
+  box-shadow: 0 6px 0 rgba(253, 203, 0, 0.60), 0 8px 24px rgba(165, 0, 68, 0.6) !important;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
 }
 
 html[data-theme='barcelona-home'] .view-mode-btn[style*="var(--c-badge-bg)"] {
-  background: rgba(0, 77, 152, 0.25) !important;
-  color: rgba(93, 173, 226, 0.7) !important;
-  border: 3px solid rgba(93, 173, 226, 0.4) !important;
+  background: rgba(165, 0, 68, 0.3) !important;
+  color: rgba(253, 203, 0, 0.6) !important;
+  border: 3px solid rgba(253, 203, 0, 0.4) !important;
   box-shadow: none !important;
+  text-shadow: none !important;
 }
 
 /* Barcelona: Progress bar under header */
@@ -1794,31 +1796,33 @@ html[data-theme='barcelona-home'] .burger-button {
 
 /* Barcelona: Burger button (inactive) */
 html[data-theme='barcelona-home'] .burger-button {
-  background: rgba(0, 0, 0, 0.3) !important;
-  border: 3px solid #FDCB00 !important;
-  box-shadow: 0 6px 20px rgba(253, 203, 0, 0.4), inset 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  background: var(--c-accent) !important;
+  border: 3px solid #5DADE2 !important;
+  box-shadow: 0 6px 0 rgba(93, 173, 226, 0.50), 0 8px 24px rgba(165, 0, 68, 0.5) !important;
 }
 
 html[data-theme='barcelona-home'] .burger-button:hover {
-  background: rgba(253, 203, 0, 0.15) !important;
-  box-shadow: 0 8px 24px rgba(253, 203, 0, 0.5), inset 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+  background: var(--c-accent) !important;
+  transform: scale(1.05) !important;
+  box-shadow: 0 8px 0 rgba(93, 173, 226, 0.60), 0 10px 28px rgba(165, 0, 68, 0.6) !important;
 }
 
 html[data-theme='barcelona-home'] .burger-button[style*="var(--c-accent2)"] {
   background: var(--c-accent2) !important;
   border: 3px solid #FDCB00 !important;
-  box-shadow: 0 8px 0 rgba(253, 203, 0, 0.60), 0 12px 28px rgba(0, 77, 152, 0.45) !important;
+  box-shadow: 0 8px 0 rgba(253, 203, 0, 0.60), 0 12px 28px rgba(0, 77, 152, 0.5) !important;
 }
 
 html[data-theme='barcelona-home'] .burger-button div div {
   background: #FDCB00 !important;
+  box-shadow: 0 1px 3px rgba(253, 203, 0, 0.4) !important;
 }
 
 /* Barcelona: Logo */
 html[data-theme='barcelona-home'] .logo-animated {
-  color: var(--c-accent) !important;
-  -webkit-text-stroke: 2px #FDCB00 !important;
-  filter: drop-shadow(0 4px 16px rgba(253, 203, 0, 0.7)) drop-shadow(0 0 24px rgba(165, 0, 68, 0.5)) !important;
+  color: #FDCB00 !important;
+  -webkit-text-stroke: 2.5px var(--c-accent) !important;
+  filter: drop-shadow(0 6px 20px rgba(165, 0, 68, 0.8)) drop-shadow(0 0 32px rgba(253, 203, 0, 0.6)) !important;
 }
 
 /* Barcelona: Theme selector */
