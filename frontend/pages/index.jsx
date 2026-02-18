@@ -301,6 +301,20 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    console.log('🔄 Vinyls updated, updating audio elements...');
+    // Re-attach audio elements with new src from updated vinyls
+    vinyls.forEach(v => {
+      const audioEl = audioRefsRef.current[v.id];
+      const audioSrc = v.musicUrl || v.previewUrl;
+      if (audioEl && audioSrc && audioEl.src !== audioSrc) {
+        audioEl.src = audioSrc;
+        audioEl.load();
+        console.log(`🔄 Updated audio src for ${v.id}: ${audioSrc.slice(-40)}`);
+      }
+    });
+  }, [vinyls]);
+
+  useEffect(() => {
     if (typeof window === 'undefined') return;
     // Start near bottom-left by default
     const initialY = Math.max(20, window.innerHeight - 20 - 260);
