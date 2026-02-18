@@ -405,6 +405,7 @@ export default function Home() {
   function DemoBadge({ size = 56, label = 'DEMO' }) {
     return (
       <div
+        className="demo-badge"
         title="Demo / preview track"
         aria-label="Demo / preview track"
         style={{

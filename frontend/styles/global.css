@@ -1873,17 +1873,32 @@ html[data-theme='barcelona-home'] .audio-available-badge {
   box-shadow: 0 4px 0 rgba(93, 173, 226, 0.35), 0 0 12px rgba(165, 0, 68, 0.4) !important;
 }
 
+/* Barcelona: DEMO badge */
+html[data-theme='barcelona-home'] .demo-badge {
+  background: var(--c-accent) !important;
+  border: 3px solid #FDCB00 !important;
+  box-shadow: 0 6px 16px rgba(165, 0, 68, 0.6), 0 0 24px rgba(253, 203, 0, 0.4) !important;
+}
+
+html[data-theme='barcelona-home'] .demo-badge span {
+  color: #FDCB00 !important;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6), 0 0 8px rgba(253, 203, 0, 0.3) !important;
+}
+
 /* Barcelona: Vinyl action menu button (three dots) */
 html[data-theme='barcelona-home'] .vinyl-action-menu-btn {
-  background: rgba(0, 77, 152, 0.6) !important;
-  color: #5DADE2 !important;
-  border: 2px solid #5DADE2 !important;
+  background: var(--c-accent) !important;
+  color: #FDCB00 !important;
+  border: 3px solid #FDCB00 !important;
+  box-shadow: 0 4px 12px rgba(165, 0, 68, 0.5) !important;
+  font-size: 20px !important;
 }
 
 html[data-theme='barcelona-home'] .vinyl-action-menu-btn:hover {
-  background: var(--c-accent) !important;
-  color: #ffffff !important;
+  background: #FDCB00 !important;
+  color: var(--c-accent) !important;
   border-color: #FDCB00 !important;
+  box-shadow: 0 6px 16px rgba(253, 203, 0, 0.6) !important;
 }
 
 /* Barcelona: Vinyl cover container */
