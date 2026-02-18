@@ -2605,7 +2605,7 @@ export default function Home() {
         )}
 
         {fullscreenPlayer && currentlyPlaying && (
-          <div className="fullscreen-player" style={{ position: 'fixed', inset: 0, background: 'var(--c-bg)', display: 'flex', flexDirection: 'column', zIndex: 2000, overflow: 'hidden' }}>
+          <div className="fullscreen-player" style={{ position: 'fixed', inset: 0, background: 'var(--c-surface)', display: 'flex', flexDirection: 'column', zIndex: 2000, overflow: 'hidden' }}>
 
             {/* Close Button */}
             <button
