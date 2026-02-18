@@ -1663,14 +1663,14 @@ html[data-theme='barcelona-home'] .game-tab-btn {
   box-shadow: none !important;
 }
 
-html[data-theme='barcelona-home'] .game-tab-btn-21[style*="boxShadow: 0 4px"] {
+html[data-theme='barcelona-home'] .game-tab-btn-21.active {
   background: var(--c-accent2) !important;
   color: #ffffff !important;
   border-color: #5DADE2 !important;
   box-shadow: 0 4px 0 rgba(93, 173, 226, 0.50), 0 0 20px rgba(0, 77, 152, 0.6) !important;
 }
 
-html[data-theme='barcelona-home'] .game-tab-btn-poker[style*="boxShadow: 0 4px"] {
+html[data-theme='barcelona-home'] .game-tab-btn-poker.active {
   background: var(--c-accent) !important;
   color: #ffffff !important;
   border-color: #FDCB00 !important;
