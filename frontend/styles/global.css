@@ -1657,17 +1657,19 @@ html[data-theme='barcelona-home'] .arcade-title {
 
 /* Barcelona: Game Tab Buttons (21, Poker) */
 html[data-theme='barcelona-home'] .game-tab-btn {
-  background: var(--c-accent2) !important;
-  border-color: #FDCB00 !important;
-  color: #FDCB00 !important;
-  box-shadow: 0 4px 0 rgba(253, 203, 0, 0.30) !important;
+  background: var(--c-accent) !important;
+  border: 2px solid #5DADE2 !important;
+  color: #5DADE2 !important;
+  box-shadow: 0 4px 0 rgba(93, 173, 226, 0.30) !important;
+  font-weight: 900 !important;
 }
 
 html[data-theme='barcelona-home'] .game-tab-btn[style*="boxShadow: 0 4px"] {
-  background: var(--c-accent) !important;
-  color: #FDCB00 !important;
-  border-color: #FDCB00 !important;
-  box-shadow: 0 4px 0 rgba(253, 203, 0, 0.40) !important;
+  background: #FDCB00 !important;
+  color: #000000 !important;
+  border: 2px solid #FDCB00 !important;
+  box-shadow: 0 6px 0 rgba(253, 203, 0, 0.50), 0 0 16px rgba(253, 203, 0, 0.6) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
 }
 
 /* Barcelona: PLAY button */
@@ -1748,8 +1750,10 @@ html[data-theme='barcelona-home'] .view-mode-btn[style*="var(--c-badge-bg)"] {
 
 /* Barcelona: Progress bar under header */
 html[data-theme='barcelona-home'] .progress-bar-accent {
-  background: var(--c-accent) !important;
-  box-shadow: 0 0 20px rgba(165, 0, 68, 0.7), 0 0 40px rgba(165, 0, 68, 0.4) !important;
+  background: #FDCB00 !important;
+  height: 8px !important;
+  box-shadow: 0 0 24px rgba(253, 203, 0, 1), 0 0 48px rgba(253, 203, 0, 0.7), inset 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+  border-radius: 999px !important;
 }
 
 /* Barcelona: Sort dropdown */
@@ -1918,10 +1922,9 @@ html[data-theme='barcelona-home'] .vinyl-like-count {
   font-weight: 900 !important;
 }
 
-/* Barcelona: Top vinyl cover (circular) */
+/* Barcelona: Top vinyl cover (circular) - HIDDEN */
 html[data-theme='barcelona-home'] .top-vinyl-cover {
-  background: transparent !important;
-  box-shadow: 0 0 0 4px #FDCB00, 0 14px 28px rgba(253, 203, 0, 0.45), inset 0 2px 6px rgba(165, 0, 68, 0.15) !important;
+  display: none !important;
 }
 
 /* Barcelona: Top vinyl inner border */
