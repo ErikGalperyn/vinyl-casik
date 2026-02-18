@@ -1899,7 +1899,7 @@ export default function Home() {
                           {actualIndex + 1}.
                         </div>
 
-                        <div style={{ width: '100%', aspectRatio: '1', background: 'var(--g-vinyl)', borderRadius: '50%', overflow: 'hidden', position: 'relative', boxShadow: '0 14px 28px rgb(0 0 0 / 0.45), inset 0 2px 6px rgb(255 255 255 / 0.06)', cursor: 'pointer', transition: 'all 0.3s', marginBottom: 14 }}
+                        <div className="top-vinyl-cover" style={{ width: '100%', aspectRatio: '1', background: 'var(--g-vinyl)', borderRadius: '50%', overflow: 'hidden', position: 'relative', boxShadow: '0 14px 28px rgb(0 0 0 / 0.45), inset 0 2px 6px rgb(255 255 255 / 0.06)', cursor: 'pointer', transition: 'all 0.3s', marginBottom: 14 }}
                              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
                              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
                           <div 
@@ -1928,16 +1928,16 @@ export default function Home() {
                           </div>
                         </div>
 
-                        <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 4, lineHeight: 1.3, color: 'var(--c-text)', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                        <div className="vinyl-title" style={{ fontSize: 14, fontWeight: 800, marginBottom: 4, lineHeight: 1.3, color: 'var(--c-text)', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                           {v.title}
                         </div>
-                        <div style={{ fontSize: 12, color: 'var(--c-muted)', marginBottom: 12 }}>
+                        <div className="vinyl-artist" style={{ fontSize: 12, color: 'var(--c-muted)', marginBottom: 12 }}>
                           {v.artist}
                         </div>
 
                         {(v.previewUrl || v.musicUrl) && (
                           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, background: 'var(--c-badge-bg)', border: '1px solid var(--c-accent2)', padding: '6px 12px', borderRadius: 20, color: 'var(--c-accent2)', fontWeight: 800, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                            <div className="audio-available-badge" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, background: 'var(--c-badge-bg)', border: '1px solid var(--c-accent2)', padding: '6px 12px', borderRadius: 20, color: 'var(--c-accent2)', fontWeight: 800, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                               <span>♫</span>
                               <span>Audio Available</span>
                             </div>
@@ -2175,6 +2175,7 @@ export default function Home() {
                     
                     {/* Action Menu Button - Top Right */}
                     <button
+                      className="vinyl-action-menu-btn"
                       onClick={() => setActionMenuId(actionMenuId === v.id ? null : v.id)}
                       style={{ position: 'absolute', top: 12, right: 12, background: 'var(--c-badge-bg)', border: '1px solid var(--c-accent2)', color: 'var(--c-accent2)', width: 32, height: 32, borderRadius: '50%', cursor: 'pointer', fontSize: 14, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20, transition: 'all 0.3s' }}
                       onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--c-accent)'; e.currentTarget.style.color = 'var(--c-ink)'; e.currentTarget.style.transform = 'scale(1.1)'; }}
@@ -2219,18 +2220,18 @@ export default function Home() {
                       )}
                     </div>
 
-                    <div style={{ width: '100%', paddingTop: '100%', borderRadius: 10, overflow: 'hidden', position: 'relative', background: 'var(--c-badge-bg)' }}>
+                    <div className="vinyl-cover-container" style={{ width: '100%', paddingTop: '100%', borderRadius: 10, overflow: 'hidden', position: 'relative', background: 'var(--c-badge-bg)' }}>
                       {v.coverUrl && <img src={v.coverUrl} alt={v.title} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
                     </div>
 
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 16, fontWeight: 900, color: 'var(--c-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <div className="vinyl-title" style={{ fontSize: 16, fontWeight: 900, color: 'var(--c-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {v.title}
                       </div>
-                      <div style={{ fontSize: 13, color: 'var(--c-muted)', marginTop: 4 }}>
+                      <div className="vinyl-artist" style={{ fontSize: 13, color: 'var(--c-muted)', marginTop: 4 }}>
                         {v.artist} • {v.year}
                       </div>
-                      <div style={{ fontSize: 11, color: 'var(--c-muted)', marginTop: 6 }}>
+                      <div className="vinyl-genre" style={{ fontSize: 11, color: 'var(--c-muted)', marginTop: 6 }}>
                         {v.ownerName || 'Unknown'}
                       </div>
                     </div>
@@ -2238,6 +2239,7 @@ export default function Home() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                       {(v.previewUrl || v.musicUrl) && (
                         <button
+                          className="vinyl-play-btn"
                           onClick={() => toggleSpin(v.id)}
                           style={{ background: spinningVinyls[v.id] ? 'var(--c-accent2)' : 'var(--c-badge-bg)', color: spinningVinyls[v.id] ? 'var(--c-ink)' : 'var(--c-accent2)', border: '1px solid var(--c-accent2)', padding: '6px 12px', borderRadius: 20, cursor: 'pointer', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5px', transition: 'all 0.2s' }}
                           onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 0 12px rgb(var(--rgb-accent) / 0.40)'; e.currentTarget.style.transform = 'scale(1.05)'; }}
@@ -2247,11 +2249,12 @@ export default function Home() {
                         </button>
                       )}
                       <button 
+                        className="vinyl-like-btn"
                         onClick={() => handleLike(v.id)} 
                         style={{ background: 'var(--c-badge-bg)', border: '1px solid var(--c-accent2)', cursor: 'pointer', fontSize: 12, padding: '6px 10px', borderRadius: 20, color: 'var(--c-accent2)', display: 'flex', alignItems: 'center', gap: 6 }}
                       >
                         {v.likes?.includes(user?.id) ? '💛' : '♡'}
-                        <span style={{ fontSize: 11, color: 'var(--c-accent2)' }}>{v.likes?.length || 0}</span>
+                        <span className="vinyl-like-count" style={{ fontSize: 11, color: 'var(--c-accent2)' }}>{v.likes?.length || 0}</span>
                       </button>
                     </div>
                   </div>

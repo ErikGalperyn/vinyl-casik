@@ -1837,6 +1837,97 @@ html[data-theme='barcelona-home'] .logout-btn:hover {
   transform: translateY(-2px) !important;
 }
 
+/* Barcelona: Audio Available badge */
+html[data-theme='barcelona-home'] .audio-available-badge {
+  background: rgba(0, 77, 152, 0.6) !important;
+  color: #5DADE2 !important;
+  border: 2px solid #5DADE2 !important;
+  box-shadow: 0 4px 0 rgba(93, 173, 226, 0.30) !important;
+}
+
+/* Barcelona: Vinyl action menu button (three dots) */
+html[data-theme='barcelona-home'] .vinyl-action-menu-btn {
+  background: rgba(0, 77, 152, 0.6) !important;
+  color: #5DADE2 !important;
+  border: 2px solid #5DADE2 !important;
+}
+
+html[data-theme='barcelona-home'] .vinyl-action-menu-btn:hover {
+  background: var(--c-accent) !important;
+  color: #ffffff !important;
+  border-color: #FDCB00 !important;
+}
+
+/* Barcelona: Vinyl cover container */
+html[data-theme='barcelona-home'] .vinyl-cover-container {
+  border: 3px solid #5DADE2 !important;
+  box-shadow: 0 4px 12px rgba(93, 173, 226, 0.4), inset 0 0 20px rgba(0, 77, 152, 0.2) !important;
+}
+
+/* Barcelona: Vinyl title */
+html[data-theme='barcelona-home'] .vinyl-title {
+  color: #ffffff !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Barcelona: Vinyl artist/year */
+html[data-theme='barcelona-home'] .vinyl-artist {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+
+/* Barcelona: Vinyl genre/owner */
+html[data-theme='barcelona-home'] .vinyl-genre {
+  color: #5DADE2 !important;
+  font-weight: 700 !important;
+}
+
+/* Barcelona: Vinyl PLAY button */
+html[data-theme='barcelona-home'] .vinyl-play-btn {
+  background: var(--c-accent) !important;
+  color: #ffffff !important;
+  border: 2px solid #5DADE2 !important;
+  box-shadow: 0 4px 0 rgba(93, 173, 226, 0.35) !important;
+}
+
+html[data-theme='barcelona-home'] .vinyl-play-btn:hover {
+  box-shadow: 0 6px 0 rgba(93, 173, 226, 0.45), 0 0 16px rgba(165, 0, 68, 0.5) !important;
+}
+
+html[data-theme='barcelona-home'] .vinyl-play-btn[style*="var(--c-accent2)"] {
+  background: var(--c-accent2) !important;
+  color: #FDCB00 !important;
+  border: 2px solid #FDCB00 !important;
+  box-shadow: 0 6px 0 rgba(253, 203, 0, 0.40), 0 0 16px rgba(0, 77, 152, 0.5) !important;
+}
+
+/* Barcelona: Vinyl like button */
+html[data-theme='barcelona-home'] .vinyl-like-btn {
+  background: rgba(165, 0, 68, 0.5) !important;
+  border: 2px solid #FDCB00 !important;
+  color: #FDCB00 !important;
+  box-shadow: 0 4px 0 rgba(253, 203, 0, 0.30) !important;
+}
+
+html[data-theme='barcelona-home'] .vinyl-like-btn:hover {
+  background: var(--c-accent) !important;
+  box-shadow: 0 6px 0 rgba(253, 203, 0, 0.40), 0 0 12px rgba(165, 0, 68, 0.6) !important;
+}
+
+html[data-theme='barcelona-home'] .vinyl-like-count {
+  color: #FDCB00 !important;
+  font-weight: 900 !important;
+}
+
+/* Barcelona: Top vinyl cover (circular) */
+html[data-theme='barcelona-home'] .top-vinyl-cover {
+  box-shadow: 0 0 0 4px #5DADE2, 0 14px 28px rgba(93, 173, 226, 0.45), inset 0 2px 6px rgba(93, 173, 226, 0.15) !important;
+}
+
+/* Barcelona: Top vinyl inner border */
+html[data-theme='barcelona-home'] .top-vinyl-cover > div[style*="inset: '15%'"] {
+  border-color: var(--c-accent) !important;
+}
+
 /* Drag and Drop States */
 .dragging {
   opacity: 0.5;
