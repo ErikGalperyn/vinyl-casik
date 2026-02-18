@@ -1584,7 +1584,7 @@ export default function Home() {
                 {/* Simple game tabs */}
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button
-                    className="game-tab-btn"
+                    className="game-tab-btn game-tab-btn-21"
                     onClick={() => setCurrentGame('blackjack')}
                     style={{ 
                       background: currentGame === 'blackjack' ? 'var(--c-accent2)' : 'var(--c-badge-bg)', 
@@ -1603,7 +1603,7 @@ export default function Home() {
                     🃏 21
                   </button>
                   <button
-                    className="game-tab-btn"
+                    className="game-tab-btn game-tab-btn-poker"
                     onClick={() => setCurrentGame('poker')}
                     style={{ 
                       background: currentGame === 'poker' ? 'var(--c-accent2)' : 'var(--c-badge-bg)', 
