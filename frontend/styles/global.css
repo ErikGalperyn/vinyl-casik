@@ -1657,17 +1657,17 @@ html[data-theme='barcelona-home'] .arcade-title {
 
 /* Barcelona: Game Tab Buttons (21, Poker) */
 html[data-theme='barcelona-home'] .game-tab-btn {
-  background: rgba(0, 77, 152, 0.4) !important;
-  border-color: #5DADE2 !important;
-  color: #5DADE2 !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: rgba(255, 255, 255, 0.6) !important;
   box-shadow: none !important;
 }
 
 html[data-theme='barcelona-home'] .game-tab-btn[style*="boxShadow: 0 4px"] {
   background: var(--c-accent) !important;
-  color: #FDCB00 !important;
+  color: #ffffff !important;
   border-color: #FDCB00 !important;
-  box-shadow: 0 4px 0 rgba(253, 203, 0, 0.50), 0 0 16px rgba(165, 0, 68, 0.6) !important;
+  box-shadow: 0 4px 0 rgba(253, 203, 0, 0.50), 0 0 20px rgba(165, 0, 68, 0.6) !important;
 }
 
 /* Barcelona: PLAY button */
@@ -1748,8 +1748,8 @@ html[data-theme='barcelona-home'] .view-mode-btn[style*="var(--c-badge-bg)"] {
 
 /* Barcelona: Progress bar under header */
 html[data-theme='barcelona-home'] .progress-bar-accent {
-  background: linear-gradient(90deg, var(--c-accent) 20%, #FDCB00 50%, var(--c-accent) 80%) !important;
-  box-shadow: 0 0 24px rgba(165, 0, 68, 0.8), 0 0 48px rgba(253, 203, 0, 0.6), inset 0 1px 3px rgba(255, 255, 255, 0.3) !important;
+  background: #5DADE2 !important;
+  box-shadow: 0 0 20px rgba(93, 173, 226, 0.8), 0 0 40px rgba(93, 173, 226, 0.5) !important;
 }
 
 /* Barcelona: Sort dropdown */
@@ -1921,7 +1921,7 @@ html[data-theme='barcelona-home'] .vinyl-like-count {
 /* Barcelona: Top vinyl cover (circular) */
 html[data-theme='barcelona-home'] .top-vinyl-cover {
   background: transparent !important;
-  box-shadow: 0 14px 28px rgba(253, 203, 0, 0.35), inset 0 2px 6px rgba(165, 0, 68, 0.15) !important;
+  box-shadow: 0 14px 28px rgba(253, 203, 0, 0.45), inset 0 2px 6px rgba(165, 0, 68, 0.15) !important;
 }
 
 /* Barcelona: Top vinyl inner border */
