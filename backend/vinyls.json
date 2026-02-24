@@ -7,6 +7,7 @@
       "year": 2023,
       "coverUrl": "http://localhost:4001/cover-1764856889093-4a30x9.webp",
       "musicUrl": "http://localhost:4001/music/music-1764856895756-n17aj.mp3",
+      "lyricsLrc": "/lrc/Good_Lies.lrc",
       "note": "",
       "ownerId": "1",
       "likes": []
@@ -18,6 +19,7 @@
       "year": 2013,
       "coverUrl": "http://localhost:4001/cover-1764857634229-cojt7.webp",
       "musicUrl": "http://localhost:4001/music/music-1764857639085-isvzsh.mp3",
+      "lyricsLrc": "",
       "note": "",
       "ownerId": "1",
       "likes": []
@@ -29,6 +31,7 @@
       "year": 2025,
       "coverUrl": "http://localhost:4001/cover-1764857783748-2behlm.webp",
       "musicUrl": "http://localhost:4001/music/music-1764857866197-g6nn5l.mp3",
+      "lyricsLrc": "/lrc/4x4.lrc",
       "note": "",
       "ownerId": "1",
       "likes": []
@@ -40,6 +43,7 @@
       "year": 2012,
       "coverUrl": "http://localhost:4001/cover-1764858052133-uqgneu.webp",
       "musicUrl": "http://localhost:4001/music/music-1764858077880-v5a92.mp3",
+      "lyricsLrc": "",
       "note": "",
       "ownerId": "1",
       "likes": []
@@ -51,6 +55,7 @@
       "year": 2019,
       "coverUrl": "http://localhost:4001/cover-1764858227013-hrcbhi.webp",
       "musicUrl": "http://localhost:4001/music/music-1764858244428-ywr159.mp3",
+      "lyricsLrc": "",
       "note": "",
       "ownerId": "1",
       "likes": []
@@ -62,6 +67,7 @@
       "year": 2015,
       "coverUrl": "http://localhost:4001/cover-1764859485692-5acwlp.webp",
       "musicUrl": "http://localhost:4001/music/music-1764859510111-ym3aug.mp3",
+      "lyricsLrc": "",
       "note": "",
       "ownerId": "1",
       "likes": []
@@ -73,6 +79,7 @@
       "year": 2025,
       "coverUrl": "http://localhost:4001/cover-1764875783647-i1519.webp",
       "musicUrl": "http://localhost:4001/music/music-1764875790475-kwbsg.mp3",
+      "lyricsLrc": "/lrc/stayinit.lrc",
       "note": "",
       "ownerId": "1",
       "likes": []
@@ -84,21 +91,11 @@
       "year": 2022,
       "coverUrl": "http://localhost:4001/cover-1764876854691-sf7fqr.webp",
       "musicUrl": "http://localhost:4001/music/music-1764876868532-9q0mz.mp3",
+      "lyricsLrc": "",
       "note": "",
       "ownerId": "2",
       "likes": []
-    },
-    {
-      "id": "1765884889494",
-      "title": "Chevrolet Tahoe - Remix",
-      "artist": "SILVIA",
-      "year": 2025,
-      "coverUrl": "https://i.scdn.co/image/ab67616d0000b273d573615927219da5a2544287",
-      "musicUrl": "",
-      "note": "",
-      "ownerId": "1",
-      "likes": []
     }
   ],
-  "nextId": 1765884889495
+  "nextId": 12
 }
