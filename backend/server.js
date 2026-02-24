@@ -285,13 +285,39 @@ app.post('/auth/register', async (req, res) => {
 });
 
 app.post('/auth/login', async (req, res) => {
-  const { username, password } = req.body;
-  const user = await User.getByUsername(username);
-  if (!user || !User.verifyPassword(user, password)) {
-    return res.status(401).json({ message: 'Invalid credentials' });
+  try {
+    console.log(`[LOGIN] Username from request: ${req.body?.username}`);
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+      return res.status(400).json({ message: 'Missing username or password' });
+    }
+    
+    console.log(`[LOGIN] Fetching user: ${username}`);
+    const user = await User.getByUsername(username);
+    console.log(`[LOGIN] User found:`, user ? { id: user.id, username: user.username, role: user.role } : 'null');
+    
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+    
+    console.log(`[LOGIN] Verifying password for: ${username}`);
+    const passwordValid = User.verifyPassword(user, password);
+    console.log(`[LOGIN] Password valid: ${passwordValid}`);
+    
+    if (!passwordValid) {
+      return res.status(401).json({ message: 'Invalid password' });
+    }
+    
+    console.log(`[LOGIN] Creating JWT token`);
+    const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, SECRET, { expiresIn: '7d' });
+    
+    console.log(`[LOGIN] ✅ Login successful for ${username}`);
+    res.json({ token, user: { id: user.id, username: user.username, role: user.role } });
+  } catch (err) {
+    console.error('[LOGIN] ❌ ERROR:', err.message, err.stack);
+    res.status(500).json({ error: err.message });
   }
-  const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, SECRET, { expiresIn: '7d' });
-  res.json({ token, user: { id: user.id, username: user.username, role: user.role } });
 });
 
 // Debug endpoint to check URLs
