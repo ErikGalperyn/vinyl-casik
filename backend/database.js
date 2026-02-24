@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 // Support both SQLite (fallback) and PostgreSQL
-const USE_POSTGRES = process.env.DATABASE_TYPE === 'postgres' || process.env.DB_HOST;
+const USE_POSTGRES = process.env.DATABASE_TYPE === 'postgres' || process.env.DB_HOST || process.env.DATABASE_URL;
 let db;
 
 if (USE_POSTGRES) {
@@ -26,11 +26,13 @@ if (USE_POSTGRES) {
   }
   const pool = new Pool(poolConfig);
 
-  const PUBLIC_BACKEND_URL = process.env.BACKEND_PUBLIC_URL || process.env.PUBLIC_BACKEND_URL || process.env.BACKEND_URL || '';
+  const PUBLIC_BACKEND_URL = process.env.BACKEND_PUBLIC_URL || process.env.PUBLIC_BACKEND_URL || process.env.RENDER_EXTERNAL_URL || process.env.BACKEND_URL || '';
   const rewriteMediaUrl = (url) => {
     if (!url) return null;
     if (!PUBLIC_BACKEND_URL) return url;
-    return url.replace(/^http:\/\/localhost:4001/, PUBLIC_BACKEND_URL);
+    return url
+      .replace(/^http:\/\/localhost:4001/, PUBLIC_BACKEND_URL)
+      .replace(/^https:\/\/vinyl-casik-production\.up\.railway\.app/, PUBLIC_BACKEND_URL);
   };
 
   pool.on('error', (err) => {
@@ -150,29 +152,6 @@ if (USE_POSTGRES) {
           console.log(`✓ Database has ${vinylsCountRes.rows[0].c} vinyls (skipping seed)`);
         }
         
-        // Restore covers from user uploads instead of Spotify
-        try {
-          console.log('🔄 Restoring covers to user uploads...');
-          const updates = [
-            { title: 'End of Beginning ', url: 'https://vinyl-casik-production.up.railway.app/cover-1764876854691-sf7fqr.webp' },
-            { title: 'stayinit', url: 'https://vinyl-casik-production.up.railway.app/cover-1764875783647-i1519.webp' },
-            { title: 'Views', url: 'https://vinyl-casik-production.up.railway.app/cover-1764859485692-5acwlp.webp' },
-            { title: 'Money', url: 'https://vinyl-casik-production.up.railway.app/cover-1764858227013-hrcbhi.webp' },
-            { title: 'Money Trees', url: 'https://vinyl-casik-production.up.railway.app/cover-1764858052133-uqgneu.webp' },
-            { title: '4x4', url: 'https://vinyl-casik-production.up.railway.app/cover-1764857783748-2behlm.webp' },
-            { title: 'Remote Access Memories', url: 'https://vinyl-casik-production.up.railway.app/cover-1764857634229-cojt7.webp' },
-            { title: 'Good Lies', url: 'https://vinyl-casik-production.up.railway.app/cover-1764856889093-4a30x9.webp' }
-          ];
-          
-          for (const { title, url } of updates) {
-            const res = await pool.query("UPDATE vinyls SET coverUrl = $1 WHERE title = $2", [url, title]);
-            console.log(`✓ Updated "${title}" - rows: ${res.rowCount}`);
-          }
-          console.log('✓ All covers restored to user uploads');
-        } catch (coverErr) {
-          console.error('Cover restore error:', coverErr.message);
-        }
-        
         // Sync musicUrl from local JSON for tracks that have it locally
         try {
           console.log('🔄 Syncing musicUrl from local JSON...');
@@ -202,16 +181,16 @@ if (USE_POSTGRES) {
           console.error('Sync error:', syncErr.message);
         }
         
-        // Auto-fix all localhost musicUrl to railway production URL
+        // Auto-fix legacy localhost/Railway music URLs to current backend URL
         try {
-          console.log('🔄 Fixing localhost musicUrl to production URLs...');
+          console.log('🔄 Normalizing legacy music URLs to current backend URL...');
           const localhostTracks = await pool.query(
-            "SELECT id, title, musicUrl FROM vinyls WHERE musicUrl LIKE 'http://localhost:%'"
+            "SELECT id, title, musicUrl FROM vinyls WHERE musicUrl LIKE 'http://localhost:%' OR musicUrl LIKE 'https://vinyl-casik-production.up.railway.app%'"
           );
           
           let fixedCount = 0;
           for (const track of localhostTracks.rows) {
-            const newUrl = track.musicurl.replace('http://localhost:4001', 'https://vinyl-casik-production.up.railway.app');
+            const newUrl = rewriteMediaUrl(track.musicurl);
             await pool.query("UPDATE vinyls SET musicUrl = $1 WHERE id = $2", [newUrl, track.id]);
             console.log(`✓ Fixed music URL for "${track.title}"`);
             fixedCount++;
