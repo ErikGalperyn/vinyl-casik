@@ -85,30 +85,29 @@ async function importData() {
         const ownerUuid = oldToNewUserId.get(String(vinyl.ownerId)) || [...oldToNewUserId.values()][0] || null;
         if (!ownerUuid) continue;
 
-        const res = await client.query(
-          `INSERT INTO vinyls (title, artist, year, coverUrl, musicUrl, note, genre, ownerId)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-           ON CONFLICT DO NOTHING
-           RETURNING id`,
-          [
-            vinyl.title,
-            vinyl.artist,
-            vinyl.year || 2020,
-            rewriteMediaUrl(vinyl.coverUrl || null),
-            rewriteMediaUrl(vinyl.musicUrl || null),
-            vinyl.note || '',
-            'other',
-            ownerUuid
-          ]
+        const existing = await client.query(
+          'SELECT id FROM vinyls WHERE title = $1 AND artist = $2 AND ownerId = $3 ORDER BY created_at DESC LIMIT 1',
+          [vinyl.title, vinyl.artist, ownerUuid]
         );
 
-        let createdId = res.rows[0]?.id;
+        let createdId = existing.rows[0]?.id;
         if (!createdId) {
-          const existing = await client.query(
-            'SELECT id FROM vinyls WHERE title = $1 AND artist = $2 ORDER BY created_at DESC LIMIT 1',
-            [vinyl.title, vinyl.artist]
+          const res = await client.query(
+            `INSERT INTO vinyls (title, artist, year, coverUrl, musicUrl, note, genre, ownerId)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+             RETURNING id`,
+            [
+              vinyl.title,
+              vinyl.artist,
+              vinyl.year || 2020,
+              rewriteMediaUrl(vinyl.coverUrl || null),
+              rewriteMediaUrl(vinyl.musicUrl || null),
+              vinyl.note || '',
+              'other',
+              ownerUuid
+            ]
           );
-          createdId = existing.rows[0]?.id;
+          createdId = res.rows[0]?.id;
         }
 
         if (vinyl.id != null && createdId) {
