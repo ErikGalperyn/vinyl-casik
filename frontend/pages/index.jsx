@@ -175,38 +175,42 @@ export default function Home() {
   const isArsenalFullscreen = theme === 'arsenal-classic';
   const fullscreenPalette = isArsenalFullscreen
     ? {
+        rootBg: '#0b0b0f',
+        contentBg: '#101016',
         headerBg: '#121212',
         headerBorder: '#b71c3a',
         headerShadow: '0 6px 20px rgba(183, 28, 58, 0.28)',
-        nowPlaying: '#f0c419',
+        nowPlaying: '#d9b54b',
         nowPlayingShadow: '0 2px 8px rgba(240, 196, 25, 0.28)',
         title: '#f5f5f5',
         titleShadow: '0 4px 12px rgba(183, 28, 58, 0.38)',
-        artist: '#d8d8d8',
+        artist: '#c7c7cc',
         artistShadow: '0 2px 8px rgba(0, 0, 0, 0.35)',
-        lyricActive: '#f0c419',
+        lyricActive: '#d9b54b',
         lyricPast: '#f1f1f1',
-        lyricFuture: 'rgba(241, 241, 241, 0.58)',
+        lyricFuture: 'rgba(241, 241, 241, 0.45)',
         lyricBorder: '#b71c3a',
-        lyricBg: 'rgba(183, 28, 58, 0.13)',
-        lyricShadow: '0 0 16px rgba(183, 28, 58, 0.38)',
+        lyricBg: 'rgba(183, 28, 58, 0.18)',
+        lyricShadow: '0 0 14px rgba(183, 28, 58, 0.32)',
         footerBg: '#121212',
         footerBorder: '#b71c3a',
         footerShadow: '0 -6px 20px rgba(183, 28, 58, 0.2)',
-        progressTrack: 'rgba(0, 0, 0, 0.55)',
+        progressTrack: 'rgba(255, 255, 255, 0.08)',
         progressBorder: '#b71c3a',
         progressGlow: 'inset 0 2px 8px rgba(0,0,0,0.5), 0 0 12px rgba(183, 28, 58, 0.25)',
-        progressFill: 'linear-gradient(90deg, #b71c3a 0%, #f0c419 100%)',
+        progressFill: 'linear-gradient(90deg, #b71c3a 0%, #d9b54b 100%)',
         progressFillShadow: '0 0 18px rgba(183, 28, 58, 0.45)',
-        progressTime: '#f0c419',
+        progressTime: '#d9b54b',
         progressTimeShadow: '0 2px 6px rgba(240, 196, 25, 0.24)',
         playBtnBg: '#b71c3a',
-        playBtnColor: '#f0c419',
-        playBtnBorder: '#f0c419',
+        playBtnColor: '#d9b54b',
+        playBtnBorder: '#d9b54b',
         playBtnShadow: '0 12px 0 rgba(240, 196, 25, 0.45), 0 18px 42px rgba(183, 28, 58, 0.46)',
         playBtnShadowHover: '0 18px 0 rgba(240, 196, 25, 0.52), 0 24px 52px rgba(183, 28, 58, 0.58)'
       }
     : {
+        rootBg: 'var(--c-surface)',
+        contentBg: 'var(--c-surface)',
         headerBg: 'var(--c-surface)',
         headerBorder: 'var(--c-accent)',
         headerShadow: '0 6px 20px rgba(165, 0, 68, 0.35)',
@@ -2711,7 +2715,7 @@ export default function Home() {
         )}
 
         {fullscreenPlayer && currentlyPlaying && (
-          <div className="fullscreen-player" style={{ position: 'fixed', inset: 0, background: 'var(--c-surface)', display: 'flex', flexDirection: 'column', zIndex: 2000, overflow: 'hidden' }}>
+          <div className="fullscreen-player" style={{ position: 'fixed', inset: 0, background: fullscreenPalette.rootBg, display: 'flex', flexDirection: 'column', zIndex: 2000, overflow: 'hidden' }}>
 
             {/* Close Button */}
             <button
@@ -2751,7 +2755,7 @@ export default function Home() {
             {/* Main Content - Lyrics */}
             <div 
               ref={lyricsContainerRef}
-              style={{ flex: 1, position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', padding: '40px 20px', overflowY: 'auto', overflowX: 'hidden' }}>
+              style={{ flex: 1, position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', padding: '40px 20px', overflowY: 'auto', overflowX: 'hidden', background: fullscreenPalette.contentBg }}>
               <div style={{ width: '100%', maxWidth: 900, padding: '0 40px' }}>
                 {lyrics ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
