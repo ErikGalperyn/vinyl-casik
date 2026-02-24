@@ -173,7 +173,43 @@ export default function Home() {
   };
 
   const isArsenalFullscreen = theme === 'arsenal-classic';
-  const fullscreenPalette = isArsenalFullscreen
+  const isCroatiaFullscreen = theme === 'croatia-98';
+  const fullscreenPalette = isCroatiaFullscreen
+    ? {
+        rootBg: '#060c1e',
+        contentBg: '#0a1228',
+        headerBg: '#080f22',
+        headerBorder: '#DB1D2F',
+        headerShadow: '0 6px 20px rgba(219, 29, 47, 0.3)',
+        nowPlaying: '#ffffff',
+        nowPlayingShadow: '0 2px 8px rgba(219, 29, 47, 0.35)',
+        title: '#f5f5f5',
+        titleShadow: '0 4px 12px rgba(219, 29, 47, 0.4)',
+        artist: '#6fa8ff',
+        artistShadow: '0 2px 8px rgba(40, 86, 168, 0.4)',
+        lyricActive: '#ffffff',
+        lyricPast: '#c8d4e8',
+        lyricFuture: 'rgba(200, 212, 232, 0.4)',
+        lyricBorder: '#DB1D2F',
+        lyricBg: 'rgba(219, 29, 47, 0.14)',
+        lyricShadow: '0 0 14px rgba(219, 29, 47, 0.35)',
+        footerBg: '#080f22',
+        footerBorder: '#DB1D2F',
+        footerShadow: '0 -6px 20px rgba(219, 29, 47, 0.22)',
+        progressTrack: 'rgba(255, 255, 255, 0.06)',
+        progressBorder: '#DB1D2F',
+        progressGlow: 'inset 0 2px 8px rgba(0,0,0,0.6), 0 0 12px rgba(219, 29, 47, 0.25)',
+        progressFill: 'linear-gradient(90deg, #DB1D2F 0%, #ffffff 100%)',
+        progressFillShadow: '0 0 18px rgba(219, 29, 47, 0.5)',
+        progressTime: '#ffffff',
+        progressTimeShadow: '0 2px 6px rgba(219, 29, 47, 0.25)',
+        playBtnBg: '#DB1D2F',
+        playBtnColor: '#ffffff',
+        playBtnBorder: '#ffffff',
+        playBtnShadow: '0 12px 0 rgba(255, 255, 255, 0.35), 0 18px 42px rgba(219, 29, 47, 0.5)',
+        playBtnShadowHover: '0 18px 0 rgba(255, 255, 255, 0.45), 0 24px 52px rgba(219, 29, 47, 0.65)'
+      }
+    : isArsenalFullscreen
     ? {
         rootBg: '#0b0b0f',
         contentBg: '#101016',
@@ -1632,6 +1668,7 @@ export default function Home() {
               <option value="barcelona-home">Barcelona Home</option>
               <option value="vodafone-mclaren">Vodafone McLaren</option>
               <option value="arsenal-classic">Arsenal Classic</option>
+              <option value="croatia-98">Croatia 1998</option>
             </select>
 
             {user && <span className="welcome-msg" style={{ fontSize: 12, color: 'var(--c-text)', fontWeight: 700 }}>Welcome, <strong className="username-display" style={{ color: 'var(--c-accent2)', fontWeight: 900, textShadow: '0 1px 0 rgb(0 0 0 / 0.35)' }}>{user.username}</strong> ({user.role})</span>}

@@ -227,6 +227,60 @@ html[data-theme='arsenal-classic']{
   --accent: var(--c-accent);
 }
 
+html[data-theme='croatia-98']{
+  /* Croatia 1998: dark navy / red / white */
+  --c-bg: #0d1b3a;
+  --c-bg2: #091428;
+  --c-surface: #0f2040;
+  --c-surface2: #162850;
+  --c-surface3: #1a3060;
+  --c-border: #DB1D2F;
+
+  --c-text: #e8edf5;
+  --c-muted: #8899bb;
+  --c-ink: #ffffff;
+
+  --c-accent: #DB1D2F;   /* Croatian red */
+  --c-accent2: #ffffff;   /* white */
+  --c-accent3: #2856A8;   /* blue trim */
+  --c-danger: #DB1D2F;
+
+  --rgb-accent: 219 29 47;
+  --rgb-accent2: 255 255 255;
+  --rgb-accent3: 40 86 168;
+  --rgb-danger: 219 29 47;
+
+  --c-logo-fill: var(--c-accent);
+  --c-logo-stroke: var(--c-accent2);
+  --rgb-logo-glow: var(--rgb-accent);
+
+  --c-header-bg: #0a1530;
+  --c-header-border: rgba(219, 29, 47, 0.5);
+
+  --c-input-bg: #091225;
+  --c-badge-bg: #DB1D2F;
+  --c-button-secondary: #2856A8;
+
+  --g-surface: #0f2040;
+  --g-surface-2: #162850;
+  --g-accent: linear-gradient(135deg, var(--c-accent), #f2324a);
+  --g-accent-h: #f2324a;
+  --g-vinyl: radial-gradient(circle at 35% 35%, rgba(219,29,47,0.5), rgba(13,27,58,0.9));
+  --g-page: url('/croatia-checker.svg');
+
+  --primary: var(--c-text);
+  --bg: var(--c-bg);
+  --text: var(--c-text);
+  --muted: var(--c-muted);
+  --accent: var(--c-accent);
+}
+
+/* Croatia theme: bold text for readability on dark bg */
+html[data-theme='croatia-98'] body,
+html[data-theme='croatia-98'] body * {
+  font-weight: 500;
+}
+
 /* Arsenal theme: improved text readability */
 html[data-theme='arsenal-classic'] body,
 html[data-theme='arsenal-classic'] body * {

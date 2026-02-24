@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
+  <defs>
+    <!-- Turbulence for organic wave distortion -->
+    <filter id="warp" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+      <feTurbulence type="turbulence" baseFrequency="0.008 0.006" numOctaves="3" seed="5" result="turb"/>
+      <feDisplacementMap in="SourceGraphic" in2="turb" scale="55" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+
+    <!-- Checkerboard pattern -->
+    <pattern id="checks" patternUnits="userSpaceOnUse" width="80" height="80">
+      <rect width="80" height="80" fill="#FFFFFF"/>
+      <rect width="40" height="40" fill="#DB1D2F"/>
+      <rect x="40" y="40" width="40" height="40" fill="#DB1D2F"/>
+    </pattern>
+
+    <!-- Second layer: slightly offset larger checks for depth -->
+    <pattern id="checks2" patternUnits="userSpaceOnUse" width="120" height="120" patternTransform="rotate(8)">
+      <rect width="120" height="120" fill="transparent"/>
+      <rect width="60" height="60" fill="rgba(219,29,47,0.12)"/>
+      <rect x="60" y="60" width="60" height="60" fill="rgba(219,29,47,0.12)"/>
+    </pattern>
+  </defs>
+
+  <!-- Base layer: dark navy -->
+  <rect width="800" height="800" fill="#0d1b3a"/>
+
+  <!-- Main distorted checkerboard -->
+  <g opacity="0.07" filter="url(#warp)">
+    <rect width="800" height="800" fill="url(#checks)"/>
+  </g>
+
+  <!-- Subtle rotated checker overlay for depth -->
+  <g opacity="0.04">
+    <rect width="800" height="800" fill="url(#checks2)"/>
+  </g>
+
+  <!-- Diagonal motion streaks -->
+  <g opacity="0.03">
+    <line x1="0" y1="200" x2="800" y2="100" stroke="#DB1D2F" stroke-width="2"/>
+    <line x1="0" y1="350" x2="800" y2="250" stroke="#FFFFFF" stroke-width="1.5"/>
+    <line x1="0" y1="500" x2="800" y2="400" stroke="#DB1D2F" stroke-width="2"/>
+    <line x1="0" y1="650" x2="800" y2="550" stroke="#FFFFFF" stroke-width="1.5"/>
+  </g>
+</svg>
