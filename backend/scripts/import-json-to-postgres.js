@@ -1,89 +1,146 @@
 #!/usr/bin/env node
 
-/**
- * Import JSON data to PostgreSQL
- * Usage: node backend/scripts/import-json-to-postgres.js
- */
-
 const { Pool } = require('pg');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
 
-const pool = new Pool({
-  user: process.env.DB_USER || 'medioteka_user',
-  password: process.env.DB_PASSWORD || 'medioteka_password',
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'medioteka_db',
-});
+const getPoolConfig = () => {
+  if (process.env.DATABASE_URL) {
+    return {
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false }
+    };
+  }
+
+  return {
+    user: process.env.DB_USER || 'medioteka_user',
+    password: process.env.DB_PASSWORD || 'medioteka_password',
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT || 5432,
+    database: process.env.DB_NAME || 'medioteka_db',
+  };
+};
+
+const pool = new Pool(getPoolConfig());
+const PUBLIC_BACKEND_URL = process.env.BACKEND_PUBLIC_URL || process.env.PUBLIC_BACKEND_URL || process.env.RENDER_EXTERNAL_URL || '';
+const rewriteMediaUrl = (url) => {
+  if (!url) return null;
+  if (!PUBLIC_BACKEND_URL) return url;
+  return String(url)
+    .replace(/^http:\/\/localhost:4001/, PUBLIC_BACKEND_URL)
+    .replace(/^https:\/\/vinyl-casik-production\.up\.railway\.app/, PUBLIC_BACKEND_URL);
+};
+
+async function ensureSchema(client) {
+  const schemaSql = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
+  await client.query(schemaSql);
+}
 
 async function importData() {
-  console.log('📦 Starting JSON to PostgreSQL import...\n');
+  console.log('📦 Starting JSON → PostgreSQL import...\n');
 
   const client = await pool.connect();
-  
+
   try {
     await client.query('BEGIN');
+    await ensureSchema(client);
 
-    // Import users
     const usersPath = path.join(__dirname, '..', 'users.json');
+    const vinylsPath = path.join(__dirname, '..', 'vinyls.json');
+    const oldToNewUserId = new Map();
+    const oldToNewVinylId = new Map();
+
     if (fs.existsSync(usersPath)) {
       const usersData = JSON.parse(fs.readFileSync(usersPath, 'utf8'));
       const users = usersData.users || [];
-      
+
       for (const user of users) {
-        if (user.id && user.username) {
-          const password = user.passwordHash || user.password;
-          await client.query(
-            'INSERT INTO users (id, username, password, role, created_at) VALUES ($1, $2, $3, $4, NOW()) ON CONFLICT (id) DO NOTHING',
-            [user.id.toString(), user.username, password, user.role || 'user']
-          );
+        if (!user.username) continue;
+        const password = user.passwordHash || user.password;
+
+        const res = await client.query(
+          `INSERT INTO users (username, password, role)
+           VALUES ($1, $2, $3)
+           ON CONFLICT (username) DO UPDATE SET username = EXCLUDED.username
+           RETURNING id`,
+          [user.username, password, user.role || 'user']
+        );
+
+        if (user.id != null) {
+          oldToNewUserId.set(String(user.id), res.rows[0].id);
         }
       }
-      console.log(`✓ Imported ${users.length} users`);
+
+      console.log(`✓ Imported/upserted ${users.length} users`);
     }
 
-    // Import vinyls
-    const vinylsPath = path.join(__dirname, '..', 'vinyls.json');
     if (fs.existsSync(vinylsPath)) {
       const vinylsData = JSON.parse(fs.readFileSync(vinylsPath, 'utf8'));
       const vinyls = vinylsData.vinyls || [];
-      
-      for (const vinyl of vinyls) {
-        if (vinyl.id && vinyl.title && vinyl.artist && vinyl.ownerId) {
-          await client.query(
-            'INSERT INTO vinyls (id, title, artist, year, coverUrl, musicUrl, note, ownerId, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW()) ON CONFLICT (id) DO NOTHING',
-            [vinyl.id.toString(), vinyl.title, vinyl.artist, vinyl.year || 2020, vinyl.coverUrl, vinyl.musicUrl, vinyl.note || '', vinyl.ownerId.toString()]
-          );
 
-          // Import likes
-          if (vinyl.likes && Array.isArray(vinyl.likes)) {
-            for (const userId of vinyl.likes) {
-              await client.query(
-                'INSERT INTO vinyl_likes (vinylId, userId, created_at) VALUES ($1, $2, NOW()) ON CONFLICT (vinylId, userId) DO NOTHING',
-                [vinyl.id.toString(), userId.toString()]
-              );
-            }
+      for (const vinyl of vinyls) {
+        if (!vinyl.title || !vinyl.artist) continue;
+
+        const ownerUuid = oldToNewUserId.get(String(vinyl.ownerId)) || [...oldToNewUserId.values()][0] || null;
+        if (!ownerUuid) continue;
+
+        const res = await client.query(
+          `INSERT INTO vinyls (title, artist, year, coverUrl, musicUrl, note, genre, ownerId)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+           ON CONFLICT DO NOTHING
+           RETURNING id`,
+          [
+            vinyl.title,
+            vinyl.artist,
+            vinyl.year || 2020,
+            rewriteMediaUrl(vinyl.coverUrl || null),
+            rewriteMediaUrl(vinyl.musicUrl || null),
+            vinyl.note || '',
+            'other',
+            ownerUuid
+          ]
+        );
+
+        let createdId = res.rows[0]?.id;
+        if (!createdId) {
+          const existing = await client.query(
+            'SELECT id FROM vinyls WHERE title = $1 AND artist = $2 ORDER BY created_at DESC LIMIT 1',
+            [vinyl.title, vinyl.artist]
+          );
+          createdId = existing.rows[0]?.id;
+        }
+
+        if (vinyl.id != null && createdId) {
+          oldToNewVinylId.set(String(vinyl.id), createdId);
+        }
+
+        if (createdId && Array.isArray(vinyl.likes)) {
+          for (const oldUserId of vinyl.likes) {
+            const likeUserId = oldToNewUserId.get(String(oldUserId));
+            if (!likeUserId) continue;
+            await client.query(
+              'INSERT INTO vinyl_likes (vinylId, userId) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+              [createdId, likeUserId]
+            );
           }
         }
       }
-      console.log(`✓ Imported ${vinyls.length} vinyls`);
+
+      console.log(`✓ Imported/upserted ${vinyls.length} vinyls`);
     }
 
     await client.query('COMMIT');
     console.log('\n✅ Import completed successfully!');
 
-    // Show stats
-    const userCount = await client.query('SELECT COUNT(*) FROM users');
-    const vinylCount = await client.query('SELECT COUNT(*) FROM vinyls');
-    const likeCount = await client.query('SELECT COUNT(*) FROM vinyl_likes');
+    const userCount = await client.query('SELECT COUNT(*)::int AS c FROM users');
+    const vinylCount = await client.query('SELECT COUNT(*)::int AS c FROM vinyls');
+    const likeCount = await client.query('SELECT COUNT(*)::int AS c FROM vinyl_likes');
 
     console.log('\n📊 Database stats:');
-    console.log(`   Users: ${userCount.rows[0].count}`);
-    console.log(`   Vinyls: ${vinylCount.rows[0].count}`);
-    console.log(`   Likes: ${likeCount.rows[0].count}`);
-
+    console.log(`   Users: ${userCount.rows[0].c}`);
+    console.log(`   Vinyls: ${vinylCount.rows[0].c}`);
+    console.log(`   Likes: ${likeCount.rows[0].c}`);
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('❌ Import failed:', err.message);
@@ -94,7 +151,7 @@ async function importData() {
   }
 }
 
-importData().catch(err => {
+importData().catch((err) => {
   console.error('Fatal error:', err);
   process.exit(1);
 });

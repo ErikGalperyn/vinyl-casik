@@ -54,13 +54,15 @@ async function verify() {
   }
 
   // Initialize PostgreSQL connection
-  const pgPool = new Pool({
-    user: process.env.DB_USER || 'medioteka_user',
-    password: process.env.DB_PASSWORD || 'medioteka_password',
-    host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || 5432,
-    database: process.env.DB_NAME || 'medioteka_db',
-  });
+  const pgPool = process.env.DATABASE_URL
+    ? new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } })
+    : new Pool({
+        user: process.env.DB_USER || 'medioteka_user',
+        password: process.env.DB_PASSWORD || 'medioteka_password',
+        host: process.env.DB_HOST || 'localhost',
+        port: process.env.DB_PORT || 5432,
+        database: process.env.DB_NAME || 'medioteka_db',
+      });
 
   try {
     await pgPool.query('SELECT 1');
