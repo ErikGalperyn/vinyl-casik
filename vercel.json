@@ -1,7 +1,4 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": ".next",
-  "env": {
-    "NEXT_PUBLIC_BACKEND_URL": "https://vinyl-casik-production.up.railway.app"
-  }
+  "outputDirectory": ".next"
 }
