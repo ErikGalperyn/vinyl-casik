@@ -172,6 +172,73 @@ export default function Home() {
     document.documentElement.dataset.theme = nextTheme;
   };
 
+  const isArsenalFullscreen = theme === 'arsenal-classic';
+  const fullscreenPalette = isArsenalFullscreen
+    ? {
+        headerBg: '#111111',
+        headerBorder: '#c8102e',
+        headerShadow: '0 6px 20px rgba(200, 16, 46, 0.35)',
+        nowPlaying: '#ffd500',
+        nowPlayingShadow: '0 2px 8px rgba(255, 213, 0, 0.4)',
+        title: '#ffffff',
+        titleShadow: '0 4px 12px rgba(200, 16, 46, 0.7), 0 0 24px rgba(255, 213, 0, 0.35)',
+        artist: '#ff4d4d',
+        artistShadow: '0 2px 8px rgba(200, 16, 46, 0.4)',
+        lyricActive: '#ffd500',
+        lyricPast: '#ffffff',
+        lyricFuture: 'rgba(255, 255, 255, 0.55)',
+        lyricBorder: '#c8102e',
+        lyricBg: 'rgba(200, 16, 46, 0.16)',
+        lyricShadow: '0 0 24px rgba(200, 16, 46, 0.65), 0 0 8px rgba(255, 213, 0, 0.45)',
+        footerBg: '#111111',
+        footerBorder: '#c8102e',
+        footerShadow: '0 -6px 20px rgba(200, 16, 46, 0.25)',
+        progressTrack: 'rgba(0, 0, 0, 0.55)',
+        progressBorder: '#c8102e',
+        progressGlow: 'inset 0 2px 8px rgba(0,0,0,0.5), 0 0 12px rgba(200, 16, 46, 0.35)',
+        progressFill: 'linear-gradient(90deg, #c8102e 0%, #ffd500 100%)',
+        progressFillShadow: '0 0 28px rgba(200, 16, 46, 0.8), 0 0 16px rgba(255, 213, 0, 0.5)',
+        progressTime: '#ffd500',
+        progressTimeShadow: '0 2px 6px rgba(255, 213, 0, 0.35)',
+        playBtnBg: 'linear-gradient(135deg, #c8102e 0%, #8f0b20 50%, #1a1a1a 100%)',
+        playBtnColor: '#ffd500',
+        playBtnBorder: '#ffd500',
+        playBtnShadow: '0 16px 0 rgba(255, 213, 0, 0.55), 0 20px 60px rgba(200, 16, 46, 0.72), 0 0 40px rgba(255, 213, 0, 0.35)',
+        playBtnShadowHover: '0 24px 0 rgba(255, 213, 0, 0.65), 0 28px 70px rgba(200, 16, 46, 0.85), 0 0 50px rgba(255, 213, 0, 0.48)'
+      }
+    : {
+        headerBg: 'var(--c-surface)',
+        headerBorder: 'var(--c-accent)',
+        headerShadow: '0 6px 20px rgba(165, 0, 68, 0.35)',
+        nowPlaying: '#FDCB00',
+        nowPlayingShadow: '0 2px 8px rgba(253, 203, 0, 0.4)',
+        title: '#FFFFFF',
+        titleShadow: '0 4px 12px rgba(165, 0, 68, 0.6), 0 0 24px rgba(253, 203, 0, 0.3)',
+        artist: '#5DADE2',
+        artistShadow: '0 2px 8px rgba(93, 173, 226, 0.4)',
+        lyricActive: '#FDCB00',
+        lyricPast: '#ffffff',
+        lyricFuture: 'rgba(255, 255, 255, 0.5)',
+        lyricBorder: 'var(--c-accent)',
+        lyricBg: 'rgba(165, 0, 68, 0.15)',
+        lyricShadow: '0 0 28px rgba(165, 0, 68, 0.7), 0 0 8px rgba(253, 203, 0, 0.5)',
+        footerBg: 'var(--c-surface)',
+        footerBorder: 'var(--c-accent)',
+        footerShadow: '0 -6px 20px rgba(165, 0, 68, 0.25)',
+        progressTrack: 'rgba(0, 0, 0, 0.4)',
+        progressBorder: 'var(--c-accent)',
+        progressGlow: 'inset 0 2px 8px rgba(0,0,0,0.5), 0 0 12px rgba(165, 0, 68, 0.3)',
+        progressFill: 'linear-gradient(90deg, var(--c-accent) 0%, #FDCB00 100%)',
+        progressFillShadow: '0 0 28px rgba(165, 0, 68, 0.8), 0 0 16px rgba(253, 203, 0, 0.5)',
+        progressTime: '#FDCB00',
+        progressTimeShadow: '0 2px 6px rgba(253, 203, 0, 0.3)',
+        playBtnBg: 'linear-gradient(135deg, var(--c-accent) 0%, #A50044 50%, #8a0037 100%)',
+        playBtnColor: '#FDCB00',
+        playBtnBorder: '#FDCB00',
+        playBtnShadow: '0 16px 0 rgba(253, 203, 0, 0.6), 0 20px 60px rgba(165, 0, 68, 0.7), 0 0 40px rgba(253, 203, 0, 0.4)',
+        playBtnShadowHover: '0 24px 0 rgba(253, 203, 0, 0.7), 0 28px 70px rgba(165, 0, 68, 0.85), 0 0 50px rgba(253, 203, 0, 0.5)'
+      };
+
   const extractColorsFromImage = useCallback(async (imageUrl) => {
     try {
       const img = new Image();
@@ -2657,11 +2724,11 @@ export default function Home() {
             </button>
 
             {/* Header - Track Info */}
-            <div style={{ position: 'relative', zIndex: 10, padding: '40px 60px', textAlign: 'center', borderBottom: '3px solid var(--c-accent)', background: 'var(--c-surface)', boxShadow: '0 6px 20px rgba(165, 0, 68, 0.35)' }}>
-              <div style={{ fontSize: 12, fontWeight: 900, color: '#FDCB00', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, textShadow: '0 2px 8px rgba(253, 203, 0, 0.4)' }}>
+            <div style={{ position: 'relative', zIndex: 10, padding: '40px 60px', textAlign: 'center', borderBottom: `3px solid ${fullscreenPalette.headerBorder}`, background: fullscreenPalette.headerBg, boxShadow: fullscreenPalette.headerShadow }}>
+              <div style={{ fontSize: 12, fontWeight: 900, color: fullscreenPalette.nowPlaying, textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, textShadow: fullscreenPalette.nowPlayingShadow }}>
                 <span style={{ fontSize: 16 }}>♪</span> NOW PLAYING
               </div>
-              <h1 style={{ margin: 0, color: '#FFFFFF', fontSize: 56, fontWeight: 900, marginBottom: 16, letterSpacing: '0.02em', textShadow: '0 4px 12px rgba(165, 0, 68, 0.6), 0 0 24px rgba(253, 203, 0, 0.3)' }}>
+              <h1 style={{ margin: 0, color: fullscreenPalette.title, fontSize: 56, fontWeight: 900, marginBottom: 16, letterSpacing: '0.02em', textShadow: fullscreenPalette.titleShadow }}>
                 {currentlyPlaying.title}
               </h1>
 
@@ -2671,7 +2738,7 @@ export default function Home() {
                 </div>
               )}
 
-              <p style={{ margin: 0, color: '#5DADE2', fontSize: 28, fontWeight: 800, letterSpacing: '0.5px', textShadow: '0 2px 8px rgba(93, 173, 226, 0.4)' }}>
+              <p style={{ margin: 0, color: fullscreenPalette.artist, fontSize: 28, fontWeight: 800, letterSpacing: '0.5px', textShadow: fullscreenPalette.artistShadow }}>
                 {currentlyPlaying.artist}
               </p>
               {currentlyPlaying.year && (
@@ -2705,18 +2772,18 @@ export default function Home() {
                           style={{
                             margin: 0,
                             padding: '16px 24px',
-                            color: highlight ? '#FDCB00' : isPast ? '#ffffff' : 'rgba(255, 255, 255, 0.5)',
+                            color: highlight ? fullscreenPalette.lyricActive : isPast ? fullscreenPalette.lyricPast : fullscreenPalette.lyricFuture,
                             fontSize: highlight ? 36 : isPast ? 24 : 20,
                             fontWeight: highlight ? 900 : isPast ? 700 : 500,
                             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                            borderLeft: highlight ? '5px solid var(--c-accent)' : '5px solid transparent',
+                            borderLeft: highlight ? `5px solid ${fullscreenPalette.lyricBorder}` : '5px solid transparent',
                             paddingLeft: 24,
                             lineHeight: 1.7,
                             textAlign: 'center',
-                            textShadow: highlight ? '0 0 28px rgba(165, 0, 68, 0.7), 0 0 8px rgba(253, 203, 0, 0.5)' : isPast ? '0 1px 4px rgba(0, 0, 0, 0.3)' : 'none',
+                            textShadow: highlight ? fullscreenPalette.lyricShadow : isPast ? '0 1px 4px rgba(0, 0, 0, 0.3)' : 'none',
                             transform: highlight ? 'translateX(12px) scale(1.05)' : 'translateX(0) scale(1)',
                             borderRadius: 12,
-                            background: highlight ? 'rgba(165, 0, 68, 0.15)' : 'transparent',
+                            background: highlight ? fullscreenPalette.lyricBg : 'transparent',
                             cursor: 'pointer'
                           }}
                         >
@@ -2739,19 +2806,19 @@ export default function Home() {
             </div>
 
             {/* Footer - Controls */}
-            <div style={{ position: 'relative', zIndex: 10, padding: '28px 60px 36px', borderTop: '3px solid var(--c-accent)', background: 'var(--c-surface)', boxShadow: '0 -6px 20px rgba(165, 0, 68, 0.25)' }}>
+            <div style={{ position: 'relative', zIndex: 10, padding: '28px 60px 36px', borderTop: `3px solid ${fullscreenPalette.footerBorder}`, background: fullscreenPalette.footerBg, boxShadow: fullscreenPalette.footerShadow }}>
               {/* Progress Bar */}
               <div style={{ marginBottom: 28 }}>
                 <div
                   style={{ 
                     height: 10, 
-                    background: 'rgba(0, 0, 0, 0.4)', 
+                    background: fullscreenPalette.progressTrack,
                     borderRadius: 999, 
                     overflow: 'hidden', 
                     cursor: 'pointer', 
                     position: 'relative', 
-                    border: '2px solid var(--c-accent)',
-                    boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.5), 0 0 12px rgba(165, 0, 68, 0.3)'
+                    border: `2px solid ${fullscreenPalette.progressBorder}`,
+                    boxShadow: fullscreenPalette.progressGlow
                   }}
                   onClick={(e) => {
                     if (!audioRefsRef.current[currentlyPlaying.id] || !duration[currentlyPlaying.id]) return;
@@ -2763,17 +2830,17 @@ export default function Home() {
                 >
                   <div style={{
                     height: '100%',
-                    background: 'linear-gradient(90deg, var(--c-accent) 0%, #FDCB00 100%)',
+                    background: fullscreenPalette.progressFill,
                     width: `${((currentTime[currentlyPlaying.id] || 0) / (duration[currentlyPlaying.id] || 1)) * 100}%`,
                     transition: 'width 0.1s linear',
-                    boxShadow: '0 0 28px rgba(165, 0, 68, 0.8), 0 0 16px rgba(253, 203, 0, 0.5)',
+                    boxShadow: fullscreenPalette.progressFillShadow,
                     position: 'relative'
                   }}>
                     <div style={{ position: 'absolute', right: -8, top: '50%', transform: 'translateY(-50%)', width: 20, height: 20, background: 'var(--c-ink)', borderRadius: '50%', border: '3px solid var(--c-accent2)', boxShadow: '0 0 16px rgb(var(--rgb-accent2) / 0.9)' }}></div>
                   </div>
                 </div>
                 
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#FDCB00', fontSize: 14, marginTop: 14, fontWeight: 900, letterSpacing: '0.5px', textShadow: '0 2px 6px rgba(253, 203, 0, 0.3)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: fullscreenPalette.progressTime, fontSize: 14, marginTop: 14, fontWeight: 900, letterSpacing: '0.5px', textShadow: fullscreenPalette.progressTimeShadow }}>
                   <span>{formatTime(currentTime[currentlyPlaying.id] || 0)}</span>
                   <span>{formatTime(duration[currentlyPlaying.id] || 0)}</span>
                 </div>
@@ -2784,9 +2851,9 @@ export default function Home() {
                 <button
                   onClick={() => toggleSpin(currentlyPlaying.id)}
                   style={{ 
-                    background: 'linear-gradient(135deg, var(--c-accent) 0%, #A50044 50%, #8a0037 100%)', 
-                    color: '#FDCB00', 
-                    border: '3px solid #FDCB00', 
+                    background: fullscreenPalette.playBtnBg,
+                    color: fullscreenPalette.playBtnColor,
+                    border: `3px solid ${fullscreenPalette.playBtnBorder}`,
                     width: 100, 
                     height: 100, 
                     borderRadius: 28, 
@@ -2796,17 +2863,17 @@ export default function Home() {
                     alignItems: 'center', 
                     justifyContent: 'center', 
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', 
-                    boxShadow: '0 16px 0 rgba(253, 203, 0, 0.6), 0 20px 60px rgba(165, 0, 68, 0.7), 0 0 40px rgba(253, 203, 0, 0.4)',
+                    boxShadow: fullscreenPalette.playBtnShadow,
                     fontWeight: 900,
                     flexShrink: 0
                   }}
                   onMouseEnter={(e) => { 
                     e.currentTarget.style.transform = 'translateY(-8px) scale(1.08)'; 
-                    e.currentTarget.style.boxShadow = '0 24px 0 rgba(253, 203, 0, 0.7), 0 28px 70px rgba(165, 0, 68, 0.85), 0 0 50px rgba(253, 203, 0, 0.5)'; 
+                    e.currentTarget.style.boxShadow = fullscreenPalette.playBtnShadowHover;
                   }}
                   onMouseLeave={(e) => { 
                     e.currentTarget.style.transform = 'translateY(0) scale(1)'; 
-                    e.currentTarget.style.boxShadow = '0 16px 0 rgba(253, 203, 0, 0.6), 0 20px 60px rgba(165, 0, 68, 0.7), 0 0 40px rgba(253, 203, 0, 0.4)'; 
+                    e.currentTarget.style.boxShadow = fullscreenPalette.playBtnShadow;
                   }}
                 >
                   {spinningVinyls[currentlyPlaying.id] ? '⏸' : '▶'}
