@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: medioteka-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_TYPE
+        value: postgres
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: medioteka-db
+          property: connectionString
+
+databases:
+  - name: medioteka-db
+    databaseName: medioteka
+    user: medioteka_user
+    plan: free

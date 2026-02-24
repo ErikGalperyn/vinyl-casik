@@ -18,15 +18,25 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('uploads'));
 
-const SECRET = 'medioteka-secret-key-2025';
+const SECRET = process.env.JWT_SECRET || 'medioteka-secret-key-2025';
 
 // iTunes API - no authentication required! 🎵
 
-// Fix localhost URLs to production URLs
+const getPublicBaseUrl = () => (
+  process.env.BACKEND_PUBLIC_URL ||
+  process.env.PUBLIC_BACKEND_URL ||
+  process.env.RENDER_EXTERNAL_URL ||
+  'http://localhost:4001'
+);
+
+// Normalize media URLs for the current deployment host
 function fixMediaUrls(url) {
   if (!url) return url;
   if (typeof url !== 'string') return url;
-  return url.replace('http://localhost:4001', 'https://vinyl-casik-production.up.railway.app');
+  const publicBaseUrl = getPublicBaseUrl();
+  return url
+    .replace('http://localhost:4001', publicBaseUrl)
+    .replace('https://vinyl-casik-production.up.railway.app', publicBaseUrl);
 }
 
 // Normalize DB keys (PostgreSQL returns lowercase column names)
@@ -115,7 +125,7 @@ app.post('/upload-cover', authMiddleware, upload.single('cover'), async (req, re
       .webp({ quality: 80 })
       .toFile(filepath);
     
-    const url = `http://localhost:4001/${filename}`;
+    const url = `${getPublicBaseUrl()}/${filename}`;
     res.json({ url, filename });
   } catch (error) {
     console.error('Upload error:', error);
@@ -138,7 +148,7 @@ app.post('/upload-music', authMiddleware, audioUpload.single('music'), async (re
     
     fs.writeFileSync(filepath, req.file.buffer);
     
-    const url = `http://localhost:4001/music/${filename}`;
+    const url = `${getPublicBaseUrl()}/music/${filename}`;
     res.json({ url, filename });
   } catch (error) {
     console.error('Music upload error:', error);
@@ -158,7 +168,7 @@ app.post('/upload-playlist-cover', authMiddleware, upload.single('cover'), async
       .webp({ quality: 85 })
       .toFile(filepath);
     
-    const PUBLIC_URL = process.env.BACKEND_PUBLIC_URL || process.env.PUBLIC_BACKEND_URL || 'http://localhost:4001';
+    const PUBLIC_URL = getPublicBaseUrl();
     const url = `${PUBLIC_URL}/${filename}`;
     res.json({ url, filename });
   } catch (error) {
